@@ -63,11 +63,13 @@ export default function QualityMatters() {
 
           {/* Right: Warranty callout */}
           <div className="lg:sticky lg:top-24">
-            {/* Image placeholder */}
-            <div className="gallery-placeholder rounded-xl mb-8 bg-catalyst-elevated">
-              <span className="text-catalyst-grey-600 text-xs font-medium tracking-wider uppercase">
-                Quality Detail Shot
-              </span>
+            {/* Quality detail image */}
+            <div className="overflow-hidden rounded-xl mb-8">
+              <img
+                src="/images/quality.webp"
+                alt="Quality detail shot of precision install work"
+                className="w-full h-auto rounded-xl"
+              />
             </div>
 
             {/* Warranty box */}

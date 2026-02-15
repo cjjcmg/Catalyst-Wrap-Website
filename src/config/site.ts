@@ -92,7 +92,7 @@ export const services: Service[] = [
       "Reduces glare for a more comfortable drive",
       "Protects interior surfaces from fading",
     ],
-    image: "/images/service-window-tint.webp",
+    image: "/images/grey_raptor.webp",
   },
   {
     slug: "customization",
@@ -107,7 +107,7 @@ export const services: Service[] = [
       "Interior and exterior accessories",
       "Luxury and performance enhancements",
     ],
-    image: "/images/service-customization.webp",
+    image: "/images/green_tacoma.webp",
   },
 ];
 
@@ -125,12 +125,12 @@ export interface Brand {
 export const brands: Brand[] = [
   {
     name: "Vorsteiner",
-    logo: "/images/brands/vorsteiner.png", // TODO: Add actual logo
+    logo: "/images/brands/vorsteiner_.webp",
     url: "https://www.vorsteiner.com",
   },
   {
     name: "Dirt King",
-    logo: "/images/brands/dirt-king.png", // TODO: Add actual logo
+    logo: "/images/brands/dirt-king.png",
     url: "https://www.dirtkingfab.com",
   },
   // To add a new brand, copy and paste the template below:
