@@ -19,7 +19,7 @@ export default function Hero() {
         <div className="max-w-3xl">
           {/* Eyebrow */}
           <p className="mb-4 font-heading text-sm font-semibold uppercase tracking-[0.2em] text-catalyst-red animate-fade-in-up">
-            Anaheim&apos;s Premier Auto Customizer
+            Southern California&apos;s Premier Auto Customizer
           </p>
 
           {/* Headline */}
@@ -32,7 +32,7 @@ export default function Hero() {
 
           {/* Subhead */}
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-catalyst-grey-400 sm:text-xl animate-fade-in-up animate-delay-200">
-            Premium vinyl wraps, paint protection film, and window tint &mdash; precision&#8209;installed for discerning owners across Los&nbsp;Angeles and Orange&nbsp;County.
+            Premium vinyl wraps, paint protection film, and window tint, precision&#8209;installed for discerning owners across Los&nbsp;Angeles and Orange&nbsp;County.
           </p>
 
           {/* CTAs */}

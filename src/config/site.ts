@@ -228,8 +228,8 @@ export const gallery: GalleryItem[] = [
 export const trustIndicators = [
   {
     icon: "map-pin",
-    title: "Anaheim Based",
-    description: "Serving Los Angeles & Orange County",
+    title: "Serving",
+    description: "Los Angeles & Orange County",
   },
   {
     icon: "shield-check",
