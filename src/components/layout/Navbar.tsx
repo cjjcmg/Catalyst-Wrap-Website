@@ -27,7 +27,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex-shrink-0" aria-label={`${siteConfig.name} home`}>
             <Image
-              src="/images/CMW-logo.jpg"
+              src="/images/CMW-logo.webp"
               alt={siteConfig.name}
               width={180}
               height={48}

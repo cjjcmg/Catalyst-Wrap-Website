@@ -62,7 +62,7 @@ export const services: Service[] = [
       "Commercial and fleet branding options",
       "Thousands of colors, finishes, and textures",
     ],
-    image: "/images/service-vinyl-wrap.jpg",
+    image: "/images/green_G_wrap.webp",
   },
   {
     slug: "ppf",
@@ -77,7 +77,7 @@ export const services: Service[] = [
       "Preserves factory paint for years",
       "Virtually invisible once installed",
     ],
-    image: "/images/service-ppf.jpg",
+    image: "/images/blue_bmw850.webp",
   },
   {
     slug: "window-tint",
@@ -92,7 +92,7 @@ export const services: Service[] = [
       "Reduces glare for a more comfortable drive",
       "Protects interior surfaces from fading",
     ],
-    image: "/images/service-window-tint.jpg",
+    image: "/images/service-window-tint.webp",
   },
   {
     slug: "customization",
@@ -107,7 +107,7 @@ export const services: Service[] = [
       "Interior and exterior accessories",
       "Luxury and performance enhancements",
     ],
-    image: "/images/service-customization.jpg",
+    image: "/images/service-customization.webp",
   },
 ];
 
@@ -207,18 +207,18 @@ export interface GalleryItem {
 }
 
 export const gallery: GalleryItem[] = [
-  { src: "/images/gallery/gallery-01.jpg", alt: "Matte black full-body vinyl wrap on sports car", category: "wrap" },
-  { src: "/images/gallery/gallery-02.jpg", alt: "Full front PPF installation on luxury sedan", category: "ppf" },
-  { src: "/images/gallery/gallery-03.jpg", alt: "Ceramic window tint on SUV", category: "tint" },
-  { src: "/images/gallery/gallery-04.jpg", alt: "Off-road truck with lift kit and accessories", category: "offroad" },
-  { src: "/images/gallery/gallery-05.jpg", alt: "Satin wrap on BMW M4", category: "wrap" },
-  { src: "/images/gallery/gallery-06.jpg", alt: "Paint protection film detail on hood", category: "ppf" },
-  { src: "/images/gallery/gallery-07.jpg", alt: "Window tint install on Porsche", category: "tint" },
-  { src: "/images/gallery/gallery-08.jpg", alt: "Custom off-road Bronco build", category: "offroad" },
-  { src: "/images/gallery/gallery-09.jpg", alt: "Color-shift vinyl wrap on luxury vehicle", category: "wrap" },
-  { src: "/images/gallery/gallery-10.jpg", alt: "Full-body PPF on Mercedes", category: "ppf" },
-  { src: "/images/gallery/gallery-11.jpg", alt: "Tinted windows on muscle car", category: "tint" },
-  { src: "/images/gallery/gallery-12.jpg", alt: "Custom Jeep Wrangler off-road build", category: "offroad" },
+  { src: "/images/gallery/gallery-01.webp", alt: "Matte black full-body vinyl wrap on sports car", category: "wrap" },
+  { src: "/images/gallery/gallery-02.webp", alt: "Full front PPF installation on luxury sedan", category: "ppf" },
+  { src: "/images/gallery/gallery-03.webp", alt: "Ceramic window tint on SUV", category: "tint" },
+  { src: "/images/gallery/gallery-04.webp", alt: "Off-road truck with lift kit and accessories", category: "offroad" },
+  { src: "/images/gallery/gallery-05.webp", alt: "Satin wrap on BMW M4", category: "wrap" },
+  { src: "/images/gallery/gallery-06.webp", alt: "Paint protection film detail on hood", category: "ppf" },
+  { src: "/images/gallery/gallery-07.webp", alt: "Window tint install on Porsche", category: "tint" },
+  { src: "/images/gallery/gallery-08.webp", alt: "Custom off-road Bronco build", category: "offroad" },
+  { src: "/images/gallery/gallery-09.webp", alt: "Color-shift vinyl wrap on luxury vehicle", category: "wrap" },
+  { src: "/images/gallery/gallery-10.webp", alt: "Full-body PPF on Mercedes", category: "ppf" },
+  { src: "/images/gallery/gallery-11.webp", alt: "Tinted windows on muscle car", category: "tint" },
+  { src: "/images/gallery/gallery-12.webp", alt: "Custom Jeep Wrangler off-road build", category: "offroad" },
 ];
 
 /* ──────────────────────────────────────────────────────────

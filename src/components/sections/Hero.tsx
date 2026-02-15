@@ -7,14 +7,13 @@ export default function Hero() {
       className="relative min-h-[90vh] flex items-center gradient-hero noise-overlay overflow-hidden"
       aria-label="Hero"
     >
-      {/* Background image slot */}
-      {/* TODO: Replace with actual hero image or video. For video, add a <video> element here. */}
+      {/* Background image */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
-        style={{ backgroundImage: "url('/images/hero-bg.jpg')" }}
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-50"
+        style={{ backgroundImage: "url('/images/corvette_hero.webp')" }}
         role="presentation"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-catalyst-black via-catalyst-black/60 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-catalyst-black via-catalyst-black/30 to-transparent" />
 
       <div className="section-container relative z-10 py-32 sm:py-40">
         <div className="max-w-3xl">
