@@ -21,7 +21,7 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: `${siteConfig.name} — Premium Auto Wraps, PPF & Tint in Anaheim`,
+    default: `${siteConfig.name} — Premium Auto Wraps, PPF & Tint in Southern California`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
