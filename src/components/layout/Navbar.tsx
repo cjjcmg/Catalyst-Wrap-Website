@@ -18,20 +18,20 @@ export default function Navbar() {
 
   return (
     <nav
-      className="fixed top-0 left-0 right-0 z-40 bg-catalyst-black border-b border-catalyst-border shadow-lg shadow-black/30"
+      className="fixed top-0 left-0 right-0 z-40 bg-catalyst-black/50 backdrop-blur-md border-b border-catalyst-border shadow-lg shadow-black/30"
       role="navigation"
       aria-label="Main navigation"
     >
       <div className="section-container">
-        <div className="flex h-16 items-center justify-between sm:h-18">
+        <div className="flex h-24 items-center justify-between sm:h-28">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0" aria-label={`${siteConfig.name} home`}>
             <Image
-              src="/images/CMW-logo.webp"
+              src="/images/CM_logo_wh.webp"
               alt={siteConfig.name}
-              width={180}
-              height={48}
-              className="h-10 w-auto sm:h-12"
+              width={400}
+              height={108}
+              className="h-16 w-auto sm:h-20"
               priority
             />
           </Link>

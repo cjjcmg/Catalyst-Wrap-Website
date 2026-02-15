@@ -109,7 +109,7 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <Navbar />
         {/* Offset for fixed navbar */}
-        <div className="pt-16 sm:pt-18">
+        <div className="pt-24 sm:pt-28">
           <main>{children}</main>
         </div>
         <Footer />

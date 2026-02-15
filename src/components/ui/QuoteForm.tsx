@@ -80,10 +80,10 @@ export default function QuoteForm({ compact = false, onSuccess }: QuoteFormProps
       <div className="text-center py-8 space-y-4">
         <div className="text-4xl mb-2">&#10003;</div>
         <h3 className="font-heading text-xl font-bold text-white">
-          Quote Request Received
+          Thank You for Submitting
         </h3>
         <p className="text-catalyst-grey-400">
-          We&apos;ll get back to you shortly. For faster service, call us directly.
+          We will get back to you ASAP. For faster service, call us directly.
         </p>
         <Button href={siteConfig.phoneHref} variant="primary" size="lg">
           Call {siteConfig.phone}

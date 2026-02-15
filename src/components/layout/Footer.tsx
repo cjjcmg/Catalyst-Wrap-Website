@@ -24,7 +24,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <Image
-              src="/images/CMW-logo.webp"
+              src="/images/CM_logo_wh.webp"
               alt={siteConfig.name}
               width={180}
               height={48}

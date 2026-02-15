@@ -1,20 +1,7 @@
 import { NextResponse } from "next/server";
-import { writeFile, readFile, mkdir } from "fs/promises";
-import { join } from "path";
+import { Resend } from "resend";
 
-/*
-  ─────────────────────────────────────────────────────────────
-  Quote / Lead Submission API Route
-
-  Currently: Logs submissions to a local JSON file.
-
-  TODO: Wire up to your preferred service:
-  - Email: Use Resend, SendGrid, or Nodemailer
-  - CRM: Pipe to HubSpot, GoHighLevel, etc.
-  - Notifications: Send a Slack/Discord webhook
-  - Database: Store in Supabase, PlanetScale, etc.
-  ─────────────────────────────────────────────────────────────
-*/
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 interface QuoteSubmission {
   name: string;
@@ -24,26 +11,6 @@ interface QuoteSubmission {
   vehicle: string;
   message: string;
   textUpdates: boolean;
-  submittedAt: string;
-}
-
-const DATA_DIR = join(process.cwd(), "data");
-const DATA_FILE = join(DATA_DIR, "submissions.json");
-
-async function getSubmissions(): Promise<QuoteSubmission[]> {
-  try {
-    const raw = await readFile(DATA_FILE, "utf-8");
-    return JSON.parse(raw);
-  } catch {
-    return [];
-  }
-}
-
-async function saveSubmission(submission: QuoteSubmission) {
-  await mkdir(DATA_DIR, { recursive: true });
-  const submissions = await getSubmissions();
-  submissions.push(submission);
-  await writeFile(DATA_FILE, JSON.stringify(submissions, null, 2), "utf-8");
 }
 
 export async function POST(request: Request) {
@@ -70,35 +37,29 @@ export async function POST(request: Request) {
       name: body.name.trim(),
       email: body.email.trim(),
       phone: body.phone.trim(),
-      service: body.service || "",
-      vehicle: body.vehicle?.trim() || "",
-      message: body.message?.trim() || "",
+      service: body.service || "Not specified",
+      vehicle: body.vehicle?.trim() || "Not specified",
+      message: body.message?.trim() || "No message",
       textUpdates: !!body.textUpdates,
-      submittedAt: new Date().toISOString(),
     };
 
-    // Log to file
-    await saveSubmission(submission);
-
-    // Log to console for development
-    console.log("📩 New quote submission:", submission);
-
-    /*
-      TODO: Add your integrations here. Examples:
-
-      // Send email notification
-      await sendEmail({
-        to: "quotes@catalystmotorsport.com",
-        subject: `New Quote Request from ${submission.name}`,
-        body: formatEmailBody(submission),
-      });
-
-      // Push to CRM
-      await pushToCRM(submission);
-
-      // Send Slack notification
-      await sendSlackWebhook(submission);
-    */
+    await resend.emails.send({
+      from: "Catalyst Motorsport <onboarding@resend.dev>",
+      to: "chris@catalystmotorsport.com",
+      subject: `New Quote Request from ${submission.name}`,
+      html: `
+        <h2>New Quote Request</h2>
+        <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
+          <tr><td style="padding: 8px; font-weight: bold;">Name:</td><td style="padding: 8px;">${submission.name}</td></tr>
+          <tr><td style="padding: 8px; font-weight: bold;">Email:</td><td style="padding: 8px;">${submission.email}</td></tr>
+          <tr><td style="padding: 8px; font-weight: bold;">Phone:</td><td style="padding: 8px;">${submission.phone}</td></tr>
+          <tr><td style="padding: 8px; font-weight: bold;">Service:</td><td style="padding: 8px;">${submission.service}</td></tr>
+          <tr><td style="padding: 8px; font-weight: bold;">Vehicle:</td><td style="padding: 8px;">${submission.vehicle}</td></tr>
+          <tr><td style="padding: 8px; font-weight: bold;">Message:</td><td style="padding: 8px;">${submission.message}</td></tr>
+          <tr><td style="padding: 8px; font-weight: bold;">Text Updates:</td><td style="padding: 8px;">${submission.textUpdates ? "Yes" : "No"}</td></tr>
+        </table>
+      `,
+    });
 
     return NextResponse.json(
       { success: true, message: "Quote request received." },
