@@ -28,9 +28,6 @@ export default function Services() {
                   className="gallery-placeholder rounded-lg bg-catalyst-elevated group-hover:scale-[1.02] transition-transform duration-500"
                   style={{ backgroundImage: `url(${service.image})`, backgroundSize: "cover", backgroundPosition: "center" }}
                 >
-                  <span className="text-catalyst-grey-600 text-xs font-medium tracking-wider uppercase">
-                    {service.title}
-                  </span>
                 </div>
               </div>
 

@@ -143,8 +143,6 @@ export const brands: Brand[] = [
 
 /* ──────────────────────────────────────────────────────────
    Testimonials
-   These are sample placeholders — replace with real customer
-   reviews once available. Do NOT present as real people.
    ────────────────────────────────────────────────────────── */
 
 export interface Testimonial {

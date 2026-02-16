@@ -43,10 +43,6 @@ export default function Testimonials() {
           ))}
         </div>
 
-        {/* Disclaimer */}
-        <p className="mt-8 text-center text-xs text-catalyst-grey-700">
-          Sample testimonials shown for layout purposes. Replace with verified customer reviews.
-        </p>
       </div>
     </section>
   );
