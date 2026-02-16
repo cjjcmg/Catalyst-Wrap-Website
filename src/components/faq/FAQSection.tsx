@@ -158,9 +158,9 @@ const faqs: FAQItem[] = [
   },
   {
     category: "general",
-    question: "Do I need an appointment, or can I walk in?",
+    question: "Do I need an appointment?",
     answer:
-      "Walk-ins are always welcome for consultations and quick questions. For installations, we recommend scheduling an appointment so we can dedicate the proper time and bay space to your vehicle. Call us at " +
+      "We recommend scheduling an appointment so we can dedicate the proper time and bay space to your vehicle. Call us at " +
       siteConfig.phone +
       " or submit a quote request to get on the schedule.",
   },

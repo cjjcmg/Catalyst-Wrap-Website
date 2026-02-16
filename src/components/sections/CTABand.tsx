@@ -14,7 +14,7 @@ export default function CTABand() {
           Ready to Transform Your Ride?
         </h2>
         <p className="mt-4 mx-auto max-w-xl text-lg text-white/80">
-          Get in touch for a free quote. Walk&#8209;ins welcome &mdash; or call now to schedule your consultation.
+          Get in touch for a free quote, or call now to schedule your consultation.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
           <QuoteButton variant="secondary" size="lg" className="bg-white/15 border-white/25 hover:bg-white/25">
