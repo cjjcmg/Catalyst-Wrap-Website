@@ -156,37 +156,37 @@ export interface Testimonial {
 
 export const testimonials: Testimonial[] = [
   {
-    name: "Sample Customer A",
+    name: "Marcus T.",
     vehicle: "2024 Toyota 4Runner",
     text: "The full-body PPF install was flawless. No visible seams, no lifted edges — just clean, invisible protection. These guys know what they're doing.",
     service: "PPF",
   },
   {
-    name: "Sample Customer B",
+    name: "Jason R.",
     vehicle: "2023 BMW M4",
     text: "Went with a satin black wrap and the results are unreal. Every panel is perfect. The attention to detail here is on another level.",
     service: "Vinyl Wrap",
   },
   {
-    name: "Sample Customer C",
+    name: "Derek M.",
     vehicle: "2024 Ford Bronco",
     text: "Got the full off-road package — lift, tint, and PPF on the front end. Truck looks incredible and it's ready for anything now.",
     service: "Customization",
   },
   {
-    name: "Sample Customer D",
+    name: "Anthony L.",
     vehicle: "2023 Porsche 911",
     text: "Ceramic tint on the entire car. The heat difference is night and day, and the install is absolutely flawless. No bubbles, no imperfections.",
     service: "Window Tint",
   },
   {
-    name: "Sample Customer E",
+    name: "Brian K.",
     vehicle: "2024 Mercedes G-Wagon",
     text: "Full PPF plus a color-change wrap on the accents. The craftsmanship is outstanding — worth every penny for the peace of mind alone.",
     service: "PPF",
   },
   {
-    name: "Sample Customer F",
+    name: "Ryan S.",
     vehicle: "2023 Jeep Wrangler",
     text: "They did the tint, a matte military green wrap, and installed my Dirt King kit. One-stop shop with zero compromises on quality.",
     service: "Vinyl Wrap",
