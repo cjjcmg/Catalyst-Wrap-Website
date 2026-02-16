@@ -18,12 +18,25 @@ export default function LeadPopup() {
     setTriggered(true);
   }, []);
 
+  // Force-open from "Get a Quote" buttons (bypasses session dismissal)
+  const forceOpen = useCallback(() => {
+    setOpen(true);
+    setTriggered(true);
+  }, []);
+
   const close = () => {
     setOpen(false);
     if (typeof window !== "undefined") {
       sessionStorage.setItem(STORAGE_KEY, "1");
     }
   };
+
+  // Trigger: custom event from QuoteButton clicks
+  useEffect(() => {
+    const handler = () => forceOpen();
+    window.addEventListener("open-quote-popup", handler);
+    return () => window.removeEventListener("open-quote-popup", handler);
+  }, [forceOpen]);
 
   // Trigger 1: 12-second delay
   useEffect(() => {

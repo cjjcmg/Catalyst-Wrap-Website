@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { siteConfig } from "@/config/site";
 import Button from "@/components/ui/Button";
+import QuoteButton from "@/components/ui/QuoteButton";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -55,9 +56,9 @@ export default function Navbar() {
               <PhoneIcon />
               {siteConfig.phone}
             </Button>
-            <Button href="/contact" variant="primary" size="sm">
+            <QuoteButton variant="primary" size="sm">
               Get a Quote
-            </Button>
+            </QuoteButton>
           </div>
 
           {/* Mobile menu button */}
@@ -99,9 +100,9 @@ export default function Navbar() {
                 <PhoneIcon />
                 Call {siteConfig.phone}
               </Button>
-              <Button href="/contact" variant="primary" size="md" className="w-full">
+              <QuoteButton variant="primary" size="md" className="w-full">
                 Get a Quote
-              </Button>
+              </QuoteButton>
             </div>
           </div>
         </div>

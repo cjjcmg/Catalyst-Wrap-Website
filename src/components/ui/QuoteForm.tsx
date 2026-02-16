@@ -167,20 +167,18 @@ export default function QuoteForm({ compact = false, onSuccess }: QuoteFormProps
             className={inputStyles}
           />
         </div>
-        {!compact && (
-          <div className="sm:col-span-2">
-            <label htmlFor="quote-message" className="sr-only">Message</label>
-            <textarea
-              id="quote-message"
-              name="message"
-              rows={3}
-              placeholder="Tell us about your project (optional)"
-              value={formData.message}
-              onChange={handleChange}
-              className={inputStyles + " resize-none"}
-            />
-          </div>
-        )}
+        <div className={compact ? "" : "sm:col-span-2"}>
+          <label htmlFor="quote-message" className="sr-only">Notes</label>
+          <textarea
+            id="quote-message"
+            name="message"
+            rows={compact ? 2 : 3}
+            placeholder="Notes — tell us about your project (optional)"
+            value={formData.message}
+            onChange={handleChange}
+            className={inputStyles + " resize-none"}
+          />
+        </div>
       </div>
 
       <label className="flex items-center gap-3 cursor-pointer text-sm text-catalyst-grey-400">

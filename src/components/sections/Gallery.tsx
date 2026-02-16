@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { gallery, type GalleryCategory } from "@/config/site";
-import Button from "@/components/ui/Button";
+import QuoteButton from "@/components/ui/QuoteButton";
 
 const filters: { label: string; value: GalleryCategory }[] = [
   { label: "All", value: "all" },
@@ -84,9 +84,9 @@ export default function Gallery() {
 
         {/* CTA */}
         <div className="mt-10 text-center">
-          <Button href="/contact" variant="secondary" size="lg">
+          <QuoteButton variant="secondary" size="lg">
             See Our Work — Get a Quote
-          </Button>
+          </QuoteButton>
         </div>
       </div>
     </section>

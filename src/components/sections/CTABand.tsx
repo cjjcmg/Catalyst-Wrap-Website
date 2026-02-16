@@ -1,5 +1,6 @@
 import { siteConfig } from "@/config/site";
 import Button from "@/components/ui/Button";
+import QuoteButton from "@/components/ui/QuoteButton";
 
 export default function CTABand() {
   return (
@@ -16,9 +17,9 @@ export default function CTABand() {
           Get in touch for a free quote. Walk&#8209;ins welcome &mdash; or call now to schedule your consultation.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <Button href="/contact" variant="secondary" size="lg" className="bg-white/15 border-white/25 hover:bg-white/25">
+          <QuoteButton variant="secondary" size="lg" className="bg-white/15 border-white/25 hover:bg-white/25">
             Get a Quote
-          </Button>
+          </QuoteButton>
           <Button href={siteConfig.phoneHref} variant="secondary" size="lg" className="bg-white/15 border-white/25 hover:bg-white/25">
             <PhoneIcon />
             Call Now

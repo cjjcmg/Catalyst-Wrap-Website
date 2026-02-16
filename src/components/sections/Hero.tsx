@@ -1,5 +1,6 @@
 import { siteConfig } from "@/config/site";
 import Button from "@/components/ui/Button";
+import QuoteButton from "@/components/ui/QuoteButton";
 
 export default function Hero() {
   return (
@@ -37,9 +38,9 @@ export default function Hero() {
 
           {/* CTAs */}
           <div className="mt-8 flex flex-wrap items-center gap-4 animate-fade-in-up animate-delay-300">
-            <Button href="/contact" variant="primary" size="lg">
+            <QuoteButton variant="primary" size="lg">
               Get a Quote
-            </Button>
+            </QuoteButton>
             <Button href={siteConfig.phoneHref} variant="secondary" size="lg">
               <PhoneIcon />
               Call {siteConfig.phone}

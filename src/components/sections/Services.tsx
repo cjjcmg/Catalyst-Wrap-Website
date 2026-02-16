@@ -1,5 +1,5 @@
 import { services } from "@/config/site";
-import Button from "@/components/ui/Button";
+import QuoteButton from "@/components/ui/QuoteButton";
 
 export default function Services() {
   return (
@@ -56,9 +56,9 @@ export default function Services() {
                 ))}
               </ul>
 
-              <Button href="/contact" variant="outline" size="sm">
+              <QuoteButton variant="outline" size="sm">
                 Get a Quote
-              </Button>
+              </QuoteButton>
             </article>
           ))}
         </div>
