@@ -3,7 +3,7 @@ import { brands } from "@/config/site";
 
 export default function Brands() {
   return (
-    <section className="section-padding bg-catalyst-black" aria-label="Featured brands and partners">
+    <section className="section-padding gradient-section noise-overlay" aria-label="Featured brands and partners">
       <div className="section-container">
         {/* Section header */}
         <div className="text-center mb-12">
