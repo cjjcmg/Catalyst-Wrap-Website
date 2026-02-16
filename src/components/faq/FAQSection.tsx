@@ -16,7 +16,7 @@ const faqs: FAQItem[] = [
     category: "wrap",
     question: "What is a vinyl wrap?",
     answer:
-      "A vinyl wrap is a thin, adhesive-backed film applied directly over your vehicle's factory paint. It can completely change the color and finish of your car — matte, gloss, satin, metallic, color-shift, carbon fiber, and more — without the permanence or cost of a full repaint. Wraps also add a layer of protection to the original paint underneath.",
+      "A vinyl wrap is a thin, adhesive-backed film applied directly over your vehicle's factory paint. It can completely change the color and finish of your car, including matte, gloss, satin, metallic, color-shift, carbon fiber, and more, without the permanence or cost of a full repaint. Wraps also add a layer of protection to the original paint underneath.",
   },
   {
     category: "wrap",
@@ -28,31 +28,31 @@ const faqs: FAQItem[] = [
     category: "wrap",
     question: "Will a vinyl wrap damage my paint?",
     answer:
-      "No. When installed and removed properly by professionals, a vinyl wrap will not damage factory paint. In fact, wraps protect the original paint from UV exposure, minor scratches, and road debris. When you're ready for a change, the wrap is removed cleanly, revealing the preserved paint underneath — which can actually help maintain your vehicle's resale value.",
+      "No. When installed and removed properly by professionals, a vinyl wrap will not damage factory paint. In fact, wraps protect the original paint from UV exposure, minor scratches, and road debris. When you're ready for a change, the wrap is removed cleanly, revealing the preserved paint underneath, which can actually help maintain your vehicle's resale value.",
   },
   {
     category: "wrap",
     question: "How much does a full vehicle wrap cost?",
     answer:
-      "The cost of a full vehicle wrap depends on the size of the vehicle, the complexity of the body lines, and the type of film selected. Most full wraps range from $3,000 to $7,000+. We provide personalized quotes for every project because no two vehicles are the same — reach out and we'll give you an accurate estimate.",
+      "The cost of a full vehicle wrap depends on the size of the vehicle, the complexity of the body lines, and the type of film selected. Most full wraps range from $3,000 to $7,000+. We provide personalized quotes for every project because no two vehicles are the same, so reach out and we'll give you an accurate estimate.",
   },
   {
     category: "wrap",
     question: "Can I wrap just part of my car?",
     answer:
-      "Absolutely. Partial wraps are very popular — you can wrap the hood, roof, mirrors, trim, or any combination of panels. This is a great way to add accents, protect high-impact areas, or achieve a two-tone look at a lower cost than a full wrap.",
+      "Absolutely. Partial wraps are very popular, and you can wrap the hood, roof, mirrors, trim, or any combination of panels. This is a great way to add accents, protect high-impact areas, or achieve a two-tone look at a lower cost than a full wrap.",
   },
   {
     category: "wrap",
     question: "How long does it take to wrap a vehicle?",
     answer:
-      "A full vehicle wrap typically takes 3 to 5 business days, depending on the vehicle's size and complexity. Partial wraps and accent work can often be completed in 1 to 2 days. We never rush a job — proper surface preparation, precise installation, and thorough post-heating are essential for a flawless result.",
+      "A full vehicle wrap typically takes 3 to 5 business days, depending on the vehicle's size and complexity. Partial wraps and accent work can often be completed in 1 to 2 days. We never rush a job, because proper surface preparation, precise installation, and thorough post-heating are essential for a flawless result.",
   },
   {
     category: "wrap",
     question: "How do I care for my vinyl wrap?",
     answer:
-      "Hand washing is the best way to maintain your wrap — use a gentle automotive soap and a microfiber mitt. Avoid automatic car washes with abrasive brushes. For stubborn spots, a detail spray designed for vinyl works great. Waxing is not required and certain waxes should be avoided on matte or satin finishes. We provide care instructions with every wrap job.",
+      "Hand washing is the best way to maintain your wrap. Use a gentle automotive soap and a microfiber mitt, and avoid automatic car washes with abrasive brushes. For stubborn spots, a detail spray designed for vinyl works great. Waxing is not required, and certain waxes should be avoided on matte or satin finishes. We provide care instructions with every wrap job.",
   },
   {
     category: "wrap",
@@ -66,13 +66,13 @@ const faqs: FAQItem[] = [
     category: "ppf",
     question: "What is paint protection film (PPF)?",
     answer:
-      "Paint protection film is a thick, optically clear urethane film applied to your vehicle's painted surfaces to shield them from rock chips, road debris, bug stains, bird droppings, and minor scratches. High-end PPF features self-healing technology — light scratches disappear with heat from the sun or warm water — keeping your paint looking factory-fresh for years.",
+      "Paint protection film is a thick, optically clear urethane film applied to your vehicle's painted surfaces to shield them from rock chips, road debris, bug stains, bird droppings, and minor scratches. High-end PPF features self-healing technology, meaning light scratches disappear with heat from the sun or warm water, keeping your paint looking factory-fresh for years.",
   },
   {
     category: "ppf",
     question: "Where should I apply PPF on my vehicle?",
     answer:
-      "The most common areas are the full front end — hood, fenders, bumper, and mirrors — since these take the most impact from road debris. Many owners also protect rocker panels, door edges, A-pillars, and the area behind the rear wheel arches. For maximum coverage, full-body PPF wraps the entire vehicle in invisible armor.",
+      "The most common areas are the full front end, including the hood, fenders, bumper, and mirrors, since these take the most impact from road debris. Many owners also protect rocker panels, door edges, A-pillars, and the area behind the rear wheel arches. For maximum coverage, full-body PPF wraps the entire vehicle in invisible armor.",
   },
   {
     category: "ppf",
@@ -90,7 +90,7 @@ const faqs: FAQItem[] = [
     category: "ppf",
     question: "What does self-healing PPF mean?",
     answer:
-      "Self-healing refers to the film's ability to repair light surface scratches and swirl marks on its own. When the film is exposed to heat — whether from the sun, warm water, or a heat gun — the top layer flows back together and the scratch disappears. This keeps the surface looking smooth and glossy without needing to polish or touch up the film.",
+      "Self-healing refers to the film's ability to repair light surface scratches and swirl marks on its own. When the film is exposed to heat, whether from the sun, warm water, or a heat gun, the top layer flows back together and the scratch disappears. This keeps the surface looking smooth and glossy without needing to polish or touch up the film.",
   },
   {
     category: "ppf",
@@ -116,7 +116,7 @@ const faqs: FAQItem[] = [
     category: "tint",
     question: "What's the difference between ceramic and carbon tint?",
     answer:
-      "Carbon tint uses carbon particles to block heat and UV rays — it's durable, doesn't fade, and offers solid performance at a great price. Ceramic tint uses nano-ceramic technology for the highest heat rejection available, often blocking 50%+ of solar heat while maintaining excellent visibility. Ceramic is the premium option for maximum comfort and performance.",
+      "Carbon tint uses carbon particles to block heat and UV rays. It's durable, doesn't fade, and offers solid performance at a great price. Ceramic tint uses nano-ceramic technology for the highest heat rejection available, often blocking 50%+ of solar heat while maintaining excellent visibility. Ceramic is the premium option for maximum comfort and performance.",
   },
   {
     category: "tint",
@@ -128,7 +128,7 @@ const faqs: FAQItem[] = [
     category: "tint",
     question: "How long does window tint take to install?",
     answer:
-      "Most full-vehicle tint installations are completed in 2 to 4 hours, depending on the number of windows and the type of vehicle. We use precision computer-cut patterns for a perfect fit on every window, with no trimming on the glass — this ensures clean edges and protects your vehicle's interior from accidental blade marks.",
+      "Most full-vehicle tint installations are completed in 2 to 4 hours, depending on the number of windows and the type of vehicle. We use precision computer-cut patterns for a perfect fit on every window, with no trimming on the glass. This ensures clean edges and protects your vehicle's interior from accidental blade marks.",
   },
   {
     category: "tint",
@@ -154,7 +154,7 @@ const faqs: FAQItem[] = [
     category: "general",
     question: "Do you offer warranties on your work?",
     answer:
-      "Yes. Every installation at Catalyst Motorsport is backed by both our workmanship warranty and the film manufacturer's product warranty. We stand behind the quality of our work — if there's ever an issue with the installation, we'll make it right. Specific warranty terms vary by product and are explained in detail during your consultation.",
+      "Yes. Every installation at Catalyst Motorsport is backed by both our workmanship warranty and the film manufacturer's product warranty. We stand behind the quality of our work, and if there's ever an issue with the installation, we'll make it right. Specific warranty terms vary by product and are explained in detail during your consultation.",
   },
   {
     category: "general",
@@ -168,7 +168,7 @@ const faqs: FAQItem[] = [
     category: "general",
     question: "Why Catalyst Motorsport?",
     answer:
-      "Catalyst Motorsport is the #1 choice for vinyl wraps, PPF, and window tint in Orange County and Los Angeles — and there's a reason our clients keep coming back. We combine meticulous craftsmanship with premium materials, treating every vehicle like it's our own. Our facility is purpose-built for precision installs, our team is trained on the latest techniques and products, and we hold ourselves to a standard most shops can't match. Whether it's a daily driver or a six-figure build, we deliver results that speak for themselves. When quality, attention to detail, and customer experience matter — Catalyst Motorsport is where you bring your car.",
+      "Catalyst Motorsport is the #1 choice for vinyl wraps, PPF, and window tint in Orange County and Los Angeles, and there's a reason our clients keep coming back. We combine meticulous craftsmanship with premium materials, treating every vehicle like it's our own. Our facility is purpose-built for precision installs, our team is trained on the latest techniques and products, and we hold ourselves to a standard most shops can't match. Whether it's a daily driver or a six-figure build, we deliver results that speak for themselves. When quality, attention to detail, and customer experience matter, Catalyst Motorsport is where you bring your car.",
   },
 ];
 
