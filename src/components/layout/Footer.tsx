@@ -107,11 +107,9 @@ export default function Footer() {
 
             {/* Social icons */}
             <div className="mt-4 flex gap-3">
-              {siteConfig.social.instagram !== "#" || true ? (
-                <SocialLink href={siteConfig.social.instagram} label="Instagram">
-                  <InstagramIcon />
-                </SocialLink>
-              ) : null}
+              <SocialLink href={siteConfig.social.instagram} label="Instagram">
+                <InstagramIcon />
+              </SocialLink>
               {siteConfig.social.facebook !== "#" || true ? (
                 <SocialLink href={siteConfig.social.facebook} label="Facebook">
                   <FacebookIcon />

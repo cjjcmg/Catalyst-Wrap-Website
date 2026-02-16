@@ -28,7 +28,7 @@ export const siteConfig = {
 
   social: {
     // TODO: Replace # with real social URLs
-    instagram: "#",
+    instagram: "https://www.instagram.com/catalyst_motorsport",
     facebook: "#",
     tiktok: "#",
     yelp: "#",

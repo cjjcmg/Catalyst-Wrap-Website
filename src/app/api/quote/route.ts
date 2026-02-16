@@ -1,15 +1,4 @@
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
-
-interface QuoteSubmission {
-  name: string;
-  email: string;
-  phone: string;
-  service: string;
-  vehicle: string;
-  message: string;
-  textUpdates: boolean;
-}
 
 export async function POST(request: Request) {
   try {
@@ -31,34 +20,36 @@ export async function POST(request: Request) {
       );
     }
 
-    const submission: QuoteSubmission = {
-      name: body.name.trim(),
-      email: body.email.trim(),
-      phone: body.phone.trim(),
-      service: body.service || "Not specified",
-      vehicle: body.vehicle?.trim() || "Not specified",
-      message: body.message?.trim() || "No message",
-      textUpdates: !!body.textUpdates,
-    };
+    const webhookUrl = process.env.N8N_WEBHOOK_URL;
+    if (!webhookUrl) {
+      console.error("N8N_WEBHOOK_URL is not configured");
+      return NextResponse.json(
+        { error: "Internal server error. Please try again." },
+        { status: 500 }
+      );
+    }
 
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    await resend.emails.send({
-      from: "Catalyst Motorsport <onboarding@resend.dev>",
-      to: "chris@catalystmotorsport.com",
-      subject: `New Quote Request from ${submission.name}`,
-      html: `
-        <h2>New Quote Request</h2>
-        <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
-          <tr><td style="padding: 8px; font-weight: bold;">Name:</td><td style="padding: 8px;">${submission.name}</td></tr>
-          <tr><td style="padding: 8px; font-weight: bold;">Email:</td><td style="padding: 8px;">${submission.email}</td></tr>
-          <tr><td style="padding: 8px; font-weight: bold;">Phone:</td><td style="padding: 8px;">${submission.phone}</td></tr>
-          <tr><td style="padding: 8px; font-weight: bold;">Service:</td><td style="padding: 8px;">${submission.service}</td></tr>
-          <tr><td style="padding: 8px; font-weight: bold;">Vehicle:</td><td style="padding: 8px;">${submission.vehicle}</td></tr>
-          <tr><td style="padding: 8px; font-weight: bold;">Message:</td><td style="padding: 8px;">${submission.message}</td></tr>
-          <tr><td style="padding: 8px; font-weight: bold;">Text Updates:</td><td style="padding: 8px;">${submission.textUpdates ? "Yes" : "No"}</td></tr>
-        </table>
-      `,
+    const n8nResponse = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: body.name.trim(),
+        email: body.email.trim(),
+        phone: body.phone.trim(),
+        service: body.service || "Not specified",
+        vehicle: body.vehicle?.trim() || "Not specified",
+        message: body.message?.trim() || "No message",
+        textUpdates: !!body.textUpdates,
+      }),
     });
+
+    if (!n8nResponse.ok) {
+      console.error("n8n webhook failed:", n8nResponse.status);
+      return NextResponse.json(
+        { error: "Internal server error. Please try again." },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(
       { success: true, message: "Quote request received." },
