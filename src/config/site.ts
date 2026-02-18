@@ -186,7 +186,7 @@ export const testimonials: Testimonial[] = [
   {
     name: "Ryan S.",
     vehicle: "2023 Jeep Wrangler",
-    text: "They did the tint, a matte military green wrap, and installed my Dirt King kit. One-stop shop with zero compromises on quality.",
+    text: "They did the tint, a matte military green wrap, and installed my lift kit. One-stop shop with zero compromises on quality.",
     service: "Vinyl Wrap",
   },
 ];
