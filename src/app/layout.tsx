@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
+import { seoConfig } from "@/lib/seo";
 import { siteConfig, services, brands, testimonials } from "@/config/site";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -19,12 +20,12 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.url),
+  metadataBase: new URL(seoConfig.domain),
   title: {
-    default: `${siteConfig.name} — Premium Auto Wraps, PPF & Tint in Southern California`,
-    template: `%s | ${siteConfig.name}`,
+    default: seoConfig.defaultTitle,
+    template: seoConfig.titleTemplate,
   },
-  description: siteConfig.description,
+  description: seoConfig.defaultDescription,
   keywords: [
     "vinyl wrap",
     "paint protection film",
@@ -40,27 +41,35 @@ export const metadata: Metadata = {
     "ceramic tint",
     "vehicle wrap",
     "Catalyst Motorsport",
+    "clear bra",
+    "ceramic window tint",
+    "off road builds",
+    "lift kit",
+    "chrome delete",
   ],
+  alternates: {
+    canonical: seoConfig.domain,
+  },
   openGraph: {
-    title: `${siteConfig.name} — Premium Auto Wraps, PPF & Tint`,
-    description: siteConfig.description,
-    url: siteConfig.url,
-    siteName: siteConfig.name,
+    title: seoConfig.defaultTitle,
+    description: seoConfig.defaultDescription,
+    url: seoConfig.domain,
+    siteName: seoConfig.siteName,
     locale: "en_US",
     type: "website",
     images: [
       {
-        url: "/images/og-image.jpg", // TODO: Add OG image (1200x630)
-        width: 1200,
-        height: 630,
-        alt: siteConfig.name,
+        url: seoConfig.ogImage,
+        width: seoConfig.ogImageWidth,
+        height: seoConfig.ogImageHeight,
+        alt: seoConfig.siteName,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.name} — Premium Auto Wraps, PPF & Tint`,
-    description: siteConfig.description,
+    title: seoConfig.defaultTitle,
+    description: seoConfig.defaultDescription,
   },
   robots: {
     index: true,
@@ -83,33 +92,41 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": ["LocalBusiness", "AutoRepair"],
-              name: siteConfig.name,
-              description: siteConfig.description,
-              url: siteConfig.url,
-              telephone: siteConfig.phone,
-              logo: `${siteConfig.url}/images/CMW-logo.png`,
-              image: `${siteConfig.url}/images/og-image.jpg`,
+              name: seoConfig.siteName,
+              description: seoConfig.defaultDescription,
+              url: seoConfig.domain,
+              telephone: seoConfig.phone,
+              logo: `${seoConfig.domain}/images/CMW-logo.png`,
+              image: `${seoConfig.domain}/images/og-image.jpg`,
               address: {
                 "@type": "PostalAddress",
-                streetAddress: siteConfig.address.street,
-                addressLocality: siteConfig.address.city,
-                addressRegion: siteConfig.address.state,
-                postalCode: siteConfig.address.zip,
-                addressCountry: "US",
+                streetAddress: seoConfig.address.street,
+                addressLocality: seoConfig.address.city,
+                addressRegion: seoConfig.address.state,
+                postalCode: seoConfig.address.zip,
+                addressCountry: seoConfig.address.country,
               },
               geo: {
                 "@type": "GeoCoordinates",
-                latitude: 33.8463,
-                longitude: -117.8858,
+                latitude: seoConfig.geo.latitude,
+                longitude: seoConfig.geo.longitude,
               },
-              areaServed: [
-                { "@type": "City", name: "Anaheim" },
-                { "@type": "AdministrativeArea", name: "Orange County" },
-                { "@type": "AdministrativeArea", name: "Los Angeles County" },
-                { "@type": "AdministrativeArea", name: "Southern California" },
-              ],
-              priceRange: "$$",
-              sameAs: [siteConfig.social.instagram],
+              areaServed: seoConfig.serviceAreas.map((area) => ({
+                "@type": area.type,
+                name: area.name,
+              })),
+              openingHoursSpecification: seoConfig.openingHours.map((h) => {
+                const [days, hours] = h.split(" ");
+                const [open, close] = hours.split("-");
+                return {
+                  "@type": "OpeningHoursSpecification",
+                  dayOfWeek: days,
+                  opens: open,
+                  closes: close,
+                };
+              }),
+              priceRange: seoConfig.priceRange,
+              sameAs: seoConfig.socialProfiles,
               hasOfferCatalog: {
                 "@type": "OfferCatalog",
                 name: "Auto Customization Services",

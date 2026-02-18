@@ -1,16 +1,26 @@
 import type { Metadata } from "next";
-import { siteConfig } from "@/config/site";
+import { generatePageMetadata } from "@/lib/seo";
 import FAQSection from "@/components/faq/FAQSection";
 import CTABand from "@/components/sections/CTABand";
+import { BreadcrumbSchema } from "@/components/seo/SchemaMarkup";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = generatePageMetadata({
   title: "FAQ",
-  description: `Frequently asked questions about vinyl wraps, paint protection film (PPF), window tint, and auto customization at ${siteConfig.name} in Anaheim — serving Los Angeles and Orange County.`,
-};
+  description:
+    "Frequently asked questions about vinyl wraps, paint protection film (PPF), window tint, and auto customization at Catalyst Motorsport in Anaheim, serving Los Angeles and Orange County.",
+  path: "/faq",
+});
 
 export default function FAQPage() {
   return (
     <>
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", href: "/" },
+          { name: "FAQ", href: "/faq" },
+        ]}
+      />
+
       {/* Hero */}
       <section className="gradient-hero noise-overlay" aria-label="FAQ">
         <div className="section-container relative z-10 py-16 sm:py-20">

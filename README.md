@@ -135,11 +135,72 @@ Works with Vercel, Netlify, or any Node.js host. For Vercel:
 npx vercel
 ```
 
+## SEO Architecture
+
+### Content Files
+
+All SEO page content is managed through typed data files in `src/content/`:
+
+| File | What it controls |
+|------|-----------------|
+| `services.ts` | Service page content, FAQs, related vehicles |
+| `locations.ts` | Location page content, FAQs, local context |
+| `vehicles.ts` | Vehicle page content, packages, FAQs |
+
+### How to Update FAQs and Page Content
+
+1. Open the relevant content file in `src/content/`
+2. Find the page by its `slug` property
+3. Edit the `faqs` array, intro text, or any other field
+4. Rebuild: `npm run build`
+
+### How to Add a New Service
+
+1. Add an entry to the `servicePages` array in `src/content/services.ts`
+2. The route is auto-generated from the `slug` field (e.g., `slug: "ceramic-coating"` creates `/services/ceramic-coating`)
+3. Update footer links in `src/components/layout/Footer.tsx` if needed
+4. Rebuild to generate the new static page
+
+### How to Add a New Location
+
+1. Add an entry to the `locationPages` array in `src/content/locations.ts`
+2. Include `popularServices` and `popularVehicles` for internal linking
+3. Update footer links in `src/components/layout/Footer.tsx`
+4. Rebuild to generate the new static page
+
+### How to Add a New Vehicle
+
+1. Add an entry to the `vehiclePages` array in `src/content/vehicles.ts`
+2. Include `packages` (3 tiers) and `relatedServices` for internal linking
+3. Update footer links in `src/components/layout/Footer.tsx`
+4. Rebuild to generate the new static page
+
+### SEO Configuration
+
+Global SEO settings (site name, address, phone, geo, hours, social profiles) are in `src/lib/seo.ts`. This is the single source of truth for all metadata and schema markup.
+
+### How to Verify Sitemap and Robots in Production
+
+1. Visit `https://yourdomain.com/sitemap.xml` to verify all routes are listed
+2. Visit `https://yourdomain.com/robots.txt` to verify crawl rules
+3. Submit the sitemap URL in Google Search Console
+4. Use Google's Rich Results Test to validate structured data
+5. Visit `/analytics` (internal, not indexed) for a full route audit
+
+### Schema Markup
+
+- **LocalBusiness + AutoRepair**: Home page and location pages
+- **Service**: Service pages
+- **FAQPage**: Every page with an FAQ section
+- **BreadcrumbList**: All non-home pages
+
 ## Tech Stack
 
 - **Next.js 14** (App Router)
 - **TypeScript**
 - **Tailwind CSS 3.4**
 - Fonts: Outfit (headings) + Inter (body) via `next/font`
-- SEO: OpenGraph, Twitter Cards, LocalBusiness JSON-LD
+- SEO: OpenGraph, Twitter Cards, canonical URLs, LocalBusiness/Service/FAQPage/BreadcrumbList JSON-LD
 - Accessibility: focus states, ARIA labels, keyboard navigation, color contrast
+- Dynamic sitemap and robots.txt generation
+- Content-driven architecture with typed data files

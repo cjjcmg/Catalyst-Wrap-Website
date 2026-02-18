@@ -4,26 +4,39 @@ import { siteConfig } from "@/config/site";
 
 const quickLinks = [
   { label: "Home", href: "/" },
-  { label: "Services", href: "/#services" },
   { label: "Gallery", href: "/#gallery" },
   { label: "FAQ", href: "/faq" },
   { label: "Contact", href: "/contact" },
 ];
 
 const serviceLinks = [
-  { label: "Vinyl Wraps", href: "/#services" },
-  { label: "Paint Protection Film", href: "/#services" },
-  { label: "Window Tint", href: "/#services" },
-  { label: "Off-Road & Luxury", href: "/#services" },
+  { label: "Vinyl Wraps", href: "/services/vinyl-wrap" },
+  { label: "Paint Protection Film", href: "/services/paint-protection-film" },
+  { label: "Window Tint", href: "/services/window-tint" },
+  { label: "Off-Road Builds", href: "/services/off-road-builds" },
+];
+
+const locationLinks = [
+  { label: "Anaheim", href: "/locations/anaheim" },
+  { label: "Orange County", href: "/locations/orange-county" },
+  { label: "Los Angeles", href: "/locations/los-angeles" },
+];
+
+const vehicleLinks = [
+  { label: "Toyota Tacoma", href: "/vehicles/toyota-tacoma" },
+  { label: "Ford Raptor", href: "/vehicles/ford-raptor" },
+  { label: "Tesla", href: "/vehicles/tesla" },
+  { label: "Porsche", href: "/vehicles/porsche" },
+  { label: "Mercedes G-Wagon", href: "/vehicles/mercedes-g-wagon" },
 ];
 
 export default function Footer() {
   return (
     <footer className="border-t border-catalyst-border bg-catalyst-black" role="contentinfo">
       <div className="section-container py-12 sm:py-16">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-6">
           {/* Brand */}
-          <div className="space-y-4">
+          <div className="lg:col-span-2 space-y-4">
             <Image
               src="/images/CM_logo_wh.webp"
               alt={siteConfig.name}
@@ -32,27 +45,29 @@ export default function Footer() {
               className="h-12 w-auto"
             />
             <p className="text-sm text-catalyst-grey-500 leading-relaxed">
-              Premier auto customization in Anaheim, California — serving Los Angeles and Orange County.
+              Premier auto customization in Anaheim, California, serving Los Angeles and Orange County.
             </p>
-          </div>
-
-          {/* Quick Links */}
-          <div>
-            <h3 className="font-heading text-sm font-semibold uppercase tracking-wider text-catalyst-grey-300 mb-4">
-              Quick Links
-            </h3>
-            <ul className="space-y-2">
-              {quickLinks.map((link) => (
-                <li key={link.href + link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-catalyst-grey-500 hover:text-white transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            {/* Social icons */}
+            <div className="flex gap-3">
+              <SocialLink href={siteConfig.social.instagram} label="Instagram">
+                <InstagramIcon />
+              </SocialLink>
+              {siteConfig.social.facebook !== "#" && (
+                <SocialLink href={siteConfig.social.facebook} label="Facebook">
+                  <FacebookIcon />
+                </SocialLink>
+              )}
+              {siteConfig.social.tiktok !== "#" && (
+                <SocialLink href={siteConfig.social.tiktok} label="TikTok">
+                  <TikTokIcon />
+                </SocialLink>
+              )}
+              {siteConfig.social.yelp !== "#" && (
+                <SocialLink href={siteConfig.social.yelp} label="Yelp">
+                  <YelpIcon />
+                </SocialLink>
+              )}
+            </div>
           </div>
 
           {/* Services */}
@@ -62,7 +77,7 @@ export default function Footer() {
             </h3>
             <ul className="space-y-2">
               {serviceLinks.map((link) => (
-                <li key={link.label}>
+                <li key={link.href}>
                   <Link
                     href={link.href}
                     className="text-sm text-catalyst-grey-500 hover:text-white transition-colors"
@@ -74,8 +89,43 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Contact Info */}
+          {/* Locations + Vehicles */}
           <div>
+            <h3 className="font-heading text-sm font-semibold uppercase tracking-wider text-catalyst-grey-300 mb-4">
+              Locations
+            </h3>
+            <ul className="space-y-2">
+              {locationLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-catalyst-grey-500 hover:text-white transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+
+            <h3 className="font-heading text-sm font-semibold uppercase tracking-wider text-catalyst-grey-300 mb-4 mt-6">
+              Vehicles
+            </h3>
+            <ul className="space-y-2">
+              {vehicleLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-catalyst-grey-500 hover:text-white transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Quick Links + Contact */}
+          <div className="lg:col-span-2">
             <h3 className="font-heading text-sm font-semibold uppercase tracking-wider text-catalyst-grey-300 mb-4">
               Contact
             </h3>
@@ -106,27 +156,21 @@ export default function Footer() {
               </li>
             </ul>
 
-            {/* Social icons */}
-            <div className="mt-4 flex gap-3">
-              <SocialLink href={siteConfig.social.instagram} label="Instagram">
-                <InstagramIcon />
-              </SocialLink>
-              {siteConfig.social.facebook !== "#" || true ? (
-                <SocialLink href={siteConfig.social.facebook} label="Facebook">
-                  <FacebookIcon />
-                </SocialLink>
-              ) : null}
-              {siteConfig.social.tiktok !== "#" || true ? (
-                <SocialLink href={siteConfig.social.tiktok} label="TikTok">
-                  <TikTokIcon />
-                </SocialLink>
-              ) : null}
-              {siteConfig.social.yelp !== "#" || true ? (
-                <SocialLink href={siteConfig.social.yelp} label="Yelp">
-                  <YelpIcon />
-                </SocialLink>
-              ) : null}
-            </div>
+            <h3 className="font-heading text-sm font-semibold uppercase tracking-wider text-catalyst-grey-300 mb-4 mt-6">
+              Quick Links
+            </h3>
+            <ul className="space-y-2">
+              {quickLinks.map((link) => (
+                <li key={link.href + link.label}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-catalyst-grey-500 hover:text-white transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 

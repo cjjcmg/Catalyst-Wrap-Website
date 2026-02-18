@@ -1,0 +1,7 @@
+# Catalyst Motorsport — robots.txt
+User-agent: *
+Allow: /
+Disallow: /analytics
+Disallow: /api/
+
+Sitemap: https://catalystmotorsport.com/sitemap.xml
