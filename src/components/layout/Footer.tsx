@@ -131,7 +131,7 @@ export default function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-10 pt-6 border-t border-catalyst-border flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-catalyst-grey-600">
-          <p>&copy; {new Date().getFullYear()} {siteConfig.name}. All rights reserved.</p>
+          <p><Link href="/admin/login" className="hover:text-catalyst-grey-500 transition-colors">&copy; {new Date().getFullYear()} {siteConfig.name}. All rights reserved.</Link></p>
           <p>Anaheim, CA &middot; {siteConfig.serviceArea}</p>
         </div>
       </div>

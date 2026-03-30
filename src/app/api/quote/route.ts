@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!
+);
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -35,9 +41,33 @@ export async function POST(request: Request) {
     const message = body.message?.trim() || "No message";
     const textUpdates = body.textUpdates ? "Yes" : "No";
 
+    // Save to Supabase
+    const { error: dbError } = await supabase.from("quotes").insert({
+      name,
+      email,
+      phone,
+      service,
+      vehicle,
+      message,
+      text_updates: body.textUpdates ?? false,
+    });
+
+    if (dbError) {
+      console.error("Supabase insert error:", dbError);
+    }
+
+    // Get notification email from settings
+    const { data: settingsData } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("key", "notification_email")
+      .single();
+    const notificationEmail = settingsData?.value || "chris@catalystmotorsport.com";
+
+    // Send email notification
     await transporter.sendMail({
       from: process.env.GMAIL_USER,
-      to: "team@catalystmotorsport.com",
+      to: notificationEmail,
       replyTo: email,
       subject: `New Quote Request — ${name} — ${service}`,
       html: `
