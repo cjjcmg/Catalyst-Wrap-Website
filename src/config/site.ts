@@ -120,25 +120,42 @@ export interface Brand {
   name: string;
   logo?: string; // optional path in /public — if omitted, a text wordmark is used
   url?: string; // optional link to the brand
+  logoClassName?: string; // optional extra classes for sizing overrides
 }
 
 export const brands: Brand[] = [
   {
+    name: "3M",
+    logo: "/images/brands/3M_logo.webp",
+    logoClassName: "w-[60px] sm:w-[75px]",
+  },
+  {
+    name: "Avery Dennison",
+    logo: "/images/brands/Avery_Dennison_Logo.webp",
+    logoClassName: "w-[100px] sm:w-[120px]",
+  },
+  {
+    name: "Orafol",
+    logo: "/images/brands/orafol_logo.webp",
+    logoClassName: "w-[100px] sm:w-[120px]",
+  },
+  {
     name: "Vorsteiner",
-    logo: "/images/brands/vorsteiner_.webp",
+    logo: "/images/brands/vorsteiner.webp",
     url: "https://www.vorsteiner.com",
+    logoClassName: "w-[120px] sm:w-[150px]",
   },
   {
     name: "Dirt King",
-    logo: "/images/brands/dirt-king.png",
+    logo: "/images/brands/Dirt_King_Logo.webp",
     url: "https://www.dirtkingfab.com",
+    logoClassName: "w-[100px] sm:w-[120px]",
   },
-  // To add a new brand, copy and paste the template below:
-  // {
-  //   name: "Brand Name",
-  //   logo: "/images/brands/brand-name.png",
-  //   url: "https://www.brandwebsite.com",
-  // },
+  {
+    name: "Fiberwerx",
+    logo: "/images/brands/fiberwerx.webp",
+    logoClassName: "w-[120px] sm:w-[150px]",
+  },
 ];
 
 /* ──────────────────────────────────────────────────────────

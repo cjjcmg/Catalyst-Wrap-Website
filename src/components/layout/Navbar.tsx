@@ -10,7 +10,6 @@ import QuoteButton from "@/components/ui/QuoteButton";
 const navLinks = [
   { label: "Home", href: "/" },
   { label: "Services", href: "/#services" },
-  { label: "Gallery", href: "/#gallery" },
   { label: "FAQ", href: "/faq" },
   { label: "Contact", href: "/contact" },
 ];

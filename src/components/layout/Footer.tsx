@@ -4,7 +4,6 @@ import { siteConfig } from "@/config/site";
 
 const quickLinks = [
   { label: "Home", href: "/" },
-  { label: "Gallery", href: "/#gallery" },
   { label: "FAQ", href: "/faq" },
   { label: "Contact", href: "/contact" },
 ];
@@ -14,21 +13,9 @@ const serviceLinks = [
   { label: "Paint Protection Film", href: "/services/paint-protection-film" },
   { label: "Window Tint", href: "/services/window-tint" },
   { label: "Off-Road Builds", href: "/services/off-road-builds" },
+  { label: "Auto Customization", href: "/services/auto-customization" },
 ];
 
-const locationLinks = [
-  { label: "Anaheim", href: "/locations/anaheim" },
-  { label: "Orange County", href: "/locations/orange-county" },
-  { label: "Los Angeles", href: "/locations/los-angeles" },
-];
-
-const vehicleLinks = [
-  { label: "Toyota Tacoma", href: "/vehicles/toyota-tacoma" },
-  { label: "Ford Raptor", href: "/vehicles/ford-raptor" },
-  { label: "Tesla", href: "/vehicles/tesla" },
-  { label: "Porsche", href: "/vehicles/porsche" },
-  { label: "Mercedes G-Wagon", href: "/vehicles/mercedes-g-wagon" },
-];
 
 export default function Footer() {
   return (
@@ -45,7 +32,7 @@ export default function Footer() {
               className="h-12 w-auto"
             />
             <p className="text-sm text-catalyst-grey-500 leading-relaxed">
-              Premier auto customization in Anaheim, California, serving Los Angeles and Orange County.
+              #1 choice for Auto Wraps, PPF, Tint and Auto Customization in LA and Orange Counties.
             </p>
             {/* Social icons */}
             <div className="flex gap-3">
@@ -89,30 +76,14 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Locations + Vehicles */}
+          {/* Quick Links */}
           <div>
             <h3 className="font-heading text-sm font-semibold uppercase tracking-wider text-catalyst-grey-300 mb-4">
-              Locations
+              Quick Links
             </h3>
             <ul className="space-y-2">
-              {locationLinks.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-catalyst-grey-500 hover:text-white transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-
-            <h3 className="font-heading text-sm font-semibold uppercase tracking-wider text-catalyst-grey-300 mb-4 mt-6">
-              Vehicles
-            </h3>
-            <ul className="space-y-2">
-              {vehicleLinks.map((link) => (
-                <li key={link.href}>
+              {quickLinks.map((link) => (
+                <li key={link.href + link.label}>
                   <Link
                     href={link.href}
                     className="text-sm text-catalyst-grey-500 hover:text-white transition-colors"
@@ -124,8 +95,8 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Quick Links + Contact */}
-          <div className="lg:col-span-2">
+          {/* Contact */}
+          <div>
             <h3 className="font-heading text-sm font-semibold uppercase tracking-wider text-catalyst-grey-300 mb-4">
               Contact
             </h3>
@@ -154,22 +125,6 @@ export default function Footer() {
                 <GlobeIcon />
                 <span>Serving {siteConfig.serviceArea}</span>
               </li>
-            </ul>
-
-            <h3 className="font-heading text-sm font-semibold uppercase tracking-wider text-catalyst-grey-300 mb-4 mt-6">
-              Quick Links
-            </h3>
-            <ul className="space-y-2">
-              {quickLinks.map((link) => (
-                <li key={link.href + link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-catalyst-grey-500 hover:text-white transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
             </ul>
           </div>
         </div>

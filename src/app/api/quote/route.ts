@@ -1,10 +1,18 @@
 import { NextResponse } from "next/server";
+import nodemailer from "nodemailer";
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+});
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    // Basic server-side validation
     if (!body.name?.trim() || !body.email?.trim() || !body.phone?.trim()) {
       return NextResponse.json(
         { error: "Name, email, and phone are required." },
@@ -12,7 +20,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Simple email format check
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
       return NextResponse.json(
         { error: "Please provide a valid email address." },
@@ -20,36 +27,32 @@ export async function POST(request: Request) {
       );
     }
 
-    const webhookUrl = process.env.N8N_WEBHOOK_URL;
-    if (!webhookUrl) {
-      console.error("N8N_WEBHOOK_URL is not configured");
-      return NextResponse.json(
-        { error: "Internal server error. Please try again." },
-        { status: 500 }
-      );
-    }
+    const name = body.name.trim();
+    const email = body.email.trim();
+    const phone = body.phone.trim();
+    const service = body.service || "Not specified";
+    const vehicle = body.vehicle?.trim() || "Not specified";
+    const message = body.message?.trim() || "No message";
+    const textUpdates = body.textUpdates ? "Yes" : "No";
 
-    const n8nResponse = await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: body.name.trim(),
-        email: body.email.trim(),
-        phone: body.phone.trim(),
-        service: body.service || "Not specified",
-        vehicle: body.vehicle?.trim() || "Not specified",
-        message: body.message?.trim() || "No message",
-        textUpdates: !!body.textUpdates,
-      }),
+    await transporter.sendMail({
+      from: process.env.GMAIL_USER,
+      to: "team@catalystmotorsport.com",
+      replyTo: email,
+      subject: `New Quote Request — ${name} — ${service}`,
+      html: `
+        <h2>New Quote Request</h2>
+        <table style="border-collapse:collapse;font-family:sans-serif;">
+          <tr><td style="padding:6px 12px;font-weight:bold;">Name</td><td style="padding:6px 12px;">${name}</td></tr>
+          <tr><td style="padding:6px 12px;font-weight:bold;">Email</td><td style="padding:6px 12px;"><a href="mailto:${email}">${email}</a></td></tr>
+          <tr><td style="padding:6px 12px;font-weight:bold;">Phone</td><td style="padding:6px 12px;"><a href="tel:${phone}">${phone}</a></td></tr>
+          <tr><td style="padding:6px 12px;font-weight:bold;">Service</td><td style="padding:6px 12px;">${service}</td></tr>
+          <tr><td style="padding:6px 12px;font-weight:bold;">Vehicle</td><td style="padding:6px 12px;">${vehicle}</td></tr>
+          <tr><td style="padding:6px 12px;font-weight:bold;">Message</td><td style="padding:6px 12px;">${message}</td></tr>
+          <tr><td style="padding:6px 12px;font-weight:bold;">Text Updates</td><td style="padding:6px 12px;">${textUpdates}</td></tr>
+        </table>
+      `,
     });
-
-    if (!n8nResponse.ok) {
-      console.error("n8n webhook failed:", n8nResponse.status);
-      return NextResponse.json(
-        { error: "Internal server error. Please try again." },
-        { status: 500 }
-      );
-    }
 
     return NextResponse.json(
       { success: true, message: "Quote request received." },

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { brands } from "@/config/site";
 
 export default function Brands() {
@@ -18,8 +17,8 @@ export default function Brands() {
           </p>
         </div>
 
-        {/* Brand grid */}
-        <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12 lg:gap-16">
+        {/* Brand row */}
+        <div className="flex items-center justify-center gap-10 sm:gap-14 lg:gap-20">
           {brands.map((brand) => (
             <BrandCard key={brand.name} brand={brand} />
           ))}
@@ -35,38 +34,29 @@ export default function Brands() {
 }
 
 function BrandCard({ brand }: { brand: (typeof brands)[number] }) {
-  const content = brand.logo ? (
-    <Image
-      src={brand.logo}
-      alt={brand.name}
-      width={160}
-      height={60}
-      className="h-12 w-auto object-contain opacity-70 transition-opacity duration-300 group-hover:opacity-100 sm:h-14"
-    />
+  const img = brand.logo ? (
+    <div className={brand.logoClassName}>
+      <img
+        src={brand.logo}
+        alt={brand.name}
+        className="w-full h-auto object-contain opacity-60 transition-opacity duration-300 group-hover:opacity-100"
+      />
+    </div>
   ) : (
-    /* Text-based wordmark fallback */
-    <span className="font-heading text-2xl font-bold tracking-wider text-catalyst-grey-500 transition-colors duration-300 group-hover:text-white uppercase sm:text-3xl">
+    <span className="font-heading text-xl font-bold tracking-wider text-catalyst-grey-500 transition-colors duration-300 group-hover:text-white uppercase sm:text-2xl">
       {brand.name}
     </span>
   );
 
+  const className = "group flex items-center justify-center";
+
   if (brand.url) {
     return (
-      <a
-        href={brand.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="group flex h-24 items-center justify-center rounded-xl border border-catalyst-border px-8 transition-all duration-300 hover:border-catalyst-grey-700 hover:bg-catalyst-card sm:h-28 sm:px-12"
-        aria-label={brand.name}
-      >
-        {content}
+      <a href={brand.url} target="_blank" rel="noopener noreferrer" className={className} aria-label={brand.name}>
+        {img}
       </a>
     );
   }
 
-  return (
-    <div className="group flex h-24 items-center justify-center rounded-xl border border-catalyst-border px-8 sm:h-28 sm:px-12">
-      {content}
-    </div>
-  );
+  return <div className={className}>{img}</div>;
 }
