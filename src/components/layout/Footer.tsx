@@ -21,9 +21,9 @@ export default function Footer() {
   return (
     <footer className="border-t border-catalyst-border bg-catalyst-black" role="contentinfo">
       <div className="section-container py-12 sm:py-16">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-6">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="space-y-4">
             <Image
               src="/images/CM_logo_wh.webp"
               alt={siteConfig.name}

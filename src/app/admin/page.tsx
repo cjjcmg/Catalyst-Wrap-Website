@@ -92,13 +92,13 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-10">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-10">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="font-heading text-3xl font-bold text-white">Admin Dashboard</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="font-heading text-2xl sm:text-3xl font-bold text-white">Admin Dashboard</h1>
         <button
           onClick={handleLogout}
-          className="text-sm text-catalyst-grey-500 hover:text-white transition-colors"
+          className="text-sm text-catalyst-grey-500 hover:text-white transition-colors whitespace-nowrap"
         >
           Log Out
         </button>
@@ -109,7 +109,7 @@ export default function AdminDashboard() {
         <h2 className="font-heading text-xl font-semibold text-white">Settings</h2>
         <div>
           <label className="block text-sm text-catalyst-grey-400 mb-2">Notification Email</label>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <input
               type="email"
               value={email}
@@ -141,7 +141,49 @@ export default function AdminDashboard() {
         ) : quotes.length === 0 ? (
           <p className="text-catalyst-grey-500">No quotes yet.</p>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile card layout */}
+          <div className="space-y-3 sm:hidden">
+            {quotes.map((q) => (
+              <div
+                key={q.id}
+                className="rounded-lg border border-catalyst-border bg-catalyst-black p-4 cursor-pointer hover:border-catalyst-grey-600 transition-colors"
+                onClick={() => setEditingQuote({ ...q })}
+              >
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div>
+                    <p className="text-white font-medium">{q.name}</p>
+                    <p className="text-xs text-catalyst-grey-500">{new Date(q.created_at).toLocaleDateString()}</p>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteQuote(q.id);
+                    }}
+                    className="text-catalyst-grey-600 hover:text-red-500 transition-colors flex-shrink-0"
+                    title="Delete lead"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      <line x1="10" y1="11" x2="10" y2="17" />
+                      <line x1="14" y1="11" x2="14" y2="17" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="space-y-1 text-sm">
+                  <p className="text-catalyst-grey-300 truncate">{q.email}</p>
+                  <p className="text-catalyst-grey-300">{q.phone}</p>
+                  {q.service && <p className="text-catalyst-grey-400">Service: {q.service}</p>}
+                  {q.vehicle && <p className="text-catalyst-grey-400">Vehicle: {q.vehicle}</p>}
+                  {q.message && <p className="text-catalyst-grey-500 truncate">{q.message}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop table layout */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-catalyst-border text-left text-catalyst-grey-400">
@@ -203,17 +245,18 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 
       {/* Edit Modal */}
       {editingQuote && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
           onClick={() => setEditingQuote(null)}
         >
           <div
-            className="w-full max-w-lg rounded-xl border border-catalyst-border bg-catalyst-card p-6 space-y-5 shadow-2xl"
+            className="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-xl border border-catalyst-border bg-catalyst-card p-5 sm:p-6 space-y-5 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">

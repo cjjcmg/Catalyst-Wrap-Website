@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { siteConfig } from "@/config/site";
@@ -16,6 +16,11 @@ const navLinks = [
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
 
   return (
     <nav
@@ -83,7 +88,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-catalyst-border bg-catalyst-black animate-fade-in">
+        <div className="md:hidden border-t border-catalyst-border bg-catalyst-black animate-fade-in max-h-[calc(100dvh-6rem)] overflow-y-auto">
           <div className="section-container py-4 space-y-1">
             {navLinks.map((link) => (
               <Link

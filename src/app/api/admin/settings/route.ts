@@ -29,7 +29,10 @@ export async function PUT(request: Request) {
 
   const { error } = await supabase
     .from("settings")
-    .upsert({ key: "notification_email", value: email, updated_at: new Date().toISOString() });
+    .upsert(
+      { key: "notification_email", value: email, updated_at: new Date().toISOString() },
+      { onConflict: "key" }
+    );
 
   if (error) {
     return NextResponse.json({ error: "Failed to save" }, { status: 500 });

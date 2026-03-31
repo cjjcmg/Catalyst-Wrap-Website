@@ -18,7 +18,7 @@ export default function Brands() {
         </div>
 
         {/* Brand row */}
-        <div className="flex items-center justify-center gap-10 sm:gap-14 lg:gap-20">
+        <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 lg:gap-20">
           {brands.map((brand) => (
             <BrandCard key={brand.name} brand={brand} />
           ))}
