@@ -18,7 +18,7 @@ export default function Brands() {
         </div>
 
         {/* Brand row */}
-        <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 lg:gap-20">
+        <div className="flex items-center justify-center gap-8 sm:gap-10 lg:gap-16">
           {brands.map((brand) => (
             <BrandCard key={brand.name} brand={brand} />
           ))}
@@ -35,15 +35,13 @@ export default function Brands() {
 
 function BrandCard({ brand }: { brand: (typeof brands)[number] }) {
   const img = brand.logo ? (
-    <div className={brand.logoClassName}>
-      <img
-        src={brand.logo}
-        alt={brand.name}
-        className="w-full h-auto object-contain opacity-60 transition-opacity duration-300 group-hover:opacity-100"
-      />
-    </div>
+    <img
+      src={brand.logo}
+      alt={brand.name}
+      className={`h-8 sm:h-10 w-auto object-contain opacity-60 transition-opacity duration-300 group-hover:opacity-100`}
+    />
   ) : (
-    <span className="font-heading text-xl font-bold tracking-wider text-catalyst-grey-500 transition-colors duration-300 group-hover:text-white uppercase sm:text-2xl">
+    <span className="font-heading text-sm font-bold tracking-wider text-catalyst-grey-500 transition-colors duration-300 group-hover:text-white uppercase sm:text-base">
       {brand.name}
     </span>
   );
