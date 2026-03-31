@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 export async function GET() {
@@ -17,4 +17,41 @@ export async function GET() {
   }
 
   return NextResponse.json({ quotes: data });
+}
+
+export async function PUT(request: Request) {
+  const { id, ...fields } = await request.json();
+
+  if (!id) {
+    return NextResponse.json({ error: "Quote ID is required" }, { status: 400 });
+  }
+
+  const { data, error } = await supabase
+    .from("quotes")
+    .update(fields)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    return NextResponse.json({ error: "Failed to update quote" }, { status: 500 });
+  }
+
+  return NextResponse.json({ quote: data });
+}
+
+export async function DELETE(request: Request) {
+  const { id } = await request.json();
+
+  if (!id) {
+    return NextResponse.json({ error: "Quote ID is required" }, { status: 400 });
+  }
+
+  const { error } = await supabase.from("quotes").delete().eq("id", id);
+
+  if (error) {
+    return NextResponse.json({ error: "Failed to delete quote" }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
 }
