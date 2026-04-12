@@ -34,6 +34,7 @@ const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID || "primary";
 interface CalendarEventInput {
   title: string;
   dateTime: string; // ISO string
+  endDateTime?: string; // ISO string — if not provided, defaults to durationMinutes after start
   description: string;
   attendees: string[]; // email addresses
   durationMinutes?: number;
@@ -44,7 +45,9 @@ export async function addCalendarEvent(input: CalendarEventInput): Promise<strin
   const calendar = google.calendar({ version: "v3", auth });
 
   const startTime = new Date(input.dateTime);
-  const endTime = new Date(startTime.getTime() + (input.durationMinutes || 60) * 60 * 1000);
+  const endTime = input.endDateTime
+    ? new Date(input.endDateTime)
+    : new Date(startTime.getTime() + (input.durationMinutes || 60) * 60 * 1000);
 
   const event = {
     summary: input.title,
@@ -77,7 +80,9 @@ export async function updateCalendarEvent(
   const calendar = google.calendar({ version: "v3", auth });
 
   const startTime = new Date(input.dateTime);
-  const endTime = new Date(startTime.getTime() + (input.durationMinutes || 60) * 60 * 1000);
+  const endTime = input.endDateTime
+    ? new Date(input.endDateTime)
+    : new Date(startTime.getTime() + (input.durationMinutes || 60) * 60 * 1000);
 
   await calendar.events.update({
     calendarId: CALENDAR_ID,

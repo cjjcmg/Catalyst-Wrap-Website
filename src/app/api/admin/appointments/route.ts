@@ -33,7 +33,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const user = await getUser();
-  const { quote_id, date_time, details, share_with_contact } = await request.json();
+  const { quote_id, title, date_time, end_time, details, share_with_contact } = await request.json();
 
   if (!quote_id || !date_time) {
     return NextResponse.json({ error: "quote_id and date_time are required" }, { status: 400 });
@@ -49,12 +49,13 @@ export async function POST(request: Request) {
   // Create Google Calendar event
   let googleEventId: string | null = null;
   try {
-    const eventTitle = `${quote?.name || "Customer"} — ${quote?.service || "Appointment"}`;
+    const eventTitle = title || `${quote?.name || "Customer"} — ${quote?.service || "Appointment"}`;
     const attendees = share_with_contact && quote?.email ? [quote.email] : [];
 
     googleEventId = await addCalendarEvent({
       title: eventTitle,
       dateTime: date_time,
+      ...(end_time ? { endDateTime: end_time } : {}),
       description: [
         details || "",
         quote ? `Contact: ${quote.name}` : "",
@@ -72,7 +73,9 @@ export async function POST(request: Request) {
 
   const insertData: Record<string, unknown> = {
     quote_id,
+    title: title?.trim() || null,
     date_time,
+    end_time: end_time || null,
     details: details?.trim() || null,
     status: "scheduled",
     share_with_contact: !!share_with_contact,
@@ -122,7 +125,7 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   const user = await getUser();
-  const { id, date_time, details, share_with_contact } = await request.json();
+  const { id, title, date_time, end_time, details, share_with_contact } = await request.json();
 
   if (!id || !date_time) {
     return NextResponse.json({ error: "id and date_time are required" }, { status: 400 });
@@ -144,12 +147,13 @@ export async function PUT(request: Request) {
   // Update Google Calendar event if it exists
   if (existing.google_event_id) {
     try {
-      const eventTitle = `${quote?.name || "Customer"} — ${quote?.service || "Appointment"}`;
+      const eventTitle = title || `${quote?.name || "Customer"} — ${quote?.service || "Appointment"}`;
       const attendees = share_with_contact && quote?.email ? [quote.email] : [];
 
       await updateCalendarEvent(existing.google_event_id, {
         title: eventTitle,
         dateTime: date_time,
+        ...(end_time ? { endDateTime: end_time } : {}),
         description: [
           details || "",
           quote ? `Contact: ${quote.name}` : "",
@@ -167,7 +171,9 @@ export async function PUT(request: Request) {
   const { data, error } = await supabase
     .from("appointments")
     .update({
+      title: title?.trim() || null,
       date_time,
+      end_time: end_time || null,
       details: details?.trim() || null,
       share_with_contact: !!share_with_contact,
     })

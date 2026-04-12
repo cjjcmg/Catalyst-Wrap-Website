@@ -28,7 +28,9 @@ interface Note {
 interface Appointment {
   id: number;
   quote_id: number;
+  title: string | null;
   date_time: string;
+  end_time: string | null;
   details: string | null;
   status: "scheduled" | "cancelled";
   share_with_contact: boolean;
@@ -43,6 +45,66 @@ function formatPhone(phone: string) {
   const d = phone.replace(/\D/g, "").slice(-10);
   if (d.length === 10) return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
   return phone;
+}
+
+const ALL_TIMES = Array.from({ length: 24 * 4 }, (_, i) => {
+  const h = Math.floor(i / 4);
+  const m = (i % 4) * 15;
+  const val = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  const ampm = h < 12 ? "AM" : "PM";
+  const label = `${hour12}:${String(m).padStart(2, "0")} ${ampm}`;
+  return { val, label, hour12, h };
+});
+
+function TimeSelect({ value, onChange, id }: { value: string; onChange: (v: string) => void; id?: string }) {
+  const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+
+  const filtered = search
+    ? ALL_TIMES.filter((t) => {
+        const num = search.replace(/[^0-9]/g, "");
+        if (!num) return true;
+        return String(t.hour12).startsWith(num) || String(t.h).startsWith(num);
+      })
+    : ALL_TIMES;
+
+  const selectedLabel = ALL_TIMES.find((t) => t.val === value)?.label || "";
+
+  return (
+    <div className="relative" id={id}>
+      <input
+        type="text"
+        value={open ? search : selectedLabel}
+        placeholder="Select time"
+        onChange={(e) => { setSearch(e.target.value); if (!open) setOpen(true); }}
+        onFocus={() => { setOpen(true); setSearch(""); }}
+        onBlur={() => setTimeout(() => setOpen(false), 200)}
+        className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white placeholder-catalyst-grey-600 focus:border-catalyst-red focus:outline-none"
+      />
+      {open && (
+        <div className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto rounded-lg border border-catalyst-border bg-catalyst-dark shadow-xl">
+          {filtered.length === 0 ? (
+            <p className="px-4 py-2 text-sm text-catalyst-grey-500">No matches</p>
+          ) : (
+            filtered.map((t) => (
+              <button
+                key={t.val}
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => { onChange(t.val); setOpen(false); setSearch(""); }}
+                className={`block w-full text-left px-4 py-1.5 text-sm hover:bg-white/5 ${
+                  t.val === value ? "text-catalyst-red" : "text-white"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function ContactDetailPage() {
@@ -64,14 +126,20 @@ export default function ContactDetailPage() {
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [showApptForm, setShowApptForm] = useState(false);
+  const [apptTitle, setApptTitle] = useState("");
   const [apptDate, setApptDate] = useState("");
   const [apptTime, setApptTime] = useState("");
+  const [apptEndDate, setApptEndDate] = useState("");
+  const [apptEndTime, setApptEndTime] = useState("");
   const [apptDetails, setApptDetails] = useState("");
   const [apptShare, setApptShare] = useState(false);
   const [savingAppt, setSavingAppt] = useState(false);
   const [editingAppt, setEditingAppt] = useState<Appointment | null>(null);
+  const [editApptTitle, setEditApptTitle] = useState("");
   const [editApptDate, setEditApptDate] = useState("");
   const [editApptTime, setEditApptTime] = useState("");
+  const [editApptEndDate, setEditApptEndDate] = useState("");
+  const [editApptEndTime, setEditApptEndTime] = useState("");
   const [editApptDetails, setEditApptDetails] = useState("");
   const [editApptShare, setEditApptShare] = useState(false);
   const [savingEditAppt, setSavingEditAppt] = useState(false);
@@ -151,12 +219,17 @@ export default function ContactDetailPage() {
     if (!apptDate || !apptTime) return;
     setSavingAppt(true);
     const dateTime = new Date(`${apptDate}T${apptTime}`).toISOString();
+    const endDateTime = apptEndDate && apptEndTime
+      ? new Date(`${apptEndDate}T${apptEndTime}`).toISOString()
+      : null;
     const res = await fetch("/api/admin/appointments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         quote_id: quoteId,
+        title: apptTitle,
         date_time: dateTime,
+        end_time: endDateTime,
         details: apptDetails,
         share_with_contact: apptShare,
       }),
@@ -165,21 +238,31 @@ export default function ContactDetailPage() {
       const { appointment } = await res.json();
       setAppointments((prev) => [appointment, ...prev]);
       setShowApptForm(false);
-      setApptDate("");
-      setApptTime("");
-      setApptDetails("");
-      setApptShare(false);
+      setApptTitle(""); setApptDate(""); setApptTime("");
+      setApptEndDate(""); setApptEndTime("");
+      setApptDetails(""); setApptShare(false);
     }
     setSavingAppt(false);
   }
 
   function startEditAppt(appt: Appointment) {
     setEditingAppt(appt);
+    setEditApptTitle(appt.title || "");
     const dt = new Date(appt.date_time);
     setEditApptDate(dt.toISOString().split("T")[0]);
     const h = String(dt.getHours()).padStart(2, "0");
-    const m = String(Math.round(dt.getMinutes() / 15) * 15).padStart(2, "0");
-    setEditApptTime(`${h}:${m === "60" ? "00" : m}`);
+    const mins = Math.round(dt.getMinutes() / 15) * 15;
+    setEditApptTime(`${h}:${String(mins === 60 ? 0 : mins).padStart(2, "0")}`);
+    if (appt.end_time) {
+      const et = new Date(appt.end_time);
+      setEditApptEndDate(et.toISOString().split("T")[0]);
+      const eh = String(et.getHours()).padStart(2, "0");
+      const em = Math.round(et.getMinutes() / 15) * 15;
+      setEditApptEndTime(`${eh}:${String(em === 60 ? 0 : em).padStart(2, "0")}`);
+    } else {
+      setEditApptEndDate(dt.toISOString().split("T")[0]);
+      setEditApptEndTime("");
+    }
     setEditApptDetails(appt.details || "");
     setEditApptShare(appt.share_with_contact);
   }
@@ -188,12 +271,17 @@ export default function ContactDetailPage() {
     if (!editingAppt || !editApptDate || !editApptTime) return;
     setSavingEditAppt(true);
     const dateTime = new Date(`${editApptDate}T${editApptTime}`).toISOString();
+    const endDateTime = editApptEndDate && editApptEndTime
+      ? new Date(`${editApptEndDate}T${editApptEndTime}`).toISOString()
+      : null;
     const res = await fetch("/api/admin/appointments", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         id: editingAppt.id,
+        title: editApptTitle,
         date_time: dateTime,
+        end_time: endDateTime,
         details: editApptDetails,
         share_with_contact: editApptShare,
       }),
@@ -517,78 +605,49 @@ export default function ContactDetailPage() {
         {/* New Appointment Form */}
         {showApptForm && (
           <div className="space-y-3 rounded-lg border border-catalyst-border bg-catalyst-black p-4">
+            <div>
+              <label className="block text-xs text-catalyst-grey-400 mb-1">Title</label>
+              <input
+                type="text"
+                placeholder="e.g. Vinyl Wrap Consultation"
+                value={apptTitle}
+                onChange={(e) => setApptTitle(e.target.value)}
+                className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white placeholder-catalyst-grey-600 focus:border-catalyst-red focus:outline-none"
+              />
+            </div>
+            <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Start</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs text-catalyst-grey-400 mb-1">Date</label>
-                <input
-                  type="date"
-                  value={apptDate}
-                  onChange={(e) => setApptDate(e.target.value)}
-                  className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white focus:border-catalyst-red focus:outline-none [color-scheme:dark]"
-                />
+                <input type="date" value={apptDate} onChange={(e) => { setApptDate(e.target.value); if (!apptEndDate) setApptEndDate(e.target.value); }} className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white focus:border-catalyst-red focus:outline-none [color-scheme:dark]" />
               </div>
               <div>
                 <label className="block text-xs text-catalyst-grey-400 mb-1">Time</label>
-                <select
-                  value={apptTime}
-                  onChange={(e) => setApptTime(e.target.value)}
-                  className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white focus:border-catalyst-red focus:outline-none appearance-none"
-                >
-                  <option value="" disabled>Select time</option>
-                  {Array.from({ length: 24 * 4 }, (_, i) => {
-                    const h = Math.floor(i / 4);
-                    const m = (i % 4) * 15;
-                    const val = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-                    const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-                    const ampm = h < 12 ? "AM" : "PM";
-                    const label = `${hour12}:${String(m).padStart(2, "0")} ${ampm}`;
-                    return <option key={val} value={val}>{label}</option>;
-                  })}
-                </select>
+                <TimeSelect value={apptTime} onChange={setApptTime} />
+              </div>
+            </div>
+            <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">End</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-catalyst-grey-400 mb-1">Date</label>
+                <input type="date" value={apptEndDate} onChange={(e) => setApptEndDate(e.target.value)} className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white focus:border-catalyst-red focus:outline-none [color-scheme:dark]" />
+              </div>
+              <div>
+                <label className="block text-xs text-catalyst-grey-400 mb-1">Time</label>
+                <TimeSelect value={apptEndTime} onChange={setApptEndTime} />
               </div>
             </div>
             <div>
-              <label className="block text-xs text-catalyst-grey-400 mb-1">Details</label>
-              <textarea
-                rows={2}
-                placeholder="Appointment details..."
-                value={apptDetails}
-                onChange={(e) => setApptDetails(e.target.value)}
-                className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white placeholder-catalyst-grey-600 focus:border-catalyst-red focus:outline-none resize-none"
-              />
+              <label className="block text-xs text-catalyst-grey-400 mb-1">Notes</label>
+              <textarea rows={2} placeholder="Additional notes..." value={apptDetails} onChange={(e) => setApptDetails(e.target.value)} className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white placeholder-catalyst-grey-600 focus:border-catalyst-red focus:outline-none resize-none" />
             </div>
             <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="share_appt"
-                checked={apptShare}
-                onChange={(e) => setApptShare(e.target.checked)}
-                className="accent-catalyst-red"
-              />
-              <label htmlFor="share_appt" className="text-sm text-catalyst-grey-400">
-                Share with contact ({quote.email})
-              </label>
+              <input type="checkbox" id="share_appt" checked={apptShare} onChange={(e) => setApptShare(e.target.checked)} className="accent-catalyst-red" />
+              <label htmlFor="share_appt" className="text-sm text-catalyst-grey-400">Share with contact ({quote.email})</label>
             </div>
             <div className="flex justify-end gap-2">
-              <button
-                onClick={() => {
-                  setShowApptForm(false);
-                  setApptDate("");
-                  setApptTime("");
-                  setApptDetails("");
-                  setApptShare(false);
-                }}
-                className="rounded-lg border border-catalyst-border px-3 py-1.5 text-sm text-catalyst-grey-400 hover:text-white transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={createAppointment}
-                disabled={savingAppt || !apptDate || !apptTime}
-                className="rounded-lg bg-catalyst-red px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-50"
-              >
-                {savingAppt ? "Scheduling..." : "Schedule"}
-              </button>
+              <button onClick={() => { setShowApptForm(false); setApptTitle(""); setApptDate(""); setApptTime(""); setApptEndDate(""); setApptEndTime(""); setApptDetails(""); setApptShare(false); }} className="rounded-lg border border-catalyst-border px-3 py-1.5 text-sm text-catalyst-grey-400 hover:text-white transition-colors">Cancel</button>
+              <button onClick={createAppointment} disabled={savingAppt || !apptDate || !apptTime} className="rounded-lg bg-catalyst-red px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-50">{savingAppt ? "Scheduling..." : "Schedule"}</button>
             </div>
           </div>
         )}
@@ -609,78 +668,55 @@ export default function ContactDetailPage() {
               >
                 {editingAppt?.id === appt.id ? (
                   <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs text-catalyst-grey-400 mb-1">Title</label>
+                      <input type="text" value={editApptTitle} onChange={(e) => setEditApptTitle(e.target.value)} placeholder="Appointment title" className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white placeholder-catalyst-grey-600 focus:border-catalyst-red focus:outline-none" />
+                    </div>
+                    <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Start</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs text-catalyst-grey-400 mb-1">Date</label>
-                        <input
-                          type="date"
-                          value={editApptDate}
-                          onChange={(e) => setEditApptDate(e.target.value)}
-                          className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white focus:border-catalyst-red focus:outline-none [color-scheme:dark]"
-                        />
+                        <input type="date" value={editApptDate} onChange={(e) => setEditApptDate(e.target.value)} className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white focus:border-catalyst-red focus:outline-none [color-scheme:dark]" />
                       </div>
                       <div>
                         <label className="block text-xs text-catalyst-grey-400 mb-1">Time</label>
-                        <select
-                          value={editApptTime}
-                          onChange={(e) => setEditApptTime(e.target.value)}
-                          className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white focus:border-catalyst-red focus:outline-none appearance-none"
-                        >
-                          <option value="" disabled>Select time</option>
-                          {Array.from({ length: 24 * 4 }, (_, i) => {
-                            const h = Math.floor(i / 4);
-                            const m = (i % 4) * 15;
-                            const val = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-                            const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-                            const ampm = h < 12 ? "AM" : "PM";
-                            const label = `${hour12}:${String(m).padStart(2, "0")} ${ampm}`;
-                            return <option key={val} value={val}>{label}</option>;
-                          })}
-                        </select>
+                        <TimeSelect value={editApptTime} onChange={setEditApptTime} />
+                      </div>
+                    </div>
+                    <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">End</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs text-catalyst-grey-400 mb-1">Date</label>
+                        <input type="date" value={editApptEndDate} onChange={(e) => setEditApptEndDate(e.target.value)} className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white focus:border-catalyst-red focus:outline-none [color-scheme:dark]" />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-catalyst-grey-400 mb-1">Time</label>
+                        <TimeSelect value={editApptEndTime} onChange={setEditApptEndTime} />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs text-catalyst-grey-400 mb-1">Details</label>
-                      <textarea
-                        rows={2}
-                        value={editApptDetails}
-                        onChange={(e) => setEditApptDetails(e.target.value)}
-                        className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white placeholder-catalyst-grey-600 focus:border-catalyst-red focus:outline-none resize-none"
-                      />
+                      <label className="block text-xs text-catalyst-grey-400 mb-1">Notes</label>
+                      <textarea rows={2} value={editApptDetails} onChange={(e) => setEditApptDetails(e.target.value)} className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white placeholder-catalyst-grey-600 focus:border-catalyst-red focus:outline-none resize-none" />
                     </div>
                     <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id={`edit_share_${appt.id}`}
-                        checked={editApptShare}
-                        onChange={(e) => setEditApptShare(e.target.checked)}
-                        className="accent-catalyst-red"
-                      />
-                      <label htmlFor={`edit_share_${appt.id}`} className="text-sm text-catalyst-grey-400">
-                        Share with contact
-                      </label>
+                      <input type="checkbox" id={`edit_share_${appt.id}`} checked={editApptShare} onChange={(e) => setEditApptShare(e.target.checked)} className="accent-catalyst-red" />
+                      <label htmlFor={`edit_share_${appt.id}`} className="text-sm text-catalyst-grey-400">Share with contact</label>
                     </div>
                     <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => setEditingAppt(null)}
-                        className="rounded-lg border border-catalyst-border px-3 py-1.5 text-sm text-catalyst-grey-400 hover:text-white transition-colors"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={saveEditAppt}
-                        disabled={savingEditAppt || !editApptDate || !editApptTime}
-                        className="rounded-lg bg-catalyst-red px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-50"
-                      >
-                        {savingEditAppt ? "Saving..." : "Save"}
-                      </button>
+                      <button onClick={() => setEditingAppt(null)} className="rounded-lg border border-catalyst-border px-3 py-1.5 text-sm text-catalyst-grey-400 hover:text-white transition-colors">Cancel</button>
+                      <button onClick={saveEditAppt} disabled={savingEditAppt || !editApptDate || !editApptTime} className="rounded-lg bg-catalyst-red px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-50">{savingEditAppt ? "Saving..." : "Save"}</button>
                     </div>
                   </div>
                 ) : (
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
+                      {appt.title && (
+                        <p className={`text-sm font-semibold mb-0.5 ${appt.status === "cancelled" ? "text-catalyst-grey-500 line-through" : "text-white"}`}>
+                          {appt.title}
+                        </p>
+                      )}
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className={`text-sm font-medium ${appt.status === "cancelled" ? "text-catalyst-grey-500 line-through" : "text-white"}`}>
+                        <p className={`text-sm ${appt.title ? "" : "font-medium"} ${appt.status === "cancelled" ? "text-catalyst-grey-500 line-through" : appt.title ? "text-catalyst-grey-300" : "text-white"}`}>
                           {new Date(appt.date_time).toLocaleString("en-US", {
                             weekday: "short",
                             month: "short",
@@ -689,6 +725,15 @@ export default function ContactDetailPage() {
                             hour: "numeric",
                             minute: "2-digit",
                           })}
+                          {appt.end_time && (
+                            <> — {new Date(appt.end_time).toLocaleString("en-US", {
+                              hour: "numeric",
+                              minute: "2-digit",
+                              ...(new Date(appt.end_time).toDateString() !== new Date(appt.date_time).toDateString()
+                                ? { weekday: "short" as const, month: "short" as const, day: "numeric" as const }
+                                : {}),
+                            })}</>
+                          )}
                         </p>
                         {appt.status === "cancelled" && (
                           <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-xs font-medium text-red-400">
