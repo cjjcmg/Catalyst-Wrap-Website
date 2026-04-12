@@ -15,16 +15,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
     }
 
-    const passwordHash = await hashPassword(password);
-
+    // Look up user by email first
     const { data: user, error } = await supabase
       .from("users")
       .select("*")
       .eq("email", email.toLowerCase().trim())
-      .eq("password_hash", passwordHash)
       .single();
 
     if (error || !user) {
+      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+    }
+
+    // Check if password is blank — require reset
+    if (!user.password_hash) {
+      return NextResponse.json({ error: "reset_required" }, { status: 403 });
+    }
+
+    // Verify password
+    const passwordHash = await hashPassword(password);
+    if (user.password_hash !== passwordHash) {
       return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
     }
 
@@ -41,7 +50,7 @@ export async function POST(request: Request) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       path: "/",
-      maxAge: 60 * 60 * 24 * 30, // 30 days
+      maxAge: 60 * 60 * 24 * 30,
     });
 
     return response;

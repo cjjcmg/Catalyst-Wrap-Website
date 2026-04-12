@@ -30,7 +30,19 @@ function LoginForm() {
       router.push(redirect);
     } else {
       const data = await res.json();
-      setError(data.error || "Invalid email or password");
+      if (data.error === "reset_required") {
+        setError("You need to set a password before logging in. Check your email for a reset link.");
+        // Auto-trigger password reset
+        await fetch("/api/admin/reset-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        setResetMode(true);
+        setResetSent(true);
+      } else {
+        setError(data.error || "Invalid email or password");
+      }
     }
     setLoading(false);
   }
