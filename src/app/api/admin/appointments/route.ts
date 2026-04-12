@@ -13,9 +13,27 @@ const supabase = createClient(
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const quoteId = searchParams.get("quote_id");
+  const date = searchParams.get("date"); // YYYY-MM-DD — fetch all appointments for that day
+
+  if (date) {
+    const dayStart = `${date}T00:00:00.000Z`;
+    const dayEnd = `${date}T23:59:59.999Z`;
+
+    const { data, error } = await supabase
+      .from("appointments")
+      .select("*, quotes(name, email, service)")
+      .gte("date_time", dayStart)
+      .lte("date_time", dayEnd)
+      .order("date_time", { ascending: true });
+
+    if (error) {
+      return NextResponse.json({ error: "Failed to fetch appointments" }, { status: 500 });
+    }
+    return NextResponse.json({ appointments: data });
+  }
 
   if (!quoteId) {
-    return NextResponse.json({ error: "quote_id is required" }, { status: 400 });
+    return NextResponse.json({ error: "quote_id or date is required" }, { status: 400 });
   }
 
   const { data, error } = await supabase
