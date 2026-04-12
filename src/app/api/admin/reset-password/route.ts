@@ -1,21 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { hashPassword } from "@/lib/auth";
-import nodemailer from "nodemailer";
+import { sendEmail } from "@/lib/email";
 import { SignJWT } from "jose";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-});
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "catalyst-motorsport-secret-change-me"
@@ -48,8 +40,7 @@ export async function POST(request: Request) {
       const domain = process.env.NEXT_PUBLIC_SITE_URL || "https://catalystmotorsport.com";
       const resetUrl = `${domain}/admin/reset-password?token=${resetToken}`;
 
-      await transporter.sendMail({
-        from: process.env.GMAIL_USER,
+      await sendEmail({
         to: user.email,
         subject: "Password Reset — Catalyst Motorsport",
         html: `

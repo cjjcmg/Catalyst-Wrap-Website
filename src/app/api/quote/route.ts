@@ -1,19 +1,11 @@
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
 import { createClient } from "@supabase/supabase-js";
+import { sendEmail } from "@/lib/email";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-});
 
 export async function POST(request: Request) {
   try {
@@ -69,8 +61,7 @@ export async function POST(request: Request) {
     const notificationEmail = settingsData?.value || "chris@catalystmotorsport.com";
 
     // Send email notification
-    await transporter.sendMail({
-      from: process.env.GMAIL_USER,
+    await sendEmail({
       to: notificationEmail,
       replyTo: email,
       subject: `New Quote Request — ${name} — ${service}`,

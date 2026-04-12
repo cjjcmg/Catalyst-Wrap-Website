@@ -1,12 +1,4 @@
-import nodemailer from "nodemailer";
-
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-});
+import { sendEmail } from "./email";
 
 interface AppointmentEmailInput {
   to: string;
@@ -29,10 +21,9 @@ export async function sendAppointmentEmail(input: AppointmentEmailInput) {
     timeZoneName: "short",
   });
 
-  await transporter.sendMail({
-    from: process.env.GMAIL_USER,
+  await sendEmail({
     to: input.to,
-    subject: `Appointment Confirmed — Catalyst Motorsport`,
+    subject: "Appointment Confirmed — Catalyst Motorsport",
     html: `
       <h2>Your Appointment is Confirmed</h2>
       <p>Hi ${input.contactName},</p>
