@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Instant tooltip */
+@layer components {
+  .tooltip {
+    @apply relative;
+  }
+  .tooltip::after {
+    content: attr(data-tip);
+    @apply pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 whitespace-nowrap rounded bg-white/90 px-2 py-1 text-xs font-medium text-black opacity-0 transition-opacity duration-100;
+  }
+  .tooltip:hover::after {
+    @apply opacity-100;
+  }
+}
+
 /* ──────────────────────────────────────────────────────────
    Base styles
    ────────────────────────────────────────────────────────── */

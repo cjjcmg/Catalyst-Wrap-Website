@@ -1,19 +1,42 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { createHash } from "crypto";
+import { jwtVerify } from "jose";
 
-export function middleware(request: NextRequest) {
-  const session = request.cookies.get("admin_session");
-  const password = process.env.ADMIN_PASSWORD || "";
-  const expectedToken = createHash("sha256").update(password).digest("hex");
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || "catalyst-motorsport-secret-change-me"
+);
 
-  if (!session || session.value !== expectedToken) {
-    return NextResponse.redirect(new URL("/admin/login", request.url));
+const COOKIE_NAME = "admin_session";
+
+export async function middleware(request: NextRequest) {
+  const token = request.cookies.get(COOKIE_NAME)?.value;
+
+  if (!token) {
+    const loginUrl = new URL("/admin/login", request.url);
+    loginUrl.searchParams.set("redirect", request.nextUrl.pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.next();
+  try {
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+
+    // Pass user info to API routes and pages via headers
+    const response = NextResponse.next();
+    response.headers.set("x-user-id", String(payload.id));
+    response.headers.set("x-user-email", String(payload.email));
+    response.headers.set("x-user-name", String(payload.name));
+    response.headers.set("x-user-role", String(payload.role));
+    return response;
+  } catch {
+    // Invalid/expired token — clear cookie and redirect
+    const loginUrl = new URL("/admin/login", request.url);
+    loginUrl.searchParams.set("redirect", request.nextUrl.pathname);
+    const response = NextResponse.redirect(loginUrl);
+    response.cookies.set(COOKIE_NAME, "", { path: "/", maxAge: 0 });
+    return response;
+  }
 }
 
 export const config = {
-  matcher: ["/admin/((?!login).*)"],
+  matcher: ["/admin/((?!login|reset-password).*)"],
 };

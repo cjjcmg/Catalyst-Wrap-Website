@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     const textUpdates = body.textUpdates ? "Yes" : "No";
 
     // Save to Supabase
-    const { error: dbError } = await supabase.from("quotes").insert({
+    const { data: insertedQuote, error: dbError } = await supabase.from("quotes").insert({
       name,
       email,
       phone,
@@ -50,11 +50,14 @@ export async function POST(request: Request) {
       vehicle,
       message,
       text_updates: body.textUpdates ?? false,
-    });
+    }).select("id").single();
 
     if (dbError) {
       console.error("Supabase insert error:", dbError);
     }
+
+    const domain = process.env.NEXT_PUBLIC_SITE_URL || "https://catalystmotorsport.com";
+    const manageUrl = insertedQuote ? `${domain}/admin/contact/${insertedQuote.id}` : `${domain}/admin`;
 
     // Get notification email from settings
     const { data: settingsData } = await supabase
@@ -81,6 +84,9 @@ export async function POST(request: Request) {
           <tr><td style="padding:6px 12px;font-weight:bold;">Message</td><td style="padding:6px 12px;">${message}</td></tr>
           <tr><td style="padding:6px 12px;font-weight:bold;">Text Updates</td><td style="padding:6px 12px;">${textUpdates}</td></tr>
         </table>
+        <p style="margin-top:20px;">
+          <a href="${manageUrl}" style="display:inline-block;padding:10px 24px;background:#dc2626;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;">Manage this contact</a>
+        </p>
       `,
     });
 

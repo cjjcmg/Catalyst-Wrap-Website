@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getUser } from "@/lib/get-user";
+import { logAudit } from "@/lib/audit";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,6 +23,7 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
+  const user = await getUser();
   const { email } = await request.json();
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -36,6 +39,16 @@ export async function PUT(request: Request) {
 
   if (error) {
     return NextResponse.json({ error: "Failed to save" }, { status: 500 });
+  }
+
+  if (user) {
+    await logAudit({
+      user_id: user.id,
+      user_email: user.email,
+      action: "update_settings",
+      entity_type: "settings",
+      changes: { notification_email: email },
+    });
   }
 
   return NextResponse.json({ success: true });
