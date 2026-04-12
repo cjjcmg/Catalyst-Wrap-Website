@@ -192,6 +192,12 @@ export default function AdminDashboard() {
         </div>
         <div className="flex items-center gap-4">
           <button
+            onClick={() => router.push("/admin/crm")}
+            className="text-sm text-catalyst-red hover:text-white transition-colors whitespace-nowrap font-medium"
+          >
+            CRM
+          </button>
+          <button
             onClick={() => router.push("/admin/settings")}
             className="text-sm text-catalyst-grey-500 hover:text-white transition-colors whitespace-nowrap"
           >
