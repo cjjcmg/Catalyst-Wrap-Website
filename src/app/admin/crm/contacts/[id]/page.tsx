@@ -95,6 +95,11 @@ export default function CRMContactDetailPage() {
   const [remMessage, setRemMessage] = useState("");
   const [savingRem, setSavingRem] = useState(false);
 
+  // Edit contact
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ name: "", email: "", phone: "", service: "", vehicle: "", message: "" });
+  const [saving, setSaving] = useState(false);
+
   // Estimated value
   const [editingValue, setEditingValue] = useState(false);
   const [estValue, setEstValue] = useState("");
@@ -111,8 +116,10 @@ export default function CRMContactDetailPage() {
       const [qData, actData, noteData, remData, apptData] = await Promise.all([
         qRes.json(), actRes.json(), noteRes.json(), remRes.json(), apptRes.json(),
       ]);
-      setQuote(qData.quote || null);
-      setEstValue(qData.quote?.estimated_value?.toString() || "");
+      const q = qData.quote || null;
+      setQuote(q);
+      setEstValue(q?.estimated_value?.toString() || "");
+      if (q) setEditForm({ name: q.name, email: q.email, phone: q.phone, service: q.service || "", vehicle: q.vehicle || "", message: q.message || "" });
       setActivities(actData.activities || []);
       setNotes(noteData.notes || []);
       setReminders(remData.reminders || []);
@@ -132,6 +139,21 @@ export default function CRMContactDetailPage() {
       const { quote: updated } = await res.json();
       setQuote(updated);
     }
+  }
+
+  async function saveEdit() {
+    setSaving(true);
+    const res = await fetch("/api/admin/quotes", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: quoteId, ...editForm }),
+    });
+    if (res.ok) {
+      const { quote: updated } = await res.json();
+      setQuote(updated);
+      setEditing(false);
+    }
+    setSaving(false);
   }
 
   async function logActivity() {
@@ -251,51 +273,104 @@ export default function CRMContactDetailPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Contact Info */}
           <div className="rounded-xl border border-catalyst-border bg-catalyst-card p-5 space-y-3">
-            <h2 className="font-heading text-lg font-semibold text-white">Contact Info</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              <div>
-                <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Email</p>
-                <a href={`mailto:${quote.email}`} className="text-catalyst-red hover:underline">{quote.email}</a>
-              </div>
-              <div>
-                <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Phone</p>
-                <a href={`tel:${quote.phone}`} className="text-catalyst-red hover:underline">{formatPhone(quote.phone)}</a>
-              </div>
-              <div>
-                <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Service</p>
-                <p className="text-white">{quote.service || "—"}</p>
-              </div>
-              <div>
-                <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Vehicle</p>
-                <p className="text-white">{quote.vehicle || "—"}</p>
-              </div>
-              <div>
-                <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Estimated Value</p>
-                {editingValue ? (
-                  <div className="flex items-center gap-2">
-                    <input type="number" value={estValue} onChange={(e) => setEstValue(e.target.value)} className="w-24 rounded border border-catalyst-border bg-catalyst-black px-2 py-1 text-white text-sm focus:outline-none" />
-                    <button onClick={() => { updateField("estimated_value", estValue ? Number(estValue) : null); setEditingValue(false); }} className="text-xs text-green-400">Save</button>
-                    <button onClick={() => setEditingValue(false)} className="text-xs text-catalyst-grey-500">Cancel</button>
+            <div className="flex items-center justify-between">
+              <h2 className="font-heading text-lg font-semibold text-white">Contact Info</h2>
+              {!editing && (
+                <button
+                  onClick={() => { setEditing(true); setEditForm({ name: quote.name, email: quote.email, phone: quote.phone, service: quote.service || "", vehicle: quote.vehicle || "", message: quote.message || "" }); }}
+                  className="flex items-center gap-1.5 rounded-lg bg-catalyst-red px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                  Edit
+                </button>
+              )}
+            </div>
+
+            {editing ? (
+              <div className="space-y-3">
+                {([
+                  { label: "Name", key: "name", type: "text" },
+                  { label: "Email", key: "email", type: "email" },
+                  { label: "Phone", key: "phone", type: "tel" },
+                  { label: "Service", key: "service", type: "text" },
+                  { label: "Vehicle", key: "vehicle", type: "text" },
+                ] as const).map(({ label, key, type }) => (
+                  <div key={key}>
+                    <label className="block text-xs text-catalyst-grey-500 uppercase tracking-wider mb-1">{label}</label>
+                    <input
+                      type={type}
+                      value={editForm[key]}
+                      onChange={(e) => setEditForm({ ...editForm, [key]: e.target.value })}
+                      className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white focus:border-catalyst-red focus:outline-none"
+                    />
                   </div>
-                ) : (
-                  <p className="text-white cursor-pointer hover:text-catalyst-red" onClick={() => setEditingValue(true)}>
-                    {quote.estimated_value ? `$${quote.estimated_value.toLocaleString()}` : "—"}
-                  </p>
+                ))}
+                <div>
+                  <label className="block text-xs text-catalyst-grey-500 uppercase tracking-wider mb-1">Message</label>
+                  <textarea
+                    rows={3}
+                    value={editForm.message}
+                    onChange={(e) => setEditForm({ ...editForm, message: e.target.value })}
+                    className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white focus:border-catalyst-red focus:outline-none resize-none"
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button onClick={() => setEditing(false)} className="rounded-lg border border-catalyst-border px-4 py-2 text-sm text-catalyst-grey-400 hover:text-white transition-colors">Cancel</button>
+                  <button onClick={saveEdit} disabled={saving} className="rounded-lg bg-catalyst-red px-5 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-50">{saving ? "Saving..." : "Save"}</button>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Email</p>
+                  <a href={`mailto:${quote.email}`} className="text-catalyst-red hover:underline">{quote.email}</a>
+                </div>
+                <div>
+                  <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Phone</p>
+                  <a href={`tel:${quote.phone}`} className="text-catalyst-red hover:underline">{formatPhone(quote.phone)}</a>
+                </div>
+                <div>
+                  <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Service</p>
+                  <p className="text-white">{quote.service || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Vehicle</p>
+                  <p className="text-white">{quote.vehicle || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Estimated Value</p>
+                  {editingValue ? (
+                    <div className="flex items-center gap-2">
+                      <input type="number" value={estValue} onChange={(e) => setEstValue(e.target.value)} className="w-24 rounded border border-catalyst-border bg-catalyst-black px-2 py-1 text-white text-sm focus:outline-none" />
+                      <button onClick={() => { updateField("estimated_value", estValue ? Number(estValue) : null); setEditingValue(false); }} className="text-xs text-green-400">Save</button>
+                      <button onClick={() => setEditingValue(false)} className="text-xs text-catalyst-grey-500">Cancel</button>
+                    </div>
+                  ) : (
+                    <p className="text-white cursor-pointer hover:text-catalyst-red" onClick={() => setEditingValue(true)}>
+                      {quote.estimated_value ? `$${quote.estimated_value.toLocaleString()}` : "—"}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Source</p>
+                  <p className="text-white">{quote.source || "Website"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Created</p>
+                  <p className="text-white">{formatDate(quote.created_at)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Last Contact</p>
+                  <p className="text-white">{quote.last_contact_date ? formatDate(quote.last_contact_date) : "—"}</p>
+                </div>
+                {quote.message && (
+                  <div className="sm:col-span-2">
+                    <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Message</p>
+                    <p className="text-catalyst-grey-300">{quote.message}</p>
+                  </div>
                 )}
               </div>
-              <div>
-                <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Source</p>
-                <p className="text-white">{quote.source || "Website"}</p>
-              </div>
-              <div>
-                <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Created</p>
-                <p className="text-white">{formatDate(quote.created_at)}</p>
-              </div>
-              <div>
-                <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Last Contact</p>
-                <p className="text-white">{quote.last_contact_date ? formatDate(quote.last_contact_date) : "—"}</p>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Log Activity */}
