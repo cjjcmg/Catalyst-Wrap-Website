@@ -80,7 +80,7 @@ export const locationPages: LocationPage[] = [
       {
         question: "Where is Catalyst Motorsport located in Anaheim?",
         answer:
-          "We are located at 1161 N Cosby Way in Anaheim, CA. Our facility is easily accessible from the 91 Freeway, the 57 Freeway, and major surface streets. We serve clients from Anaheim, Fullerton, Placentia, Brea, Yorba Linda, and the surrounding area.",
+          "We are located at 1161 N Cosby Way, Unit T in Anaheim, CA. Our facility is easily accessible from the 91 Freeway, the 57 Freeway, and major surface streets. We serve clients from Anaheim, Fullerton, Placentia, Brea, Yorba Linda, and the surrounding area.",
       },
       {
         question: "What services does Catalyst Motorsport offer in Anaheim?",
@@ -179,7 +179,7 @@ export const locationPages: LocationPage[] = [
       {
         question: "Where in Orange County is Catalyst Motorsport?",
         answer:
-          "We are located at 1161 N Cosby Way in Anaheim, centrally positioned in Orange County. Our shop is easily accessible from the 91, 57, 5, and 55 freeways, making us a convenient choice for clients throughout OC.",
+          "We are located at 1161 N Cosby Way, Unit T in Anaheim, centrally positioned in Orange County. Our shop is easily accessible from the 91, 57, 5, and 55 freeways, making us a convenient choice for clients throughout OC.",
       },
       {
         question: "Do you serve all of Orange County?",

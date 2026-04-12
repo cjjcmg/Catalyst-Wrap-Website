@@ -169,3 +169,47 @@ export async function PATCH(request: Request) {
 
   return NextResponse.json({ appointment: data });
 }
+
+export async function DELETE(request: Request) {
+  const user = await getUser();
+  const { id } = await request.json();
+
+  if (!id) {
+    return NextResponse.json({ error: "Appointment ID is required" }, { status: 400 });
+  }
+
+  if (!user || user.role !== "admin") {
+    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  }
+
+  const { data: existing } = await supabase
+    .from("appointments")
+    .select("google_event_id, quote_id")
+    .eq("id", id)
+    .single();
+
+  if (existing?.google_event_id) {
+    try {
+      await cancelCalendarEvent(existing.google_event_id);
+    } catch (err) {
+      console.error("Google Calendar delete error:", err);
+    }
+  }
+
+  const { error } = await supabase.from("appointments").delete().eq("id", id);
+
+  if (error) {
+    return NextResponse.json({ error: "Failed to delete appointment" }, { status: 500 });
+  }
+
+  await logAudit({
+    user_id: user.id,
+    user_email: user.email,
+    action: "delete_appointment",
+    entity_type: "appointment",
+    entity_id: id,
+    changes: { quote_id: existing?.quote_id },
+  });
+
+  return NextResponse.json({ success: true });
+}

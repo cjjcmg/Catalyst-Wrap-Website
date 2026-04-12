@@ -44,7 +44,7 @@ export async function sendAppointmentEmail(input: AppointmentEmailInput) {
       </table>
       <p>If you need to reschedule or cancel, please contact us at <a href="tel:7144421333">(714) 442-1333</a> or reply to this email.</p>
       <p style="margin-top:24px;">— Catalyst Motorsport</p>
-      <p style="color:#888;font-size:12px;">1001 N Batavia St, Orange, CA 92867</p>
+      <p style="color:#888;font-size:12px;">1161 N Cosby Way, Unit T, Anaheim, CA</p>
     `,
   });
 }

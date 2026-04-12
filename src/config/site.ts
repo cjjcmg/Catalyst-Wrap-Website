@@ -15,13 +15,13 @@ export const siteConfig = {
   phoneHref: "tel:+17144421333",
 
   address: {
-    street: "1161 N Cosby Way",
+    street: "1161 N Cosby Way, Unit T",
     city: "Anaheim",
     state: "CA",
     zip: "", // TODO: Add zip code
-    full: "1161 N Cosby Way, Anaheim, CA",
+    full: "1161 N Cosby Way, Unit T, Anaheim, CA",
     mapsUrl:
-      "https://www.google.com/maps/search/?api=1&query=1161+N+Cosby+Way+Anaheim+CA",
+      "https://www.google.com/maps/search/?api=1&query=1161+N+Cosby+Way+Unit+T+Anaheim+CA",
   },
 
   serviceArea: "Los Angeles & Orange County",

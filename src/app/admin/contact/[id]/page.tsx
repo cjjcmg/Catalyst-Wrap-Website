@@ -50,6 +50,7 @@ export default function ContactDetailPage() {
   const router = useRouter();
   const quoteId = Number(params.id);
 
+  const [user, setUser] = useState<{ role: string } | null>(null);
   const [quote, setQuote] = useState<Quote | null>(null);
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,6 +71,8 @@ export default function ContactDetailPage() {
   const [savingAppt, setSavingAppt] = useState(false);
 
   useEffect(() => {
+    fetch("/api/admin/me").then((r) => r.json()).then((d) => setUser(d.user || null));
+
     async function load() {
       const [qRes, nRes, aRes] = await Promise.all([
         fetch(`/api/admin/quotes?id=${quoteId}`),
@@ -177,6 +180,30 @@ export default function ContactDetailPage() {
     }
   }
 
+  async function deleteContact() {
+    if (!confirm("Permanently delete this contact and all associated notes and appointments?")) return;
+    const res = await fetch("/api/admin/quotes", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: quoteId }),
+    });
+    if (res.ok) {
+      router.push("/admin");
+    }
+  }
+
+  async function deleteAppointment(id: number) {
+    if (!confirm("Delete this appointment? It will also be removed from Google Calendar.")) return;
+    const res = await fetch("/api/admin/appointments", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) {
+      setAppointments((prev) => prev.filter((a) => a.id !== id));
+    }
+  }
+
   async function deleteNote(noteId: number) {
     if (!confirm("Delete this note?")) return;
     const res = await fetch("/api/admin/notes", {
@@ -251,9 +278,22 @@ export default function ContactDetailPage() {
             </span>
           )}
         </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {user?.role === "admin" && (
+            <button
+              onClick={deleteContact}
+              className="flex items-center gap-1.5 rounded-lg border border-red-500/30 px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              </svg>
+              Delete
+            </button>
+          )}
         <button
           onClick={toggleArchive}
-          className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-colors flex-shrink-0 ${
+          className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-colors ${
             quote.archived
               ? "border-green-500/30 text-green-400 hover:bg-green-500/10"
               : "border-catalyst-border text-catalyst-grey-400 hover:text-amber-400 hover:border-amber-500/30"
@@ -278,6 +318,7 @@ export default function ContactDetailPage() {
             </>
           )}
         </button>
+        </div>
       </div>
 
       {/* Contact Info Card */}
@@ -553,15 +594,24 @@ export default function ContactDetailPage() {
                       )}
                     </p>
                   </div>
-                  {appt.status === "scheduled" && (
-                    <button
-                      onClick={() => cancelAppointment(appt.id)}
-                      className="text-catalyst-grey-600 hover:text-red-500 transition-colors flex-shrink-0 text-xs"
-                      title="Cancel appointment"
-                    >
-                      Cancel
-                    </button>
-                  )}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {appt.status === "scheduled" && (
+                      <button
+                        onClick={() => cancelAppointment(appt.id)}
+                        className="text-catalyst-grey-600 hover:text-amber-400 transition-colors text-xs"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                    {user?.role === "admin" && (
+                      <button
+                        onClick={() => deleteAppointment(appt.id)}
+                        className="text-catalyst-grey-600 hover:text-red-500 transition-colors text-xs"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

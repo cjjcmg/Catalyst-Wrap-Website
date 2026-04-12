@@ -28,6 +28,7 @@ const ACTION_LABELS: Record<string, string> = {
   update_settings: "updated settings",
   create_appointment: "scheduled appointment for",
   cancel_appointment: "cancelled appointment for",
+  delete_appointment: "deleted appointment for",
 };
 
 export default function AuditLogPage() {

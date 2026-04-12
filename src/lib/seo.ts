@@ -23,7 +23,7 @@ export const seoConfig = {
 
   // ── Address ────────────────────────────────────────────
   address: {
-    street: "1161 N Cosby Way",
+    street: "1161 N Cosby Way, Unit T",
     city: "Anaheim",
     state: "CA",
     zip: "", // TODO: Add zip code
