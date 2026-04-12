@@ -7,6 +7,16 @@ interface User {
   name: string;
   email: string;
   role: "admin" | "user";
+  id: number;
+}
+
+interface TeamUser {
+  id: number;
+  name: string;
+  email: string;
+  role: "admin" | "user";
+  disabled: boolean;
+  created_at: string;
 }
 
 export default function SettingsPage() {
@@ -15,6 +25,14 @@ export default function SettingsPage() {
   const [email, setEmail] = useState("");
   const [savedEmail, setSavedEmail] = useState("");
   const [emailStatus, setEmailStatus] = useState("");
+
+  const [teamUsers, setTeamUsers] = useState<TeamUser[]>([]);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editRole, setEditRole] = useState<"admin" | "user">("user");
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [teamLoading, setTeamLoading] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/me")
@@ -28,6 +46,22 @@ export default function SettingsPage() {
         setSavedEmail(d.email);
       });
   }, []);
+
+  useEffect(() => {
+    if (user?.role === "admin") {
+      fetchTeamUsers();
+    }
+  }, [user]);
+
+  async function fetchTeamUsers() {
+    setTeamLoading(true);
+    const res = await fetch("/api/admin/users");
+    if (res.ok) {
+      const d = await res.json();
+      setTeamUsers(d.users || []);
+    }
+    setTeamLoading(false);
+  }
 
   async function saveEmail() {
     setEmailStatus("Saving...");
@@ -43,6 +77,52 @@ export default function SettingsPage() {
       setEmailStatus("Error saving");
     }
     setTimeout(() => setEmailStatus(""), 2000);
+  }
+
+  function startEdit(tu: TeamUser) {
+    setEditingId(tu.id);
+    setEditName(tu.name);
+    setEditEmail(tu.email);
+    setEditRole(tu.role);
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+  }
+
+  async function saveEdit(id: number) {
+    const res = await fetch("/api/admin/users", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, name: editName, email: editEmail, role: editRole }),
+    });
+    if (res.ok) {
+      setEditingId(null);
+      fetchTeamUsers();
+    }
+  }
+
+  async function toggleDisabled(tu: TeamUser) {
+    const res = await fetch("/api/admin/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: tu.id, disabled: !tu.disabled }),
+    });
+    if (res.ok) {
+      fetchTeamUsers();
+    }
+  }
+
+  async function deleteUser(id: number) {
+    const res = await fetch("/api/admin/users", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) {
+      setDeletingId(null);
+      fetchTeamUsers();
+    }
   }
 
   return (
@@ -122,32 +202,122 @@ export default function SettingsPage() {
       {user?.role === "admin" && (
         <div className="rounded-xl border border-catalyst-border bg-catalyst-card p-5 sm:p-6 space-y-4">
           <h2 className="font-heading text-lg font-semibold text-white">Team</h2>
-          <p className="text-sm text-catalyst-grey-400">
-            Manage team members by contacting your administrator or updating the users table directly.
-          </p>
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center justify-between py-2 border-b border-catalyst-border/50">
-              <div>
-                <p className="text-white">Chris</p>
-                <p className="text-catalyst-grey-500">chris@catalystmotorsport.com</p>
-              </div>
-              <span className="text-xs text-catalyst-red font-medium">Admin</span>
+          {teamLoading ? (
+            <p className="text-sm text-catalyst-grey-500">Loading...</p>
+          ) : (
+            <div className="space-y-2 text-sm">
+              {teamUsers.map((tu, idx) => (
+                <div
+                  key={tu.id}
+                  className={`py-3 ${idx < teamUsers.length - 1 ? "border-b border-catalyst-border/50" : ""}`}
+                >
+                  {editingId === tu.id ? (
+                    <div className="space-y-3">
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <input
+                          type="text"
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          placeholder="Name"
+                          className="flex-1 rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-1.5 text-white text-sm placeholder-catalyst-grey-600 focus:border-catalyst-red focus:outline-none"
+                        />
+                        <input
+                          type="email"
+                          value={editEmail}
+                          onChange={(e) => setEditEmail(e.target.value)}
+                          placeholder="Email"
+                          className="flex-1 rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-1.5 text-white text-sm placeholder-catalyst-grey-600 focus:border-catalyst-red focus:outline-none"
+                        />
+                        <select
+                          value={editRole}
+                          onChange={(e) => setEditRole(e.target.value as "admin" | "user")}
+                          className="rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-1.5 text-white text-sm focus:border-catalyst-red focus:outline-none"
+                        >
+                          <option value="admin">Admin</option>
+                          <option value="user">User</option>
+                        </select>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => saveEdit(tu.id)}
+                          className="rounded-lg bg-catalyst-red px-3 py-1 text-xs font-heading font-semibold text-white hover:bg-red-700 transition-colors"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={cancelEdit}
+                          className="rounded-lg border border-catalyst-border px-3 py-1 text-xs font-heading font-semibold text-catalyst-grey-400 hover:text-white transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className={`text-white ${tu.disabled ? "opacity-50" : ""}`}>{tu.name}</p>
+                          {tu.role === "admin" ? (
+                            <span className="text-xs text-catalyst-red font-medium">Admin</span>
+                          ) : (
+                            <span className="text-xs text-catalyst-grey-500">User</span>
+                          )}
+                          {tu.disabled && (
+                            <span className="text-xs bg-catalyst-grey-600/30 text-catalyst-grey-400 px-1.5 py-0.5 rounded">Disabled</span>
+                          )}
+                        </div>
+                        <p className={`text-catalyst-grey-500 ${tu.disabled ? "opacity-50" : ""}`}>{tu.email}</p>
+                      </div>
+                      <div className="flex items-center gap-2 ml-3 shrink-0">
+                        <button
+                          onClick={() => startEdit(tu)}
+                          className="text-xs text-catalyst-grey-400 hover:text-white transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => toggleDisabled(tu)}
+                          className="text-xs text-catalyst-grey-400 hover:text-white transition-colors"
+                        >
+                          {tu.disabled ? "Enable" : "Disable"}
+                        </button>
+                        {tu.id !== user.id && (
+                          <>
+                            {deletingId === tu.id ? (
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() => deleteUser(tu.id)}
+                                  className="text-xs text-catalyst-red hover:text-red-400 transition-colors font-semibold"
+                                >
+                                  Confirm
+                                </button>
+                                <button
+                                  onClick={() => setDeletingId(null)}
+                                  className="text-xs text-catalyst-grey-400 hover:text-white transition-colors"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => setDeletingId(tu.id)}
+                                className="text-xs text-catalyst-grey-400 hover:text-catalyst-red transition-colors"
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+              {teamUsers.length === 0 && (
+                <p className="text-catalyst-grey-500 py-2">No team members found.</p>
+              )}
             </div>
-            <div className="flex items-center justify-between py-2 border-b border-catalyst-border/50">
-              <div>
-                <p className="text-white">Jarod</p>
-                <p className="text-catalyst-grey-500">jarod@catalystmotorsport.com</p>
-              </div>
-              <span className="text-xs text-catalyst-grey-500">User</span>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <div>
-                <p className="text-white">Oveis</p>
-                <p className="text-catalyst-grey-500">oveis@catalystmotorsport.com</p>
-              </div>
-              <span className="text-xs text-catalyst-grey-500">User</span>
-            </div>
-          </div>
+          )}
         </div>
       )}
     </div>
