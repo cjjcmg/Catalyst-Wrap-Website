@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.100.1",
+    "googleapis": "^171.4.0",
     "jose": "^6.2.2",
     "next": "^14.2.35",
     "nodemailer": "^8.0.4",

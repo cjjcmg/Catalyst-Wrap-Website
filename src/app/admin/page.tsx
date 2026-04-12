@@ -22,6 +22,12 @@ interface User {
   role: "admin" | "user";
 }
 
+function formatPhone(phone: string) {
+  const d = phone.replace(/\D/g, "").slice(-10);
+  if (d.length === 10) return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+  return phone;
+}
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
@@ -210,7 +216,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="space-y-1 text-sm">
                   <p className="text-catalyst-grey-300 truncate">{q.email}</p>
-                  <p className="text-catalyst-grey-300">{q.phone}</p>
+                  <p className="text-catalyst-grey-300">{formatPhone(q.phone)}</p>
                   {q.service && <p className="text-catalyst-grey-400">Service: {q.service}</p>}
                   {q.vehicle && <p className="text-catalyst-grey-400">Vehicle: {q.vehicle}</p>}
                 </div>
@@ -247,7 +253,7 @@ export default function AdminDashboard() {
                       {q.email}
                     </td>
                     <td className="py-3 pr-4 text-catalyst-grey-300 whitespace-nowrap">
-                      {q.phone}
+                      {formatPhone(q.phone)}
                     </td>
                     <td className="py-3 pr-4 text-catalyst-grey-300 truncate" title={q.service}>
                       {q.service}

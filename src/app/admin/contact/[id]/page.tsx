@@ -13,6 +13,7 @@ interface Quote {
   vehicle: string;
   message: string;
   text_updates: boolean;
+  archived: boolean;
 }
 
 interface Note {
@@ -22,6 +23,26 @@ interface Note {
   created_at: string;
   created_by?: string;
   created_by_name?: string;
+}
+
+interface Appointment {
+  id: number;
+  quote_id: number;
+  date_time: string;
+  details: string | null;
+  status: "scheduled" | "cancelled";
+  share_with_contact: boolean;
+  created_by?: string;
+  created_by_name?: string;
+  created_at: string;
+  cancelled_at?: string;
+  cancelled_by?: string;
+}
+
+function formatPhone(phone: string) {
+  const d = phone.replace(/\D/g, "").slice(-10);
+  if (d.length === 10) return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+  return phone;
 }
 
 export default function ContactDetailPage() {
@@ -40,18 +61,29 @@ export default function ContactDetailPage() {
   const [addingNote, setAddingNote] = useState(false);
   const [showNoteInput, setShowNoteInput] = useState(false);
 
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [showApptForm, setShowApptForm] = useState(false);
+  const [apptDate, setApptDate] = useState("");
+  const [apptTime, setApptTime] = useState("");
+  const [apptDetails, setApptDetails] = useState("");
+  const [apptShare, setApptShare] = useState(false);
+  const [savingAppt, setSavingAppt] = useState(false);
+
   useEffect(() => {
     async function load() {
-      const [qRes, nRes] = await Promise.all([
+      const [qRes, nRes, aRes] = await Promise.all([
         fetch(`/api/admin/quotes?id=${quoteId}`),
         fetch(`/api/admin/notes?quote_id=${quoteId}`),
+        fetch(`/api/admin/appointments?quote_id=${quoteId}`),
       ]);
       const qData = await qRes.json();
       const nData = await nRes.json();
+      const aData = await aRes.json();
 
       setQuote(qData.quote || null);
       setEditForm(qData.quote || null);
       setNotes(nData.notes || []);
+      setAppointments(aData.appointments || []);
       setLoading(false);
     }
     load();
@@ -90,6 +122,59 @@ export default function ContactDetailPage() {
       setShowNoteInput(false);
     }
     setAddingNote(false);
+  }
+
+  async function toggleArchive() {
+    if (!quote) return;
+    const res = await fetch("/api/admin/quotes", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: quote.id, archived: !quote.archived }),
+    });
+    if (res.ok) {
+      const { quote: updated } = await res.json();
+      setQuote(updated);
+      setEditForm(updated);
+    }
+  }
+
+  async function createAppointment() {
+    if (!apptDate || !apptTime) return;
+    setSavingAppt(true);
+    const dateTime = new Date(`${apptDate}T${apptTime}`).toISOString();
+    const res = await fetch("/api/admin/appointments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        quote_id: quoteId,
+        date_time: dateTime,
+        details: apptDetails,
+        share_with_contact: apptShare,
+      }),
+    });
+    if (res.ok) {
+      const { appointment } = await res.json();
+      setAppointments((prev) => [appointment, ...prev]);
+      setShowApptForm(false);
+      setApptDate("");
+      setApptTime("");
+      setApptDetails("");
+      setApptShare(false);
+    }
+    setSavingAppt(false);
+  }
+
+  async function cancelAppointment(id: number) {
+    if (!confirm("Cancel this appointment?")) return;
+    const res = await fetch("/api/admin/appointments", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status: "cancelled" }),
+    });
+    if (res.ok) {
+      const { appointment } = await res.json();
+      setAppointments((prev) => prev.map((a) => (a.id === id ? appointment : a)));
+    }
   }
 
   async function deleteNote(noteId: number) {
@@ -147,18 +232,52 @@ export default function ContactDetailPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            onClick={() => router.push(quote.archived ? "/admin/archived" : "/admin")}
+            className="text-catalyst-grey-500 hover:text-white transition-colors flex-shrink-0"
+            title="Back"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+          </button>
+          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-white truncate">{quote.name}</h1>
+          {quote.archived && (
+            <span className="flex-shrink-0 rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-medium text-amber-400">
+              Archived
+            </span>
+          )}
+        </div>
         <button
-          onClick={() => router.push("/admin")}
-          className="text-catalyst-grey-500 hover:text-white transition-colors"
-          title="Back to Dashboard"
+          onClick={toggleArchive}
+          className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-colors flex-shrink-0 ${
+            quote.archived
+              ? "border-green-500/30 text-green-400 hover:bg-green-500/10"
+              : "border-catalyst-border text-catalyst-grey-400 hover:text-amber-400 hover:border-amber-500/30"
+          }`}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 12H5" />
-            <polyline points="12 19 5 12 12 5" />
-          </svg>
+          {quote.archived ? (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="1 4 1 10 7 10" />
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+              </svg>
+              Restore
+            </>
+          ) : (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="21 8 21 21 3 21 3 8" />
+                <rect x="1" y="3" width="22" height="5" />
+                <line x1="10" y1="12" x2="14" y2="12" />
+              </svg>
+              Archive
+            </>
+          )}
         </button>
-        <h1 className="font-heading text-2xl sm:text-3xl font-bold text-white">{quote.name}</h1>
       </div>
 
       {/* Contact Info Card */}
@@ -272,7 +391,7 @@ export default function ContactDetailPage() {
             <div>
               <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider mb-1">Phone</p>
               <a href={`tel:${quote.phone}`} className="text-catalyst-red hover:underline">
-                {quote.phone}
+                {formatPhone(quote.phone)}
               </a>
             </div>
             <div>
@@ -291,6 +410,161 @@ export default function ContactDetailPage() {
               <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider mb-1">Text Updates</p>
               <p className="text-white">{quote.text_updates ? "Yes" : "No"}</p>
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* Appointments Section */}
+      <div className="rounded-xl border border-catalyst-border bg-catalyst-card p-5 sm:p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="font-heading text-lg font-semibold text-white">
+            Appointments ({appointments.filter((a) => a.status === "scheduled").length})
+          </h2>
+          {!showApptForm && (
+            <button
+              onClick={() => setShowApptForm(true)}
+              className="flex items-center gap-1.5 text-sm text-catalyst-grey-400 hover:text-white transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Schedule
+            </button>
+          )}
+        </div>
+
+        {/* New Appointment Form */}
+        {showApptForm && (
+          <div className="space-y-3 rounded-lg border border-catalyst-border bg-catalyst-black p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-catalyst-grey-400 mb-1">Date</label>
+                <input
+                  type="date"
+                  value={apptDate}
+                  onChange={(e) => setApptDate(e.target.value)}
+                  className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white focus:border-catalyst-red focus:outline-none [color-scheme:dark]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-catalyst-grey-400 mb-1">Time</label>
+                <input
+                  type="time"
+                  value={apptTime}
+                  onChange={(e) => setApptTime(e.target.value)}
+                  className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white focus:border-catalyst-red focus:outline-none [color-scheme:dark]"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs text-catalyst-grey-400 mb-1">Details</label>
+              <textarea
+                rows={2}
+                placeholder="Appointment details..."
+                value={apptDetails}
+                onChange={(e) => setApptDetails(e.target.value)}
+                className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white placeholder-catalyst-grey-600 focus:border-catalyst-red focus:outline-none resize-none"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="share_appt"
+                checked={apptShare}
+                onChange={(e) => setApptShare(e.target.checked)}
+                className="accent-catalyst-red"
+              />
+              <label htmlFor="share_appt" className="text-sm text-catalyst-grey-400">
+                Share with contact ({quote.email})
+              </label>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setShowApptForm(false);
+                  setApptDate("");
+                  setApptTime("");
+                  setApptDetails("");
+                  setApptShare(false);
+                }}
+                className="rounded-lg border border-catalyst-border px-3 py-1.5 text-sm text-catalyst-grey-400 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={createAppointment}
+                disabled={savingAppt || !apptDate || !apptTime}
+                className="rounded-lg bg-catalyst-red px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {savingAppt ? "Scheduling..." : "Schedule"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Appointments List */}
+        {appointments.length === 0 && !showApptForm ? (
+          <p className="text-catalyst-grey-500 text-sm">No appointments yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {appointments.map((appt) => (
+              <div
+                key={appt.id}
+                className={`rounded-lg border p-4 ${
+                  appt.status === "cancelled"
+                    ? "border-catalyst-border/30 bg-catalyst-black/50"
+                    : "border-catalyst-border/50 bg-catalyst-black"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className={`text-sm font-medium ${appt.status === "cancelled" ? "text-catalyst-grey-500 line-through" : "text-white"}`}>
+                        {new Date(appt.date_time).toLocaleString("en-US", {
+                          weekday: "short",
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                      {appt.status === "cancelled" && (
+                        <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-xs font-medium text-red-400">
+                          Cancelled
+                        </span>
+                      )}
+                      {appt.status === "scheduled" && appt.share_with_contact && (
+                        <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-xs font-medium text-blue-400">
+                          Shared
+                        </span>
+                      )}
+                    </div>
+                    {appt.details && (
+                      <p className={`text-sm mt-1 ${appt.status === "cancelled" ? "text-catalyst-grey-600" : "text-catalyst-grey-300"}`}>
+                        {appt.details}
+                      </p>
+                    )}
+                    <p className="text-catalyst-grey-600 text-xs mt-2">
+                      {appt.created_by_name || appt.created_by?.split("@")[0] || "Unknown"} &middot; {formatDate(appt.created_at)}
+                      {appt.status === "cancelled" && appt.cancelled_by && (
+                        <> &middot; Cancelled by {appt.cancelled_by.split("@")[0]}</>
+                      )}
+                    </p>
+                  </div>
+                  {appt.status === "scheduled" && (
+                    <button
+                      onClick={() => cancelAppointment(appt.id)}
+                      className="text-catalyst-grey-600 hover:text-red-500 transition-colors flex-shrink-0 text-xs"
+                      title="Cancel appointment"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
