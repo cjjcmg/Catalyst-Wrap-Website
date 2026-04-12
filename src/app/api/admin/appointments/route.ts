@@ -16,8 +16,9 @@ export async function GET(request: Request) {
   const date = searchParams.get("date"); // YYYY-MM-DD — fetch all appointments for that day
 
   if (date) {
-    const dayStart = `${date}T00:00:00.000Z`;
-    const dayEnd = `${date}T23:59:59.999Z`;
+    // Use Pacific Time offset (PDT = -7, PST = -8). Use -7 for broader coverage.
+    const dayStart = `${date}T00:00:00-07:00`;
+    const dayEnd = `${date}T23:59:59-07:00`;
 
     const { data, error } = await supabase
       .from("appointments")
