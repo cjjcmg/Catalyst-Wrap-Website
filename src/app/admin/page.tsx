@@ -14,6 +14,7 @@ interface Quote {
   message: string;
   text_updates: boolean;
   archived: boolean;
+  label: string | null;
 }
 
 interface DayAppointment {
@@ -32,6 +33,13 @@ interface User {
   email: string;
   role: "admin" | "user";
 }
+
+const LABEL_COLORS: Record<string, string> = {
+  lead: "bg-blue-500/15 text-blue-400",
+  contact: "bg-purple-500/15 text-purple-400",
+  client: "bg-green-500/15 text-green-400",
+  "past client": "bg-catalyst-grey-500/15 text-catalyst-grey-400",
+};
 
 function formatPhone(phone: string) {
   const d = phone.replace(/\D/g, "").slice(-10);
@@ -196,6 +204,11 @@ export default function AdminDashboard() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <p className="text-white font-medium truncate">{q.name}</p>
+                      {q.label && (
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap ${LABEL_COLORS[q.label] || "bg-catalyst-grey-500/15 text-catalyst-grey-400"}`}>
+                          {q.label}
+                        </span>
+                      )}
                       <p className="text-xs text-catalyst-grey-500 whitespace-nowrap">{new Date(q.created_at).toLocaleDateString()}</p>
                     </div>
                     <div className="flex items-center gap-3 text-sm text-catalyst-grey-400 mt-0.5">

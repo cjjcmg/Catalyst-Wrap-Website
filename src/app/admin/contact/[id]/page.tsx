@@ -14,6 +14,7 @@ interface Quote {
   message: string;
   text_updates: boolean;
   archived: boolean;
+  label: string | null;
 }
 
 interface Note {
@@ -40,6 +41,14 @@ interface Appointment {
   cancelled_at?: string;
   cancelled_by?: string;
 }
+
+const LABELS = ["lead", "contact", "client", "past client"] as const;
+const LABEL_COLORS: Record<string, string> = {
+  lead: "bg-blue-500/15 text-blue-400 border-blue-500/30",
+  contact: "bg-purple-500/15 text-purple-400 border-purple-500/30",
+  client: "bg-green-500/15 text-green-400 border-green-500/30",
+  "past client": "bg-catalyst-grey-500/15 text-catalyst-grey-400 border-catalyst-grey-500/30",
+};
 
 function formatPhone(phone: string) {
   const d = phone.replace(/\D/g, "").slice(-10);
@@ -199,6 +208,20 @@ export default function ContactDetailPage() {
       setShowNoteInput(false);
     }
     setAddingNote(false);
+  }
+
+  async function setLabel(label: string | null) {
+    if (!quote) return;
+    const res = await fetch("/api/admin/quotes", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: quote.id, label }),
+    });
+    if (res.ok) {
+      const { quote: updated } = await res.json();
+      setQuote(updated);
+      setEditForm(updated);
+    }
   }
 
   async function toggleArchive() {
@@ -404,6 +427,20 @@ export default function ContactDetailPage() {
               Archived
             </span>
           )}
+          <select
+            value={quote.label || ""}
+            onChange={(e) => setLabel(e.target.value || null)}
+            className={`flex-shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium border appearance-none cursor-pointer ${
+              quote.label
+                ? LABEL_COLORS[quote.label] || "bg-catalyst-grey-500/15 text-catalyst-grey-400 border-catalyst-grey-500/30"
+                : "bg-catalyst-black text-catalyst-grey-500 border-catalyst-border"
+            }`}
+          >
+            <option value="">Set label</option>
+            {LABELS.map((l) => (
+              <option key={l} value={l}>{l}</option>
+            ))}
+          </select>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {user?.role === "admin" && (
