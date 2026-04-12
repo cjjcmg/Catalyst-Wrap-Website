@@ -41,28 +41,29 @@ const LABEL_COLORS: Record<string, string> = {
   "past client": "bg-catalyst-grey-500/15 text-catalyst-grey-400",
 };
 
+const LABELS = ["lead", "contact", "client", "past client"];
+
 function formatPhone(phone: string) {
   const d = phone.replace(/\D/g, "").slice(-10);
   if (d.length === 10) return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
   return phone;
 }
 
-function formatDayDate(date: Date) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const target = new Date(date);
-  target.setHours(0, 0, 0, 0);
-
-  if (target.getTime() === today.getTime()) return "Today";
-  if (target.getTime() === tomorrow.getTime()) return "Tomorrow";
-
-  return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-}
-
 function toDateStr(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function formatDayLabel(date: Date) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(date);
+  target.setHours(0, 0, 0, 0);
+  const diff = Math.round((target.getTime() - today.getTime()) / 86400000);
+
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Tomorrow";
+  if (diff === -1) return "Yesterday";
+  return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
 
 export default function AdminDashboard() {
@@ -71,16 +72,44 @@ export default function AdminDashboard() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Calendar state
-  const [calDate, setCalDate] = useState(new Date());
-  const [dayAppts, setDayAppts] = useState<DayAppointment[]>([]);
+  // Search & filter
+  const [search, setSearch] = useState("");
+  const [labelFilter, setLabelFilter] = useState("");
+
+  // 3-day calendar state
+  const [calStart, setCalStart] = useState(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
+  const [calAppts, setCalAppts] = useState<Record<string, DayAppointment[]>>({});
   const [calLoading, setCalLoading] = useState(true);
 
-  const fetchDayAppts = useCallback(async (date: Date) => {
+  const threeDays = [0, 1, 2].map((offset) => {
+    const d = new Date(calStart);
+    d.setDate(d.getDate() + offset);
+    return d;
+  });
+
+  const fetchCalAppts = useCallback(async (start: Date) => {
     setCalLoading(true);
-    const res = await fetch(`/api/admin/appointments?date=${toDateStr(date)}`);
-    const data = await res.json();
-    setDayAppts(data.appointments || []);
+    const days = [0, 1, 2].map((offset) => {
+      const d = new Date(start);
+      d.setDate(d.getDate() + offset);
+      return d;
+    });
+
+    const results = await Promise.all(
+      days.map(async (d) => {
+        const res = await fetch(`/api/admin/appointments?date=${toDateStr(d)}`);
+        const data = await res.json();
+        return { key: toDateStr(d), appts: (data.appointments || []) as DayAppointment[] };
+      })
+    );
+
+    const map: Record<string, DayAppointment[]> = {};
+    results.forEach((r) => { map[r.key] = r.appts; });
+    setCalAppts(map);
     setCalLoading(false);
   }, []);
 
@@ -95,22 +124,22 @@ export default function AdminDashboard() {
         setQuotes(d.quotes || []);
         setLoading(false);
       });
-
-    fetchDayAppts(new Date());
-  }, [fetchDayAppts]);
+  }, []);
 
   useEffect(() => {
-    fetchDayAppts(calDate);
-  }, [calDate, fetchDayAppts]);
+    fetchCalAppts(calStart);
+  }, [calStart, fetchCalAppts]);
 
-  function prevDay() {
-    setCalDate((d) => { const n = new Date(d); n.setDate(n.getDate() - 1); return n; });
+  function prevPeriod() {
+    setCalStart((d) => { const n = new Date(d); n.setDate(n.getDate() - 3); return n; });
   }
-  function nextDay() {
-    setCalDate((d) => { const n = new Date(d); n.setDate(n.getDate() + 1); return n; });
+  function nextPeriod() {
+    setCalStart((d) => { const n = new Date(d); n.setDate(n.getDate() + 3); return n; });
   }
   function goToday() {
-    setCalDate(new Date());
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    setCalStart(d);
   }
 
   async function archiveQuote(id: number) {
@@ -129,7 +158,24 @@ export default function AdminDashboard() {
     router.push("/admin/login");
   }
 
-  const scheduledAppts = dayAppts.filter((a) => a.status === "scheduled");
+  // Filter contacts
+  const filteredQuotes = quotes.filter((q) => {
+    if (labelFilter === "__none" && q.label) return false;
+    if (labelFilter && labelFilter !== "__none" && q.label !== labelFilter) return false;
+    if (!search) return true;
+    const s = search.toLowerCase();
+    return (
+      q.name.toLowerCase().includes(s) ||
+      q.email.toLowerCase().includes(s) ||
+      q.phone.includes(s) ||
+      formatPhone(q.phone).includes(s) ||
+      (q.service || "").toLowerCase().includes(s) ||
+      (q.vehicle || "").toLowerCase().includes(s) ||
+      (q.label || "").toLowerCase().includes(s)
+    );
+  });
+
+  const isToday = toDateStr(calStart) === toDateStr(new Date());
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -174,7 +220,7 @@ export default function AdminDashboard() {
         <div className="flex-1 min-w-0 rounded-xl border border-catalyst-border bg-catalyst-card p-4 sm:p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-heading text-lg sm:text-xl font-semibold text-white">
-              Contacts ({quotes.length})
+              Contacts ({filteredQuotes.length}{filteredQuotes.length !== quotes.length ? ` / ${quotes.length}` : ""})
             </h2>
             <button
               onClick={() => router.push("/admin/archived")}
@@ -189,13 +235,43 @@ export default function AdminDashboard() {
             </button>
           </div>
 
+          {/* Search and filter */}
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-catalyst-grey-600">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search contacts..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full rounded-lg border border-catalyst-border bg-catalyst-black pl-9 pr-4 py-2 text-sm text-white placeholder-catalyst-grey-600 focus:border-catalyst-red focus:outline-none"
+              />
+            </div>
+            <select
+              value={labelFilter}
+              onChange={(e) => setLabelFilter(e.target.value)}
+              className="rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white focus:border-catalyst-red focus:outline-none appearance-none"
+            >
+              <option value="">All types</option>
+              {LABELS.map((l) => (
+                <option key={l} value={l}>{l}</option>
+              ))}
+              <option value="__none">Unlabeled</option>
+            </select>
+          </div>
+
           {loading ? (
             <p className="text-catalyst-grey-500">Loading...</p>
-          ) : quotes.length === 0 ? (
-            <p className="text-catalyst-grey-500">No contacts yet.</p>
+          ) : filteredQuotes.length === 0 ? (
+            <p className="text-catalyst-grey-500 text-sm">
+              {quotes.length === 0 ? "No contacts yet." : "No contacts match your search."}
+            </p>
           ) : (
-            <div className="space-y-2">
-              {quotes.map((q) => (
+            <div className="space-y-2 max-h-[calc(100vh-320px)] overflow-y-auto">
+              {filteredQuotes.map((q) => (
                 <div
                   key={q.id}
                   className="flex items-center justify-between gap-3 rounded-lg border border-catalyst-border bg-catalyst-black p-3 cursor-pointer hover:border-catalyst-grey-600 transition-colors"
@@ -238,8 +314,8 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        {/* Day Calendar Panel */}
-        <div className="lg:w-[380px] flex-shrink-0 rounded-xl border border-catalyst-border bg-catalyst-card p-4 sm:p-6 space-y-4">
+        {/* 3-Day Calendar Panel */}
+        <div className="lg:w-[400px] flex-shrink-0 rounded-xl border border-catalyst-border bg-catalyst-card p-4 sm:p-6 space-y-4">
           {/* Calendar header */}
           <div className="flex items-center justify-between">
             <h2 className="font-heading text-lg font-semibold text-white">Schedule</h2>
@@ -251,73 +327,83 @@ export default function AdminDashboard() {
             </button>
           </div>
 
-          {/* Date nav */}
+          {/* Period nav */}
           <div className="flex items-center justify-between gap-2">
-            <button onClick={prevDay} className="text-catalyst-grey-500 hover:text-white transition-colors p-1">
+            <button onClick={prevPeriod} className="text-catalyst-grey-500 hover:text-white transition-colors p-1">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="15 18 9 12 15 6" />
               </svg>
             </button>
             <div className="text-center">
-              <p className="text-white font-medium text-sm">{formatDayDate(calDate)}</p>
-              <p className="text-catalyst-grey-500 text-xs">
-                {calDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+              <p className="text-white font-medium text-sm">
+                {threeDays[0].toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                {" — "}
+                {threeDays[2].toLocaleDateString("en-US", { month: "short", day: "numeric" })}
               </p>
             </div>
-            <button onClick={nextDay} className="text-catalyst-grey-500 hover:text-white transition-colors p-1">
+            <button onClick={nextPeriod} className="text-catalyst-grey-500 hover:text-white transition-colors p-1">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </button>
           </div>
 
-          {/* Today button */}
-          {toDateStr(calDate) !== toDateStr(new Date()) && (
+          {!isToday && (
             <button onClick={goToday} className="w-full text-center text-xs text-catalyst-grey-500 hover:text-white transition-colors">
               Go to Today
             </button>
           )}
 
-          {/* Events list */}
+          {/* 3-day columns */}
           {calLoading ? (
             <p className="text-catalyst-grey-500 text-sm">Loading...</p>
-          ) : scheduledAppts.length === 0 ? (
-            <div className="text-center py-6">
-              <p className="text-catalyst-grey-500 text-sm">No appointments</p>
-              <p className="text-catalyst-grey-600 text-xs mt-1">Click + Add Appt to schedule one</p>
-            </div>
           ) : (
-            <div className="space-y-2">
-              {scheduledAppts.map((appt) => (
-                <div
-                  key={appt.id}
-                  className="rounded-lg border border-catalyst-border/50 bg-catalyst-black p-3 cursor-pointer hover:border-catalyst-grey-600 transition-colors"
-                  onClick={() => router.push(`/admin/contact/${appt.quote_id}`)}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      {appt.title && (
-                        <p className="text-white text-sm font-medium truncate">{appt.title}</p>
-                      )}
-                      <p className="text-catalyst-grey-300 text-xs">
-                        {new Date(appt.date_time).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
-                        {appt.end_time && (
-                          <> — {new Date(appt.end_time).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</>
-                        )}
+            <div className="space-y-4 max-h-[calc(100vh-340px)] overflow-y-auto">
+              {threeDays.map((day) => {
+                const key = toDateStr(day);
+                const dayApptsList = (calAppts[key] || []).filter((a) => a.status === "scheduled");
+                const isCurrentDay = key === toDateStr(new Date());
+
+                return (
+                  <div key={key}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <p className={`text-xs font-semibold uppercase tracking-wider ${isCurrentDay ? "text-catalyst-red" : "text-catalyst-grey-500"}`}>
+                        {formatDayLabel(day)}
                       </p>
-                      {appt.quotes?.name && (
-                        <p className="text-catalyst-grey-400 text-xs mt-0.5">{appt.quotes.name}</p>
-                      )}
-                      {appt.details && (
-                        <p className="text-catalyst-grey-500 text-xs mt-0.5 truncate">{appt.details}</p>
-                      )}
+                      <p className="text-xs text-catalyst-grey-600">
+                        {day.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                      </p>
                     </div>
-                    {appt.quotes?.service && (
-                      <span className="text-catalyst-grey-600 text-xs whitespace-nowrap">{appt.quotes.service}</span>
+
+                    {dayApptsList.length === 0 ? (
+                      <p className="text-catalyst-grey-600 text-xs py-2 pl-2">No appointments</p>
+                    ) : (
+                      <div className="space-y-1.5">
+                        {dayApptsList.map((appt) => (
+                          <div
+                            key={appt.id}
+                            className="rounded-lg border border-catalyst-border/50 bg-catalyst-black p-2.5 cursor-pointer hover:border-catalyst-grey-600 transition-colors"
+                            onClick={() => router.push(`/admin/contact/${appt.quote_id}`)}
+                          >
+                            {appt.title && (
+                              <p className="text-white text-sm font-medium truncate">{appt.title}</p>
+                            )}
+                            <p className="text-catalyst-grey-300 text-xs">
+                              {new Date(appt.date_time).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                              {appt.end_time && (
+                                <> — {new Date(appt.end_time).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</>
+                              )}
+                            </p>
+                            {appt.quotes?.name && (
+                              <p className="text-catalyst-grey-400 text-xs mt-0.5">{appt.quotes.name}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
