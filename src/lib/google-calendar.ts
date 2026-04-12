@@ -10,7 +10,17 @@ import { google } from "googleapis";
  */
 
 function getAuth() {
-  const key = (process.env.GOOGLE_SERVICE_ACCOUNT_KEY || "").replace(/\\n/g, "\n");
+  let key = process.env.GOOGLE_SERVICE_ACCOUNT_KEY || "";
+  // Handle both literal \n and escaped \\n from env vars
+  key = key.replace(/\\n/g, "\n");
+  // Also handle case where the key was JSON-stringified with extra quotes
+  if (key.startsWith('"') && key.endsWith('"')) {
+    key = JSON.parse(key);
+  }
+
+  if (!key || !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) {
+    console.error("Google Calendar: Missing service account credentials");
+  }
 
   return new google.auth.JWT({
     email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,

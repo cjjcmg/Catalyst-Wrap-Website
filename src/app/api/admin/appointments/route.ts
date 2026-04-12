@@ -64,8 +64,10 @@ export async function POST(request: Request) {
       ].filter(Boolean).join("\n"),
       attendees,
     });
-  } catch (err) {
-    console.error("Google Calendar error:", err);
+    console.log("Google Calendar event created:", googleEventId);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Google Calendar error:", message);
   }
 
   const insertData: Record<string, unknown> = {
