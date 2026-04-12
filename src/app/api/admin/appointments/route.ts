@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getUser } from "@/lib/get-user";
 import { logAudit } from "@/lib/audit";
-import { addCalendarEvent, cancelCalendarEvent } from "@/lib/google-calendar";
+import { addCalendarEvent, updateCalendarEvent, cancelCalendarEvent } from "@/lib/google-calendar";
 import { sendAppointmentEmail } from "@/lib/appointment-email";
 
 const supabase = createClient(
@@ -114,6 +114,79 @@ export async function POST(request: Request) {
       entity_type: "appointment",
       entity_id: data.id,
       changes: { quote_id, date_time, details, share_with_contact },
+    });
+  }
+
+  return NextResponse.json({ appointment: data });
+}
+
+export async function PUT(request: Request) {
+  const user = await getUser();
+  const { id, date_time, details, share_with_contact } = await request.json();
+
+  if (!id || !date_time) {
+    return NextResponse.json({ error: "id and date_time are required" }, { status: 400 });
+  }
+
+  // Get existing appointment and quote info
+  const { data: existing } = await supabase
+    .from("appointments")
+    .select("*, quotes(name, email, phone, service, vehicle)")
+    .eq("id", id)
+    .single();
+
+  if (!existing) {
+    return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
+  }
+
+  const quote = existing.quotes as { name: string; email: string; phone: string; service: string; vehicle: string } | null;
+
+  // Update Google Calendar event if it exists
+  if (existing.google_event_id) {
+    try {
+      const eventTitle = `${quote?.name || "Customer"} — ${quote?.service || "Appointment"}`;
+      const attendees = share_with_contact && quote?.email ? [quote.email] : [];
+
+      await updateCalendarEvent(existing.google_event_id, {
+        title: eventTitle,
+        dateTime: date_time,
+        description: [
+          details || "",
+          quote ? `Contact: ${quote.name}` : "",
+          quote?.email ? `Email: ${quote.email}` : "",
+          quote?.phone ? `Phone: ${quote.phone}` : "",
+          quote?.vehicle ? `Vehicle: ${quote.vehicle}` : "",
+        ].filter(Boolean).join("\n"),
+        attendees,
+      });
+    } catch (err) {
+      console.error("Google Calendar update error:", err);
+    }
+  }
+
+  const { data, error } = await supabase
+    .from("appointments")
+    .update({
+      date_time,
+      details: details?.trim() || null,
+      share_with_contact: !!share_with_contact,
+    })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    return NextResponse.json({ error: "Failed to update appointment" }, { status: 500 });
+  }
+
+  if (user) {
+    await logAudit({
+      user_id: user.id,
+      user_email: user.email,
+      action: "update_appointment",
+      entity_type: "appointment",
+      entity_id: id,
+      changes: { quote_id: existing.quote_id, date_time, details, share_with_contact },
     });
   }
 

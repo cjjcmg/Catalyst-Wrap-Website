@@ -69,6 +69,36 @@ export async function addCalendarEvent(input: CalendarEventInput): Promise<strin
   return res.data.id || null;
 }
 
+export async function updateCalendarEvent(
+  eventId: string,
+  input: CalendarEventInput
+): Promise<void> {
+  const auth = getAuth();
+  const calendar = google.calendar({ version: "v3", auth });
+
+  const startTime = new Date(input.dateTime);
+  const endTime = new Date(startTime.getTime() + (input.durationMinutes || 60) * 60 * 1000);
+
+  await calendar.events.update({
+    calendarId: CALENDAR_ID,
+    eventId,
+    requestBody: {
+      summary: input.title,
+      description: input.description,
+      start: {
+        dateTime: startTime.toISOString(),
+        timeZone: "America/Los_Angeles",
+      },
+      end: {
+        dateTime: endTime.toISOString(),
+        timeZone: "America/Los_Angeles",
+      },
+      attendees: input.attendees.map((email) => ({ email })),
+    },
+    sendUpdates: input.attendees.length > 0 ? "all" : "none",
+  });
+}
+
 export async function cancelCalendarEvent(eventId: string): Promise<void> {
   const auth = getAuth();
   const calendar = google.calendar({ version: "v3", auth });

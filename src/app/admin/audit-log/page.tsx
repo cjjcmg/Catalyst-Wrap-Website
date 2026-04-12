@@ -26,6 +26,7 @@ const ACTION_LABELS: Record<string, string> = {
   create_note: "added a note on",
   delete_note: "deleted a note on",
   update_settings: "updated settings",
+  update_appointment: "updated appointment for",
   create_appointment: "scheduled appointment for",
   cancel_appointment: "cancelled appointment for",
   delete_appointment: "deleted appointment for",

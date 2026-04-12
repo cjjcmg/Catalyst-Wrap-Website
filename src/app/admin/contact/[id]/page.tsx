@@ -69,6 +69,12 @@ export default function ContactDetailPage() {
   const [apptDetails, setApptDetails] = useState("");
   const [apptShare, setApptShare] = useState(false);
   const [savingAppt, setSavingAppt] = useState(false);
+  const [editingAppt, setEditingAppt] = useState<Appointment | null>(null);
+  const [editApptDate, setEditApptDate] = useState("");
+  const [editApptTime, setEditApptTime] = useState("");
+  const [editApptDetails, setEditApptDetails] = useState("");
+  const [editApptShare, setEditApptShare] = useState(false);
+  const [savingEditAppt, setSavingEditAppt] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/me").then((r) => r.json()).then((d) => setUser(d.user || null));
@@ -165,6 +171,39 @@ export default function ContactDetailPage() {
       setApptShare(false);
     }
     setSavingAppt(false);
+  }
+
+  function startEditAppt(appt: Appointment) {
+    setEditingAppt(appt);
+    const dt = new Date(appt.date_time);
+    setEditApptDate(dt.toISOString().split("T")[0]);
+    const h = String(dt.getHours()).padStart(2, "0");
+    const m = String(Math.round(dt.getMinutes() / 15) * 15).padStart(2, "0");
+    setEditApptTime(`${h}:${m === "60" ? "00" : m}`);
+    setEditApptDetails(appt.details || "");
+    setEditApptShare(appt.share_with_contact);
+  }
+
+  async function saveEditAppt() {
+    if (!editingAppt || !editApptDate || !editApptTime) return;
+    setSavingEditAppt(true);
+    const dateTime = new Date(`${editApptDate}T${editApptTime}`).toISOString();
+    const res = await fetch("/api/admin/appointments", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: editingAppt.id,
+        date_time: dateTime,
+        details: editApptDetails,
+        share_with_contact: editApptShare,
+      }),
+    });
+    if (res.ok) {
+      const { appointment } = await res.json();
+      setAppointments((prev) => prev.map((a) => (a.id === appointment.id ? appointment : a)));
+      setEditingAppt(null);
+    }
+    setSavingEditAppt(false);
   }
 
   async function cancelAppointment(id: number) {
@@ -490,12 +529,22 @@ export default function ContactDetailPage() {
               </div>
               <div>
                 <label className="block text-xs text-catalyst-grey-400 mb-1">Time</label>
-                <input
-                  type="time"
+                <select
                   value={apptTime}
                   onChange={(e) => setApptTime(e.target.value)}
-                  className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white focus:border-catalyst-red focus:outline-none [color-scheme:dark]"
-                />
+                  className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white focus:border-catalyst-red focus:outline-none appearance-none"
+                >
+                  <option value="" disabled>Select time</option>
+                  {Array.from({ length: 24 * 4 }, (_, i) => {
+                    const h = Math.floor(i / 4);
+                    const m = (i % 4) * 15;
+                    const val = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+                    const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+                    const ampm = h < 12 ? "AM" : "PM";
+                    const label = `${hour12}:${String(m).padStart(2, "0")} ${ampm}`;
+                    return <option key={val} value={val}>{label}</option>;
+                  })}
+                </select>
               </div>
             </div>
             <div>
@@ -558,61 +607,140 @@ export default function ContactDetailPage() {
                     : "border-catalyst-border/50 bg-catalyst-black"
                 }`}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className={`text-sm font-medium ${appt.status === "cancelled" ? "text-catalyst-grey-500 line-through" : "text-white"}`}>
-                        {new Date(appt.date_time).toLocaleString("en-US", {
-                          weekday: "short",
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                          hour: "numeric",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                      {appt.status === "cancelled" && (
-                        <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-xs font-medium text-red-400">
-                          Cancelled
-                        </span>
-                      )}
-                      {appt.status === "scheduled" && appt.share_with_contact && (
-                        <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-xs font-medium text-blue-400">
-                          Shared
-                        </span>
-                      )}
+                {editingAppt?.id === appt.id ? (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs text-catalyst-grey-400 mb-1">Date</label>
+                        <input
+                          type="date"
+                          value={editApptDate}
+                          onChange={(e) => setEditApptDate(e.target.value)}
+                          className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white focus:border-catalyst-red focus:outline-none [color-scheme:dark]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-catalyst-grey-400 mb-1">Time</label>
+                        <select
+                          value={editApptTime}
+                          onChange={(e) => setEditApptTime(e.target.value)}
+                          className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white focus:border-catalyst-red focus:outline-none appearance-none"
+                        >
+                          <option value="" disabled>Select time</option>
+                          {Array.from({ length: 24 * 4 }, (_, i) => {
+                            const h = Math.floor(i / 4);
+                            const m = (i % 4) * 15;
+                            const val = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+                            const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+                            const ampm = h < 12 ? "AM" : "PM";
+                            const label = `${hour12}:${String(m).padStart(2, "0")} ${ampm}`;
+                            return <option key={val} value={val}>{label}</option>;
+                          })}
+                        </select>
+                      </div>
                     </div>
-                    {appt.details && (
-                      <p className={`text-sm mt-1 ${appt.status === "cancelled" ? "text-catalyst-grey-600" : "text-catalyst-grey-300"}`}>
-                        {appt.details}
-                      </p>
-                    )}
-                    <p className="text-catalyst-grey-600 text-xs mt-2">
-                      {appt.created_by_name || appt.created_by?.split("@")[0] || "Unknown"} &middot; {formatDate(appt.created_at)}
-                      {appt.status === "cancelled" && appt.cancelled_by && (
-                        <> &middot; Cancelled by {appt.cancelled_by.split("@")[0]}</>
-                      )}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {appt.status === "scheduled" && (
+                    <div>
+                      <label className="block text-xs text-catalyst-grey-400 mb-1">Details</label>
+                      <textarea
+                        rows={2}
+                        value={editApptDetails}
+                        onChange={(e) => setEditApptDetails(e.target.value)}
+                        className="w-full rounded-lg border border-catalyst-border bg-catalyst-dark px-4 py-2 text-white placeholder-catalyst-grey-600 focus:border-catalyst-red focus:outline-none resize-none"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id={`edit_share_${appt.id}`}
+                        checked={editApptShare}
+                        onChange={(e) => setEditApptShare(e.target.checked)}
+                        className="accent-catalyst-red"
+                      />
+                      <label htmlFor={`edit_share_${appt.id}`} className="text-sm text-catalyst-grey-400">
+                        Share with contact
+                      </label>
+                    </div>
+                    <div className="flex justify-end gap-2">
                       <button
-                        onClick={() => cancelAppointment(appt.id)}
-                        className="text-catalyst-grey-600 hover:text-amber-400 transition-colors text-xs"
+                        onClick={() => setEditingAppt(null)}
+                        className="rounded-lg border border-catalyst-border px-3 py-1.5 text-sm text-catalyst-grey-400 hover:text-white transition-colors"
                       >
                         Cancel
                       </button>
-                    )}
-                    {user?.role === "admin" && (
                       <button
-                        onClick={() => deleteAppointment(appt.id)}
-                        className="text-catalyst-grey-600 hover:text-red-500 transition-colors text-xs"
+                        onClick={saveEditAppt}
+                        disabled={savingEditAppt || !editApptDate || !editApptTime}
+                        className="rounded-lg bg-catalyst-red px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-50"
                       >
-                        Delete
+                        {savingEditAppt ? "Saving..." : "Save"}
                       </button>
-                    )}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className={`text-sm font-medium ${appt.status === "cancelled" ? "text-catalyst-grey-500 line-through" : "text-white"}`}>
+                          {new Date(appt.date_time).toLocaleString("en-US", {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                        {appt.status === "cancelled" && (
+                          <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-xs font-medium text-red-400">
+                            Cancelled
+                          </span>
+                        )}
+                        {appt.status === "scheduled" && appt.share_with_contact && (
+                          <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-xs font-medium text-blue-400">
+                            Shared
+                          </span>
+                        )}
+                      </div>
+                      {appt.details && (
+                        <p className={`text-sm mt-1 ${appt.status === "cancelled" ? "text-catalyst-grey-600" : "text-catalyst-grey-300"}`}>
+                          {appt.details}
+                        </p>
+                      )}
+                      <p className="text-catalyst-grey-600 text-xs mt-2">
+                        {appt.created_by_name || appt.created_by?.split("@")[0] || "Unknown"} &middot; {formatDate(appt.created_at)}
+                        {appt.status === "cancelled" && appt.cancelled_by && (
+                          <> &middot; Cancelled by {appt.cancelled_by.split("@")[0]}</>
+                        )}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {appt.status === "scheduled" && (
+                        <>
+                          <button
+                            onClick={() => startEditAppt(appt)}
+                            className="text-catalyst-grey-600 hover:text-white transition-colors text-xs"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => cancelAppointment(appt.id)}
+                            className="text-catalyst-grey-600 hover:text-amber-400 transition-colors text-xs"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      )}
+                      {user?.role === "admin" && (
+                        <button
+                          onClick={() => deleteAppointment(appt.id)}
+                          className="text-catalyst-grey-600 hover:text-red-500 transition-colors text-xs"
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
