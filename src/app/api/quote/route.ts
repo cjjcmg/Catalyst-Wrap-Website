@@ -50,6 +50,7 @@ export async function POST(request: Request) {
       vehicle,
       message,
       text_updates: body.textUpdates ?? false,
+      label: "lead",
     }).select("id").single();
 
     if (dbError) {
