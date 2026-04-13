@@ -147,7 +147,7 @@ export async function GET(request: Request) {
       const endTime = a.end_time
         ? " — " + new Date(a.end_time).toLocaleTimeString("en-US", { timeZone: "America/Los_Angeles", hour: "numeric", minute: "2-digit" })
         : "";
-      const contactName = (a.quotes as { name: string } | null)?.name || "";
+      const contactName = (a as Record<string, unknown>).quotes ? ((a as Record<string, unknown>).quotes as { name: string })?.name || "" : "";
 
       html += `
         <div style="padding:10px 0;border-bottom:1px solid #eee;">
