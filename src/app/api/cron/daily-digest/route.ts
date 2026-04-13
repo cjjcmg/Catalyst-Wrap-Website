@@ -28,7 +28,7 @@ export async function GET(request: Request) {
   // 1. New contacts (status = 'new')
   const { data: newContacts } = await supabase
     .from("quotes")
-    .select("id, name, email, phone, service, created_at")
+    .select("id, name, email, phone, service, created_at, assigned_agent_id, users(name)")
     .eq("contact_status", "new")
     .eq("archived", false)
     .order("created_at", { ascending: false })
@@ -37,7 +37,7 @@ export async function GET(request: Request) {
   // 2. Quoted contacts (status = 'quoted')
   const { data: quotedContacts } = await supabase
     .from("quotes")
-    .select("id, name, email, phone, service, estimated_value")
+    .select("id, name, email, phone, service, estimated_value, assigned_agent_id, users(name)")
     .eq("contact_status", "quoted")
     .eq("archived", false)
     .order("created_at", { ascending: false })
@@ -82,6 +82,7 @@ export async function GET(request: Request) {
   } else {
     html += `<table style="width:100%;border-collapse:collapse;font-size:14px;">`;
     for (const c of newContacts) {
+      const agent = (c.users as { name: string } | null)?.name || "Unassigned";
       html += `
         <tr style="border-bottom:1px solid #eee;">
           <td style="padding:8px 4px;">
@@ -89,6 +90,7 @@ export async function GET(request: Request) {
           </td>
           <td style="padding:8px 4px;color:#666;">${c.service || "—"}</td>
           <td style="padding:8px 4px;color:#666;">${c.phone || ""}</td>
+          <td style="padding:8px 4px;color:#888;font-size:12px;">${agent}</td>
         </tr>
       `;
     }
@@ -109,6 +111,7 @@ export async function GET(request: Request) {
   } else {
     html += `<table style="width:100%;border-collapse:collapse;font-size:14px;">`;
     for (const c of quotedContacts) {
+      const agent = (c.users as { name: string } | null)?.name || "Unassigned";
       html += `
         <tr style="border-bottom:1px solid #eee;">
           <td style="padding:8px 4px;">
@@ -116,6 +119,7 @@ export async function GET(request: Request) {
           </td>
           <td style="padding:8px 4px;color:#666;">${c.service || "—"}</td>
           <td style="padding:8px 4px;color:#666;">${c.estimated_value ? "$" + Number(c.estimated_value).toLocaleString() : ""}</td>
+          <td style="padding:8px 4px;color:#888;font-size:12px;">${agent}</td>
         </tr>
       `;
     }
