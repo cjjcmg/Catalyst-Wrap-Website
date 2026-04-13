@@ -138,8 +138,9 @@ export async function fullSyncToMailchimp(
   return { pushed, errors };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function fullSyncFromMailchimp(
-  supabase: ReturnType<typeof import("@supabase/supabase-js").createClient>
+  supabase: any
 ): Promise<{ updated: number }> {
   const unsubscribed = await pullAllUnsubscribes();
   let updated = 0;
