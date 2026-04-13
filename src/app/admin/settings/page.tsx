@@ -35,6 +35,7 @@ export default function SettingsPage() {
   const [teamLoading, setTeamLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState("");
+  const [syncErrors, setSyncErrors] = useState<Array<{ email: string; error: string }>>([]);
 
   useEffect(() => {
     fetch("/api/admin/me")
@@ -182,6 +183,7 @@ export default function SettingsPage() {
               onClick={async () => {
                 setSyncing(true);
                 setSyncResult("");
+                setSyncErrors([]);
                 const res = await fetch("/api/admin/mailchimp", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
@@ -194,6 +196,9 @@ export default function SettingsPage() {
                   setSyncResult(
                     `Pushed ${push?.pushed || 0} contacts (${push?.errors || 0} errors). Updated ${pull?.updated || 0} unsubscribes.`
                   );
+                  if (push?.errorDetails?.length > 0) {
+                    setSyncErrors(push.errorDetails);
+                  }
                 } else {
                   setSyncResult("Sync failed: " + (data.error || "Unknown error"));
                 }
@@ -208,6 +213,17 @@ export default function SettingsPage() {
               <p className="text-sm text-catalyst-grey-400">{syncResult}</p>
             )}
           </div>
+          {syncErrors.length > 0 && (
+            <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 space-y-1 max-h-48 overflow-y-auto">
+              <p className="text-xs text-red-400 font-semibold uppercase tracking-wider mb-2">Failed Contacts</p>
+              {syncErrors.map((e, i) => (
+                <div key={i} className="flex items-center justify-between text-xs py-1 border-b border-red-500/10 last:border-0">
+                  <span className="text-white">{e.email}</span>
+                  <span className="text-red-400 truncate ml-3">{e.error}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

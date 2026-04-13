@@ -123,19 +123,29 @@ export async function pullAllUnsubscribes(): Promise<string[]> {
   return unsubscribed;
 }
 
+interface SyncError {
+  email: string;
+  error: string;
+}
+
 export async function fullSyncToMailchimp(
   contacts: ContactData[]
-): Promise<{ pushed: number; errors: number }> {
+): Promise<{ pushed: number; errors: number; errorDetails: SyncError[] }> {
   let pushed = 0;
   let errors = 0;
+  const errorDetails: SyncError[] = [];
 
   for (const contact of contacts) {
     const result = await pushContactToMailchimp(contact);
-    if (result.success) pushed++;
-    else errors++;
+    if (result.success) {
+      pushed++;
+    } else {
+      errors++;
+      errorDetails.push({ email: contact.email, error: result.error || "Unknown error" });
+    }
   }
 
-  return { pushed, errors };
+  return { pushed, errors, errorDetails };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
