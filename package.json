@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@mailchimp/mailchimp_marketing": "^3.0.80",
     "@supabase/supabase-js": "^2.100.1",
     "googleapis": "^171.4.0",
     "jose": "^6.2.2",

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getUser } from "@/lib/get-user";
 import { logAudit } from "@/lib/audit";
+import { pushContactToMailchimp } from "@/lib/mailchimp";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -67,6 +68,13 @@ export async function PUT(request: Request) {
       entity_type: "quote",
       entity_id: id,
       changes: fields,
+    });
+  }
+
+  // Sync to Mailchimp in background
+  if (data?.email) {
+    pushContactToMailchimp(data).catch((err: unknown) => {
+      console.error("Mailchimp sync error:", err);
     });
   }
 

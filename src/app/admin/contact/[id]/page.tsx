@@ -15,7 +15,9 @@ interface Quote {
   text_updates: boolean;
   archived: boolean;
   label: string | null;
-  opt_out: boolean;
+  first_name: string | null;
+  last_name: string | null;
+  subscribed: boolean;
   street: string | null;
   street2: string | null;
   city: string | null;
@@ -594,12 +596,12 @@ export default function ContactDetailPage() {
                 <input
                   type="checkbox"
                   id="edit_opt_out"
-                  checked={editForm?.opt_out || false}
-                  onChange={(e) => setEditForm({ ...editForm, opt_out: e.target.checked })}
+                  checked={!(editForm?.subscribed ?? true)}
+                  onChange={(e) => setEditForm({ ...editForm, subscribed: !e.target.checked })}
                   className="accent-catalyst-red"
                 />
                 <label htmlFor="edit_opt_out" className="text-sm text-catalyst-grey-400">
-                  Opt Out
+                  Unsubscribed
                 </label>
               </div>
             </div>
@@ -671,8 +673,8 @@ export default function ContactDetailPage() {
               <p className="text-white">{quote.text_updates ? "Yes" : "No"}</p>
             </div>
             <div>
-              <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider mb-1">Opt Out</p>
-              <p className={quote.opt_out ? "text-red-400" : "text-white"}>{quote.opt_out ? "Yes" : "No"}</p>
+              <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider mb-1">Subscribed</p>
+              <p className={quote.subscribed ? "text-green-400" : "text-red-400"}>{quote.subscribed ? "Yes" : "No"}</p>
             </div>
           </div>
         )}

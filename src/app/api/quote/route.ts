@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
+import { pushContactToMailchimp } from "@/lib/mailchimp";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -48,6 +49,22 @@ export async function POST(request: Request) {
     if (dbError) {
       console.error("Supabase insert error:", dbError);
     }
+
+    // Split name and sync to Mailchimp
+    const nameParts = name.split(" ");
+    const firstName = nameParts[0] || name;
+    const lastName = nameParts.slice(1).join(" ") || null;
+
+    // Update first/last name in DB
+    if (insertedQuote) {
+      await supabase.from("quotes").update({ first_name: firstName, last_name: lastName }).eq("id", insertedQuote.id);
+    }
+
+    // Sync to Mailchimp in background
+    pushContactToMailchimp({
+      email, first_name: firstName, last_name: lastName, phone, service, vehicle,
+      label: "lead", source: "website", subscribed: true,
+    }).catch((err: unknown) => console.error("Mailchimp sync error:", err));
 
     const domain = process.env.NEXT_PUBLIC_SITE_URL || "https://catalystmotorsport.com";
     const manageUrl = insertedQuote ? `${domain}/admin/contact/${insertedQuote.id}` : `${domain}/admin`;

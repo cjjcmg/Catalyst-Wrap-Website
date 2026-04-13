@@ -33,6 +33,8 @@ export default function SettingsPage() {
   const [editRole, setEditRole] = useState<"admin" | "user">("user");
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [teamLoading, setTeamLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState("");
 
   useEffect(() => {
     fetch("/api/admin/me")
@@ -167,6 +169,47 @@ export default function SettingsPage() {
           )}
         </div>
       </div>
+
+      {/* Mailchimp Sync */}
+      {user?.role === "admin" && (
+        <div className="rounded-xl border border-catalyst-border bg-catalyst-card p-5 sm:p-6 space-y-4">
+          <h2 className="font-heading text-lg font-semibold text-white">Mailchimp</h2>
+          <p className="text-sm text-catalyst-grey-400">
+            Sync all contacts with the &quot;Catalyst Motorsport Family&quot; audience. This pushes contact data to Mailchimp and pulls unsubscribe status back.
+          </p>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={async () => {
+                setSyncing(true);
+                setSyncResult("");
+                const res = await fetch("/api/admin/mailchimp", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ direction: "both" }),
+                });
+                const data = await res.json();
+                if (res.ok) {
+                  const push = data.results?.push;
+                  const pull = data.results?.pull;
+                  setSyncResult(
+                    `Pushed ${push?.pushed || 0} contacts (${push?.errors || 0} errors). Updated ${pull?.updated || 0} unsubscribes.`
+                  );
+                } else {
+                  setSyncResult("Sync failed: " + (data.error || "Unknown error"));
+                }
+                setSyncing(false);
+              }}
+              disabled={syncing}
+              className="rounded-lg bg-catalyst-red px-5 py-2 font-heading text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-50"
+            >
+              {syncing ? "Syncing..." : "Sync Now"}
+            </button>
+            {syncResult && (
+              <p className="text-sm text-catalyst-grey-400">{syncResult}</p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Account Info */}
       <div className="rounded-xl border border-catalyst-border bg-catalyst-card p-5 sm:p-6 space-y-4">
