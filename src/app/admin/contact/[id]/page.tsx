@@ -15,6 +15,12 @@ interface Quote {
   text_updates: boolean;
   archived: boolean;
   label: string | null;
+  opt_out: boolean;
+  street: string | null;
+  street2: string | null;
+  city: string | null;
+  state: string | null;
+  zip: string | null;
 }
 
 interface Note {
@@ -43,6 +49,7 @@ interface Appointment {
 }
 
 const LABELS = ["lead", "contact", "client", "past client"] as const;
+const US_STATES = ["CA","AL","AK","AZ","AR","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"];
 const LABEL_COLORS: Record<string, string> = {
   lead: "bg-blue-500/15 text-blue-400 border-blue-500/30",
   contact: "bg-purple-500/15 text-purple-400 border-purple-500/30",
@@ -538,6 +545,30 @@ export default function ContactDetailPage() {
               </div>
             ))}
             <div>
+              <label className="block text-sm text-catalyst-grey-400 mb-1">Street</label>
+              <input type="text" value={editForm?.street || ""} onChange={(e) => setEditForm({ ...editForm, street: e.target.value })} className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-4 py-2 text-white focus:border-catalyst-red focus:outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm text-catalyst-grey-400 mb-1">Street 2</label>
+              <input type="text" value={editForm?.street2 || ""} onChange={(e) => setEditForm({ ...editForm, street2: e.target.value })} placeholder="Apt, Suite, Unit" className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-4 py-2 text-white placeholder-catalyst-grey-600 focus:border-catalyst-red focus:outline-none" />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-sm text-catalyst-grey-400 mb-1">City</label>
+                <input type="text" value={editForm?.city || ""} onChange={(e) => setEditForm({ ...editForm, city: e.target.value })} className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-4 py-2 text-white focus:border-catalyst-red focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm text-catalyst-grey-400 mb-1">State</label>
+                <select value={editForm?.state || "CA"} onChange={(e) => setEditForm({ ...editForm, state: e.target.value })} className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-4 py-2 text-white focus:border-catalyst-red focus:outline-none appearance-none">
+                  {US_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm text-catalyst-grey-400 mb-1">Zip</label>
+                <input type="text" value={editForm?.zip || ""} onChange={(e) => setEditForm({ ...editForm, zip: e.target.value })} maxLength={10} className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-4 py-2 text-white focus:border-catalyst-red focus:outline-none" />
+              </div>
+            </div>
+            <div>
               <label className="block text-sm text-catalyst-grey-400 mb-1">Message</label>
               <textarea
                 rows={3}
@@ -546,17 +577,31 @@ export default function ContactDetailPage() {
                 className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-4 py-2 text-white focus:border-catalyst-red focus:outline-none resize-none"
               />
             </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="edit_text_updates"
-                checked={editForm.text_updates}
-                onChange={(e) => setEditForm({ ...editForm, text_updates: e.target.checked })}
-                className="accent-catalyst-red"
-              />
-              <label htmlFor="edit_text_updates" className="text-sm text-catalyst-grey-400">
-                Text Updates
-              </label>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="edit_text_updates"
+                  checked={editForm.text_updates}
+                  onChange={(e) => setEditForm({ ...editForm, text_updates: e.target.checked })}
+                  className="accent-catalyst-red"
+                />
+                <label htmlFor="edit_text_updates" className="text-sm text-catalyst-grey-400">
+                  Text Updates
+                </label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="edit_opt_out"
+                  checked={editForm?.opt_out || false}
+                  onChange={(e) => setEditForm({ ...editForm, opt_out: e.target.checked })}
+                  className="accent-catalyst-red"
+                />
+                <label htmlFor="edit_opt_out" className="text-sm text-catalyst-grey-400">
+                  Opt Out
+                </label>
+              </div>
             </div>
             <div className="flex justify-end gap-3 pt-2">
               <button
@@ -611,9 +656,23 @@ export default function ContactDetailPage() {
               <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider mb-1">Message</p>
               <p className="text-catalyst-grey-300">{quote.message || "—"}</p>
             </div>
+            {(quote.street || quote.city || quote.state || quote.zip) && (
+              <div className="sm:col-span-2">
+                <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider mb-1">Address</p>
+                <p className="text-white">
+                  {quote.street}{quote.street2 ? `, ${quote.street2}` : ""}
+                  {(quote.street || quote.street2) && <br />}
+                  {[quote.city, quote.state].filter(Boolean).join(", ")}{quote.zip ? ` ${quote.zip}` : ""}
+                </p>
+              </div>
+            )}
             <div>
               <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider mb-1">Text Updates</p>
               <p className="text-white">{quote.text_updates ? "Yes" : "No"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider mb-1">Opt Out</p>
+              <p className={quote.opt_out ? "text-red-400" : "text-white"}>{quote.opt_out ? "Yes" : "No"}</p>
             </div>
           </div>
         )}
