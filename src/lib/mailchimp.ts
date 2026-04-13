@@ -45,13 +45,14 @@ export async function pushContactToMailchimp(contact: ContactData) {
   if (contact.label) mergeFields.LABEL = contact.label;
   if (contact.source) mergeFields.SOURCE = contact.source;
 
-  if (contact.street || contact.city || contact.state || contact.zip) {
+  // Mailchimp requires addr1 + city + state + zip or nothing
+  if (contact.street && contact.city && contact.state) {
     mergeFields.ADDRESS = {
-      addr1: contact.street || "",
+      addr1: contact.street,
       addr2: "",
-      city: contact.city || "",
-      state: contact.state || "",
-      zip: contact.zip || "",
+      city: contact.city,
+      state: contact.state,
+      zip: contact.zip || "00000",
       country: "US",
     };
   }
@@ -80,8 +81,15 @@ export async function pushContactToMailchimp(contact: ContactData) {
 
     return { success: true };
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error("Mailchimp push error:", message);
+    let message = "Unknown error";
+    if (err && typeof err === "object" && "response" in err) {
+      const resp = (err as { response?: { body?: { title?: string; detail?: string; status?: number } } }).response;
+      message = resp?.body?.detail || resp?.body?.title || "Bad Request";
+      console.error("Mailchimp push error:", contact.email, "—", message);
+    } else {
+      message = err instanceof Error ? err.message : String(err);
+      console.error("Mailchimp push error:", contact.email, "—", message);
+    }
     return { success: false, error: message };
   }
 }
