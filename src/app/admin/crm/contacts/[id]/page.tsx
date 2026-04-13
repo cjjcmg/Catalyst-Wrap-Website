@@ -18,6 +18,11 @@ interface Quote {
   estimated_value: number | null;
   last_contact_date: string | null;
   source: string | null;
+  street: string | null;
+  street2: string | null;
+  city: string | null;
+  state: string | null;
+  zip: string | null;
 }
 
 interface Activity {
@@ -58,6 +63,7 @@ const STATUSES = ["new", "contacted", "quoted", "scheduled", "in_progress", "com
 const STATUS_LABELS: Record<string, string> = { new: "New", contacted: "Contacted", quoted: "Quoted", scheduled: "Scheduled", in_progress: "In Progress", completed: "Completed", client: "Client", past_client: "Past Client", lost: "Lost" };
 const STATUS_COLORS: Record<string, string> = { new: "bg-blue-500", contacted: "bg-cyan-500", quoted: "bg-purple-500", scheduled: "bg-amber-500", in_progress: "bg-orange-500", completed: "bg-green-500", client: "bg-emerald-500", past_client: "bg-catalyst-grey-500", lost: "bg-red-500" };
 const TAG_COLORS: Record<string, string> = { A: "bg-green-500 text-white", B: "bg-amber-500 text-black", C: "bg-red-500 text-white" };
+const US_STATES = ["CA","AL","AK","AZ","AR","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"];
 const ACTIVITY_TYPES = ["call", "email", "text", "meeting", "note", "quote_sent", "follow_up"];
 const ACTIVITY_ICONS: Record<string, string> = { call: "📞", email: "📧", text: "💬", meeting: "🤝", note: "📝", quote_sent: "📋", follow_up: "🔄" };
 
@@ -97,7 +103,7 @@ export default function CRMContactDetailPage() {
 
   // Edit contact
   const [editing, setEditing] = useState(false);
-  const [editForm, setEditForm] = useState({ name: "", email: "", phone: "", service: "", vehicle: "", message: "" });
+  const [editForm, setEditForm] = useState({ name: "", email: "", phone: "", service: "", vehicle: "", message: "", street: "", street2: "", city: "", state: "CA", zip: "" });
   const [saving, setSaving] = useState(false);
 
   // Estimated value
@@ -119,7 +125,7 @@ export default function CRMContactDetailPage() {
       const q = qData.quote || null;
       setQuote(q);
       setEstValue(q?.estimated_value?.toString() || "");
-      if (q) setEditForm({ name: q.name, email: q.email, phone: q.phone, service: q.service || "", vehicle: q.vehicle || "", message: q.message || "" });
+      if (q) setEditForm({ name: q.name, email: q.email, phone: q.phone, service: q.service || "", vehicle: q.vehicle || "", message: q.message || "", street: q.street || "", street2: q.street2 || "", city: q.city || "", state: q.state || "CA", zip: q.zip || "" });
       setActivities(actData.activities || []);
       setNotes(noteData.notes || []);
       setReminders(remData.reminders || []);
@@ -277,7 +283,7 @@ export default function CRMContactDetailPage() {
               <h2 className="font-heading text-lg font-semibold text-white">Contact Info</h2>
               {!editing && (
                 <button
-                  onClick={() => { setEditing(true); setEditForm({ name: quote.name, email: quote.email, phone: quote.phone, service: quote.service || "", vehicle: quote.vehicle || "", message: quote.message || "" }); }}
+                  onClick={() => { setEditing(true); setEditForm({ name: quote.name, email: quote.email, phone: quote.phone, service: quote.service || "", vehicle: quote.vehicle || "", message: quote.message || "", street: quote.street || "", street2: quote.street2 || "", city: quote.city || "", state: quote.state || "CA", zip: quote.zip || "" }); }}
                   className="flex items-center gap-1.5 rounded-lg bg-catalyst-red px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
@@ -305,6 +311,30 @@ export default function CRMContactDetailPage() {
                     />
                   </div>
                 ))}
+                <div>
+                  <label className="block text-xs text-catalyst-grey-500 uppercase tracking-wider mb-1">Street</label>
+                  <input type="text" value={editForm.street} onChange={(e) => setEditForm({ ...editForm, street: e.target.value })} className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white focus:border-catalyst-red focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs text-catalyst-grey-500 uppercase tracking-wider mb-1">Street 2</label>
+                  <input type="text" value={editForm.street2} onChange={(e) => setEditForm({ ...editForm, street2: e.target.value })} placeholder="Apt, Suite, Unit" className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white placeholder-catalyst-grey-600 focus:border-catalyst-red focus:outline-none" />
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="col-span-1">
+                    <label className="block text-xs text-catalyst-grey-500 uppercase tracking-wider mb-1">City</label>
+                    <input type="text" value={editForm.city} onChange={(e) => setEditForm({ ...editForm, city: e.target.value })} className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white focus:border-catalyst-red focus:outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-catalyst-grey-500 uppercase tracking-wider mb-1">State</label>
+                    <select value={editForm.state} onChange={(e) => setEditForm({ ...editForm, state: e.target.value })} className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white focus:border-catalyst-red focus:outline-none appearance-none">
+                      {US_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-catalyst-grey-500 uppercase tracking-wider mb-1">Zip</label>
+                    <input type="text" value={editForm.zip} onChange={(e) => setEditForm({ ...editForm, zip: e.target.value })} maxLength={10} className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white focus:border-catalyst-red focus:outline-none" />
+                  </div>
+                </div>
                 <div>
                   <label className="block text-xs text-catalyst-grey-500 uppercase tracking-wider mb-1">Message</label>
                   <textarea
@@ -363,6 +393,16 @@ export default function CRMContactDetailPage() {
                   <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Last Contact</p>
                   <p className="text-white">{quote.last_contact_date ? formatDate(quote.last_contact_date) : "—"}</p>
                 </div>
+                {(quote.street || quote.city || quote.state || quote.zip) && (
+                  <div className="sm:col-span-2">
+                    <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Address</p>
+                    <p className="text-white">
+                      {quote.street}{quote.street2 ? `, ${quote.street2}` : ""}
+                      {(quote.street || quote.street2) && <br />}
+                      {[quote.city, quote.state].filter(Boolean).join(", ")}{quote.zip ? ` ${quote.zip}` : ""}
+                    </p>
+                  </div>
+                )}
                 {quote.message && (
                   <div className="sm:col-span-2">
                     <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Message</p>
