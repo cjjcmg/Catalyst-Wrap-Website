@@ -219,15 +219,24 @@ export default function CRMDashboard() {
         <>
           {/* Stat cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="rounded-xl border border-catalyst-border bg-catalyst-card p-4">
+            <div
+              className="rounded-xl border border-catalyst-border bg-catalyst-card p-4 cursor-pointer hover:border-catalyst-grey-600 transition-colors"
+              onClick={() => router.push("/admin/crm/contacts")}
+            >
               <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Total Contacts</p>
               <p className="text-2xl font-bold text-white mt-1">{stats.totalContacts}</p>
             </div>
-            <div className="rounded-xl border border-catalyst-border bg-catalyst-card p-4">
+            <div
+              className="rounded-xl border border-catalyst-border bg-catalyst-card p-4 cursor-pointer hover:border-catalyst-grey-600 transition-colors"
+              onClick={() => router.push("/admin/crm/contacts?status=new")}
+            >
               <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Leads Today</p>
               <p className="text-2xl font-bold text-white mt-1">{stats.leadsToday}</p>
             </div>
-            <div className="rounded-xl border border-catalyst-border bg-catalyst-card p-4">
+            <div
+              className="rounded-xl border border-catalyst-border bg-catalyst-card p-4 cursor-pointer hover:border-catalyst-grey-600 transition-colors"
+              onClick={() => router.push("/admin/crm/reminders")}
+            >
               <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Overdue Reminders</p>
               <p className="text-2xl font-bold text-catalyst-red mt-1">{stats.overdueReminders.length}</p>
             </div>
@@ -235,7 +244,13 @@ export default function CRMDashboard() {
               <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Tags</p>
               <div className="flex items-center gap-2 mt-1">
                 {(["A", "B", "C"] as const).map((t) => (
-                  <span key={t} className={`rounded-full px-2 py-0.5 text-xs font-bold ${TAG_COLORS[t]}`}>{t}: {stats.tags[t]}</span>
+                  <button
+                    key={t}
+                    onClick={() => router.push(`/admin/crm/contacts?tag=${t}`)}
+                    className={`rounded-full px-2 py-0.5 text-xs font-bold cursor-pointer hover:opacity-80 transition-opacity ${TAG_COLORS[t]}`}
+                  >
+                    {t}: {stats.tags[t]}
+                  </button>
                 ))}
               </div>
             </div>
@@ -248,7 +263,7 @@ export default function CRMDashboard() {
               <>
                 <div className="flex rounded-full overflow-hidden h-6">
                   {Object.entries(stats.pipeline).filter(([, count]) => count > 0).map(([status, count]) => (
-                    <div key={status} className={`${PIPELINE_COLORS[status] || "bg-catalyst-grey-500"} flex items-center justify-center text-xs font-bold text-white`} style={{ width: `${(count / pipelineTotal) * 100}%` }} title={`${PIPELINE_LABELS[status]}: ${count}`}>
+                    <div key={status} onClick={() => router.push(`/admin/crm/contacts?status=${status}`)} className={`${PIPELINE_COLORS[status] || "bg-catalyst-grey-500"} flex items-center justify-center text-xs font-bold text-white cursor-pointer hover:opacity-80 transition-opacity`} style={{ width: `${(count / pipelineTotal) * 100}%` }} title={`${PIPELINE_LABELS[status]}: ${count}`}>
                       {count > 0 && (count / pipelineTotal) > 0.06 ? count : ""}
                     </div>
                   ))}

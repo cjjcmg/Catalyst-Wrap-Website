@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface Contact {
   id: number;
@@ -61,14 +61,15 @@ function formatPhone(phone: string) {
   return phone;
 }
 
-export default function CRMContactsPage() {
+function CRMContactsInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [tagFilter, setTagFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [tagFilter, setTagFilter] = useState(searchParams.get("tag") || "");
+  const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "");
   const [agentFilter, setAgentFilter] = useState("");
   const [sort, setSort] = useState("newest");
 
@@ -243,5 +244,13 @@ export default function CRMContactsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CRMContactsPage() {
+  return (
+    <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-6"><p className="text-catalyst-grey-500">Loading...</p></div>}>
+      <CRMContactsInner />
+    </Suspense>
   );
 }
