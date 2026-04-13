@@ -82,7 +82,7 @@ export async function GET(request: Request) {
   } else {
     html += `<table style="width:100%;border-collapse:collapse;font-size:14px;">`;
     for (const c of newContacts) {
-      const agent = (c.users as { name: string } | null)?.name || "Unassigned";
+      const agent = (c as Record<string, unknown>).users ? ((c as Record<string, unknown>).users as { name: string })?.name || "Unassigned" : "Unassigned";
       html += `
         <tr style="border-bottom:1px solid #eee;">
           <td style="padding:8px 4px;">
@@ -111,7 +111,7 @@ export async function GET(request: Request) {
   } else {
     html += `<table style="width:100%;border-collapse:collapse;font-size:14px;">`;
     for (const c of quotedContacts) {
-      const agent = (c.users as { name: string } | null)?.name || "Unassigned";
+      const agent = (c as Record<string, unknown>).users ? ((c as Record<string, unknown>).users as { name: string })?.name || "Unassigned" : "Unassigned";
       html += `
         <tr style="border-bottom:1px solid #eee;">
           <td style="padding:8px 4px;">
