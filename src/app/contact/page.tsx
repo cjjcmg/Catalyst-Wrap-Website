@@ -7,9 +7,9 @@ import CTABand from "@/components/sections/CTABand";
 import { BreadcrumbSchema } from "@/components/seo/SchemaMarkup";
 
 export const metadata: Metadata = generatePageMetadata({
-  title: "Contact Us",
+  title: "Contact | Free Quote for Wraps, PPF & Tint | Catalyst Motorsport Anaheim",
   description:
-    "Get a quote from Catalyst Motorsport. Vinyl wraps, PPF, window tint, and custom builds in Anaheim, serving Los Angeles and Orange County. Call (714) 442-1333.",
+    "Get a free quote for vehicle wraps, PPF, tint or off-road builds. Catalyst Motorsport, 1161 N Cosby Way, Unit T, Anaheim, CA. Call (714) 442-1333.",
   path: "/contact",
 });
 

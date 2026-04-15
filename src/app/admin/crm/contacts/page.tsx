@@ -29,6 +29,7 @@ const TAG_COLORS: Record<string, string> = {
   A: "bg-green-500 text-white",
   B: "bg-amber-500 text-black",
   C: "bg-red-500 text-white",
+  "!": "bg-violet-500 text-white",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -85,7 +86,7 @@ function CRMContactsInner() {
   }, []);
 
   async function cycleTag(id: number, currentTag: string | null) {
-    const order = [null, "A", "B", "C"];
+    const order = [null, "A", "B", "C", "!"];
     const idx = order.indexOf(currentTag);
     const nextTag = order[(idx + 1) % order.length];
 
@@ -159,6 +160,7 @@ function CRMContactsInner() {
           <option value="A">A</option>
           <option value="B">B</option>
           <option value="C">C</option>
+          <option value="!">! Needs Attention</option>
           <option value="__none">Untagged</option>
         </select>
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white focus:border-catalyst-red focus:outline-none appearance-none">

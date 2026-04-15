@@ -41,12 +41,39 @@ export async function GET(request: Request) {
   return NextResponse.json({ quotes: data });
 }
 
+const ALLOWED_FIELDS = new Set([
+  "name", "email", "phone", "service", "vehicle", "message",
+  "contact_tag", "contact_status", "assigned_agent_id", "estimated_value",
+  "last_contact_date", "label", "source", "archived", "subscribed",
+  "street", "street2", "city", "state", "zip",
+]);
+
+const VALID_TAGS = new Set(["A", "B", "C", "!"]);
+const VALID_STATUSES = new Set([
+  "new", "contacted", "quoted", "scheduled", "in_progress",
+  "completed", "client", "past_client", "lost",
+]);
+
 export async function PUT(request: Request) {
   const user = await getUser();
-  const { id, ...fields } = await request.json();
+  const { id, ...rawFields } = await request.json();
 
   if (!id) {
     return NextResponse.json({ error: "Quote ID is required" }, { status: 400 });
+  }
+
+  // Whitelist allowed fields
+  const fields: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(rawFields)) {
+    if (ALLOWED_FIELDS.has(key)) fields[key] = value;
+  }
+
+  // Validate tag and status values
+  if ("contact_tag" in fields && fields.contact_tag !== null && !VALID_TAGS.has(fields.contact_tag as string)) {
+    return NextResponse.json({ error: "Invalid contact_tag" }, { status: 400 });
+  }
+  if ("contact_status" in fields && fields.contact_status !== null && !VALID_STATUSES.has(fields.contact_status as string)) {
+    return NextResponse.json({ error: "Invalid contact_status" }, { status: 400 });
   }
 
   const { data, error } = await supabase
@@ -115,6 +142,11 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const user = await getUser();
+  if (!user || user.role !== "admin") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { id } = await request.json();
 
   if (!id) {
@@ -126,6 +158,15 @@ export async function DELETE(request: Request) {
   if (error) {
     return NextResponse.json({ error: "Failed to delete quote" }, { status: 500 });
   }
+
+  await logAudit({
+    user_id: user.id,
+    user_email: user.email,
+    action: "delete_quote",
+    entity_type: "quote",
+    entity_id: id,
+    changes: {},
+  });
 
   return NextResponse.json({ success: true });
 }

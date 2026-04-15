@@ -28,7 +28,7 @@ export async function GET() {
   quotes.forEach((q) => { if (q.contact_status) pipeline[q.contact_status] = (pipeline[q.contact_status] || 0) + 1; });
 
   // Tag counts
-  const tags: Record<string, number> = { A: 0, B: 0, C: 0, untagged: 0 };
+  const tags: Record<string, number> = { A: 0, B: 0, C: 0, "!": 0, untagged: 0 };
   quotes.forEach((q) => {
     if (q.contact_tag && tags[q.contact_tag] !== undefined) tags[q.contact_tag]++;
     else tags.untagged++;

@@ -13,7 +13,6 @@ const serviceLinks = [
   { label: "Paint Protection Film", href: "/services/paint-protection-film" },
   { label: "Window Tint", href: "/services/window-tint" },
   { label: "Off-Road Builds", href: "/services/off-road-builds" },
-  { label: "Auto Customization", href: "/services/auto-customization" },
 ];
 
 
@@ -26,7 +25,7 @@ export default function Footer() {
           <div className="space-y-4">
             <Image
               src="/images/CM_logo_wh.webp"
-              alt={siteConfig.name}
+              alt="Catalyst Motorsport logo - auto wraps, PPF and tint in Anaheim CA"
               width={180}
               height={48}
               className="h-12 w-auto"
@@ -39,21 +38,12 @@ export default function Footer() {
               <SocialLink href={siteConfig.social.instagram} label="Instagram">
                 <InstagramIcon />
               </SocialLink>
-              {siteConfig.social.facebook !== "#" && (
-                <SocialLink href={siteConfig.social.facebook} label="Facebook">
-                  <FacebookIcon />
-                </SocialLink>
-              )}
-              {siteConfig.social.tiktok !== "#" && (
-                <SocialLink href={siteConfig.social.tiktok} label="TikTok">
-                  <TikTokIcon />
-                </SocialLink>
-              )}
-              {siteConfig.social.yelp !== "#" && (
-                <SocialLink href={siteConfig.social.yelp} label="Yelp">
-                  <YelpIcon />
-                </SocialLink>
-              )}
+              <SocialLink href={siteConfig.social.facebook} label="Facebook">
+                <FacebookIcon />
+              </SocialLink>
+              <SocialLink href={siteConfig.social.yelp} label="Yelp">
+                <YelpIcon />
+              </SocialLink>
             </div>
           </div>
 
@@ -196,14 +186,6 @@ function FacebookIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
       <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-    </svg>
-  );
-}
-
-function TikTokIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1 0-5.78 2.92 2.92 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 3 15.57 6.33 6.33 0 0 0 9.37 22a6.33 6.33 0 0 0 6.38-6.2V9.06a8.16 8.16 0 0 0 4.84 1.58v-3.4a4.85 4.85 0 0 1-1-.55z" />
     </svg>
   );
 }

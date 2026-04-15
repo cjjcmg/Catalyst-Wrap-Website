@@ -67,7 +67,7 @@ export default function QualityMatters() {
             <div className="overflow-hidden rounded-xl mb-8">
               <img
                 src="/images/quality.webp"
-                alt="Quality detail shot of precision install work"
+                alt="Precision vinyl wrap installation detail at Catalyst Motorsport Anaheim"
                 className="w-full h-auto rounded-xl"
               />
             </div>

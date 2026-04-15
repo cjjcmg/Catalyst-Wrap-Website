@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { generatePageMetadata } from "@/lib/seo";
+import { generatePageMetadata, fullUrl } from "@/lib/seo";
 import {
   getAllVehicleSlugs,
   getVehicleBySlug,
@@ -10,6 +10,10 @@ import { servicePages } from "@/content/services";
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import FaqSection from "@/components/seo/FaqSection";
 import CTABlock from "@/components/seo/CTABlock";
+import {
+  generateVehicleServiceSchema,
+  SchemaScript,
+} from "@/lib/schema";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -39,8 +43,24 @@ export default async function VehiclePage({ params }: PageProps) {
     .map((ss) => servicePages.find((s) => s.slug === ss))
     .filter(Boolean);
 
+  const vehicleUrl = fullUrl(`/vehicles/${vehicle.slug}`);
+
+  // Generate vehicle service schema with package pricing
+  const vehicleSchema = generateVehicleServiceSchema({
+    vehicleName: vehicle.name,
+    url: vehicleUrl,
+    description: vehicle.metaDescription,
+    packages: vehicle.packages.map((pkg) => ({
+      name: pkg.name,
+      description: pkg.description,
+      price: pkg.priceRange.replace("From $", "").replace(",", ""),
+    })),
+  });
+
   return (
     <>
+      <SchemaScript data={vehicleSchema} />
+
       {/* Hero */}
       <section className="gradient-hero noise-overlay relative">
         <div className="section-container relative z-10 py-16 sm:py-20">

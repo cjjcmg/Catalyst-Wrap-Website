@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { generateFAQSchema } from "@/lib/schema";
 
 interface FaqItem {
   question: string;
@@ -64,13 +65,20 @@ export default function FaqSection({ title, intro, items }: FaqSectionProps) {
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
                 </button>
-                {isOpen && (
-                  <div className="px-6 pb-5">
-                    <p className="text-sm leading-relaxed text-catalyst-grey-400">
-                      {faq.answer}
-                    </p>
+                <div
+                  className="grid transition-all duration-200 ease-in-out"
+                  style={{
+                    gridTemplateRows: isOpen ? "1fr" : "0fr",
+                  }}
+                >
+                  <div className="overflow-hidden">
+                    <div className="px-6 pb-5">
+                      <p className="text-sm leading-relaxed text-catalyst-grey-400">
+                        {faq.answer}
+                      </p>
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
             );
           })}
@@ -80,18 +88,7 @@ export default function FaqSection({ title, intro, items }: FaqSectionProps) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "FAQPage",
-              mainEntity: items.map((faq) => ({
-                "@type": "Question",
-                name: faq.question,
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: faq.answer,
-                },
-              })),
-            }),
+            __html: JSON.stringify(generateFAQSchema(items)),
           }}
         />
       </div>

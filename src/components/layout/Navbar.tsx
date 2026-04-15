@@ -34,7 +34,7 @@ export default function Navbar() {
           <Link href="/" className="flex-shrink-0" aria-label={`${siteConfig.name} home`}>
             <Image
               src="/images/CM_logo_wh.webp"
-              alt={siteConfig.name}
+              alt="Catalyst Motorsport logo - auto wraps, PPF and tint in Anaheim CA"
               width={400}
               height={108}
               className="h-16 w-auto sm:h-20"

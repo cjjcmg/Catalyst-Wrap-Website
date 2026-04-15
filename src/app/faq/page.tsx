@@ -5,9 +5,9 @@ import CTABand from "@/components/sections/CTABand";
 import { BreadcrumbSchema } from "@/components/seo/SchemaMarkup";
 
 export const metadata: Metadata = generatePageMetadata({
-  title: "FAQ",
+  title: "FAQ | Vinyl Wrap, PPF & Window Tint Questions | Catalyst Motorsport Anaheim",
   description:
-    "Frequently asked questions about vinyl wraps, paint protection film (PPF), window tint, and auto customization at Catalyst Motorsport in Anaheim, serving Los Angeles and Orange County.",
+    "FAQ about vinyl wraps, PPF, window tint & off-road builds at Catalyst Motorsport in Anaheim, CA. Pricing, process, care guides & California tint laws.",
   path: "/faq",
 });
 

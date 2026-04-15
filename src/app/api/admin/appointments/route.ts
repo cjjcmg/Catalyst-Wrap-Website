@@ -12,8 +12,22 @@ const supabase = createClient(
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
   const quoteId = searchParams.get("quote_id");
   const date = searchParams.get("date"); // YYYY-MM-DD — fetch all appointments for that day
+
+  if (id) {
+    const { data, error } = await supabase
+      .from("appointments")
+      .select("*")
+      .eq("id", Number(id))
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
+    }
+    return NextResponse.json({ appointment: data });
+  }
 
   if (date) {
     // Use Pacific Time offset (PDT = -7, PST = -8). Use -7 for broader coverage.

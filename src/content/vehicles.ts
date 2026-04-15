@@ -36,9 +36,9 @@ export const vehiclePages: VehiclePage[] = [
     slug: "toyota-tacoma",
     name: "Toyota Tacoma",
     metaTitle:
-      "Toyota Tacoma Wrap, PPF, Tint & Off-Road Builds in Anaheim",
+      "Toyota Tacoma Wrap, PPF & Off-Road Build | Anaheim",
     metaDescription:
-      "Vinyl wraps, paint protection film, ceramic tint, and off road builds for Toyota Tacoma in Anaheim. Lift kits, suspension, and full protection packages from Catalyst Motorsport.",
+      "Toyota Tacoma wrap, PPF, tint & off-road builds in Anaheim. Lift kits, color change wraps, ceramic tint. Complete Tacoma packages. Call (714) 442-1333.",
     heroHeadline:
       "Toyota Tacoma Wrap, PPF, Tint & Off-Road Builds in Anaheim",
     heroSubheadline:
@@ -147,9 +147,9 @@ export const vehiclePages: VehiclePage[] = [
     slug: "ford-raptor",
     name: "Ford Raptor",
     metaTitle:
-      "Ford Raptor Wrap, PPF, Tint & Upgrades in Anaheim",
+      "Ford Raptor Wrap, PPF & Off-Road Build | Orange County",
     metaDescription:
-      "Vinyl wraps, PPF, ceramic tint, and performance accessories for Ford Raptor in Anaheim. Custom builds, protection packages, and precision installs from Catalyst Motorsport.",
+      "Ford Raptor wrap, PPF, tint & off-road builds in Anaheim. Suspension, lighting, color wraps & paint protection for Raptor owners. Call (714) 442-1333.",
     heroHeadline:
       "Ford Raptor Wrap, PPF, Tint & Upgrades in Anaheim",
     heroSubheadline:
@@ -258,9 +258,9 @@ export const vehiclePages: VehiclePage[] = [
     slug: "tesla",
     name: "Tesla",
     metaTitle:
-      "Tesla Wrap, PPF & Tint in Anaheim — Model 3, Y, S, X",
+      "Tesla Wrap & PPF Orange County | Model 3, Y, S, X Tint",
     metaDescription:
-      "Professional vinyl wraps, PPF, and ceramic tint for Tesla Model 3, Model Y, Model S, and Model X in Anaheim. Chrome delete, color changes, and full protection packages.",
+      "Tesla wrap, PPF & tint specialists in Anaheim. Model 3, Y, S, X packages from $2,000. Chrome delete, full body PPF, ceramic tint. Call (714) 442-1333.",
     heroHeadline:
       "Tesla Wrap, PPF & Ceramic Tint in Anaheim",
     heroSubheadline:
@@ -309,52 +309,52 @@ export const vehiclePages: VehiclePage[] = [
       {
         question: "Does Tesla paint really need PPF?",
         answer:
-          "Yes. Tesla's factory paint is known to be thinner than many other manufacturers, making it more susceptible to rock chips, scratches, and swirl marks. PPF provides a physical barrier that absorbs impacts and keeps the paint pristine. It is one of the most recommended upgrades for any new Tesla.",
+          "Yes. Tesla factory paint is widely known to be thinner than most other manufacturers, making it more susceptible to rock chips, scratches, and swirl marks. PPF provides essential protection that compensates for this thinner paint, preserving appearance and resale value.",
       },
       {
         question: "How much does it cost to wrap a Tesla Model 3?",
         answer:
-          "A full wrap on a Tesla Model 3 typically ranges from $3,500 to $5,500 depending on the film and finish selected. Chrome delete packages start around $600 to $1,000. We provide detailed quotes for every project.",
+          "A full body color change wrap on a Tesla Model 3 typically costs $3,500 to $5,500 depending on film brand and finish. Chrome delete packages range from $500 to $800. Combined packages start from approximately $5,000. Catalyst Motorsport offers Tesla-specific packages starting at $2,000 for the Essentials tier.",
       },
       {
         question: "What is a Tesla chrome delete?",
         answer:
-          "A chrome delete covers the chrome window trim, door handles, and emblems with vinyl in gloss black, satin black, or a color that matches your vehicle. It gives the Tesla a cleaner, more modern appearance and is one of our most popular Tesla services.",
+          "A Tesla chrome delete replaces factory chrome trim around windows, door handles, and badges with gloss black or satin black vinyl. This gives the vehicle a sleeker, more modern appearance and protects chrome from pitting and oxidation. The process typically takes 1 day.",
       },
       {
         question: "Can you tint the Tesla glass roof?",
         answer:
-          "Yes. The Tesla's large glass roof and rear window are popular areas for ceramic tint installation. Even though the factory glass has some UV protection, ceramic tint adds significant heat rejection that makes a real difference in cabin comfort.",
+          "Yes. Tesla's large glass roof panels can be tinted with ceramic window film to reduce heat, block UV rays, and provide additional privacy. Adding ceramic tint significantly reduces infrared heat through the roof, making the cabin much more comfortable in Southern California's intense sun.",
       },
       {
         question: "How long does a full Tesla wrap take?",
         answer:
-          "A full wrap on a Tesla typically takes 3 to 5 business days. Chrome deletes are completed in 1 day. Combining wrap, PPF, and tint may add to the timeline but we coordinate the project for efficiency.",
+          "A full body wrap on a Tesla typically takes 4 to 5 business days at Catalyst Motorsport. This includes thorough surface prep, component removal for seamless edges, precision installation, post-heating, and a final quality inspection. Chrome delete packages can be completed in 1 day.",
       },
       {
         question: "What Tesla models do you work on?",
         answer:
-          "We work on all Tesla models including Model 3, Model Y, Model S, Model X, and the Cybertruck. Each model has specific considerations for PPF coverage, tint patterns, and wrap techniques, and our team is experienced with all of them.",
+          "We work on all Tesla models including Model 3, Model Y, Model S, Model X, and Cybertruck. Each model has unique panel geometry and installation considerations. Our team wraps, applies PPF, and tints Teslas daily and understands each model's specific requirements.",
       },
       {
         question: "Should I get PPF or a wrap on my Tesla?",
         answer:
-          "If your primary goal is protection, PPF is the best choice. If you want a color or finish change, a vinyl wrap delivers that transformation. Many Tesla owners do both, using PPF on the front end and a wrap for the color change. We will help you decide based on your priorities.",
+          "Many Tesla owners choose both. PPF on the high-impact areas (front bumper, hood, fenders, mirrors) protects against rock chips, while a vinyl wrap on the full body changes the color and adds a personal touch. For budget-conscious owners, at minimum we recommend PPF on the front end and ceramic tint on all glass.",
       },
       {
         question: "Will wrapping or tinting my Tesla void the warranty?",
         answer:
-          "No. Vinyl wraps, PPF, and window tint are cosmetic modifications that do not affect Tesla's vehicle warranty. These are surface applications that protect the vehicle without altering any mechanical or electrical systems.",
+          "No. Vinyl wraps, PPF, and window tint do not void your Tesla warranty. Under the Magnuson-Moss Warranty Act, manufacturers cannot void a warranty due to aftermarket accessories unless they can prove the accessory directly caused a specific failure. Professional installation ensures no damage to your vehicle.",
       },
       {
         question: "What is the most popular Tesla wrap color?",
         answer:
-          "Satin black, matte gray, satin dark gray, and gloss white are consistently popular for Tesla wraps. Tesla's minimal design pairs well with clean, monochromatic finishes, though color shifts and bold colors are also growing in demand.",
+          "The most popular Tesla wrap colors at Catalyst Motorsport are satin black, matte military green, satin dark gray, and midnight blue. Color-shift wraps in purple-to-teal and bronze-to-gold are also trending. We have hundreds of color samples in our shop for you to see in person.",
       },
       {
         question: "Do you protect the Tesla interior piano black trim?",
         answer:
-          "Yes. Tesla's piano black interior trim scratches very easily. We offer clear PPF specifically cut for the interior console, door panels, and trim pieces. This keeps the interior looking new and prevents the frustrating scratches that appear with daily use.",
+          "Yes. Tesla's piano black interior trim scratches extremely easily. We offer interior PPF specifically for these surfaces, including the center console, door panel trim, and dashboard accents. Our Tesla Premium and Ultimate packages include interior screen protection and piano black trim PPF.",
       },
     ],
     relatedServices: [
@@ -369,9 +369,9 @@ export const vehiclePages: VehiclePage[] = [
     slug: "porsche",
     name: "Porsche",
     metaTitle:
-      "Porsche Wrap, PPF & Tint in Anaheim — 911, Cayenne, Macan, Taycan",
+      "Porsche Wrap & PPF Orange County | 911, Cayenne, Macan",
     metaDescription:
-      "Premium vinyl wraps, paint protection film, and ceramic tint for Porsche in Anaheim. 911, Cayenne, Macan, Taycan, and more. Precision installation from Catalyst Motorsport.",
+      "Porsche wrap, PPF & ceramic tint in Anaheim, CA. 911, Cayenne, Macan protection packages. Precision installation for Orange County Porsche owners. Call (714) 442-1333.",
     heroHeadline:
       "Porsche Wrap, PPF & Ceramic Tint in Anaheim",
     heroSubheadline:
@@ -479,9 +479,9 @@ export const vehiclePages: VehiclePage[] = [
     slug: "mercedes-g-wagon",
     name: "Mercedes G-Wagon",
     metaTitle:
-      "Mercedes G-Wagon Wrap, PPF & Tint in Anaheim",
+      "Mercedes G-Wagon Wrap & PPF | G-Class Protection OC",
     metaDescription:
-      "Premium vinyl wraps, PPF, and ceramic tint for the Mercedes G-Class in Anaheim. Full color changes, paint protection, and customization from Catalyst Motorsport.",
+      "Mercedes G-Wagon wrap, PPF & tint in Anaheim. Full body protection, color changes & custom builds for G-Class owners in Orange County. Call (714) 442-1333.",
     heroHeadline:
       "Mercedes G-Wagon Wrap, PPF & Tint in Anaheim",
     heroSubheadline:

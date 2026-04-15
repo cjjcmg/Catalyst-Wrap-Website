@@ -37,7 +37,7 @@ function BrandCard({ brand }: { brand: (typeof brands)[number] }) {
   const img = brand.logo ? (
     <img
       src={brand.logo}
-      alt={brand.name}
+      alt={`${brand.name} vinyl wrap and PPF products`}
       className={`h-8 sm:h-10 w-auto object-contain opacity-60 transition-opacity duration-300 group-hover:opacity-100`}
     />
   ) : (

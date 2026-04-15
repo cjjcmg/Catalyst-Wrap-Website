@@ -10,9 +10,12 @@ import {
 } from "@/content/services";
 import { vehiclePages } from "@/content/vehicles";
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
-import { ServiceSchema } from "@/components/seo/SchemaMarkup";
 import FaqSection from "@/components/seo/FaqSection";
 import CTABlock from "@/components/seo/CTABlock";
+import {
+  generateServiceSchema,
+  SchemaScript,
+} from "@/lib/schema";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -43,14 +46,25 @@ export default async function ServicePage({ params }: PageProps) {
     .map((vs) => vehiclePages.find((v) => v.slug === vs))
     .filter(Boolean);
 
+  const serviceUrl = fullUrl(`/services/${service.slug}`);
+
+  // Generate service schema
+  const serviceSchema = generateServiceSchema({
+    name: service.title,
+    serviceType: service.title,
+    description: service.metaDescription,
+    url: serviceUrl,
+    image: service.image,
+    brands: service.brands,
+    offers: service.whatYouGet.map((item) => ({
+      name: item.split(" — ")[0],
+      description: item,
+    })),
+  });
+
   return (
     <>
-      <ServiceSchema
-        name={service.title}
-        description={service.metaDescription}
-        url={fullUrl(`/services/${service.slug}`)}
-        image={service.image}
-      />
+      <SchemaScript data={serviceSchema} />
 
       {/* Hero */}
       <section className="gradient-hero noise-overlay relative">
@@ -80,6 +94,45 @@ export default async function ServicePage({ params }: PageProps) {
                 {service.introParagraph}
               </p>
 
+              {/* Contextual internal links */}
+              {service.slug === "vinyl-wrap" && (
+                <p className="mt-4 text-catalyst-grey-400 text-sm leading-relaxed">
+                  Our vinyl wrap services are popular across a wide range of vehicles. See our dedicated packages for{" "}
+                  <Link href="/vehicles/tesla" className="text-catalyst-red-light hover:underline">Tesla</Link>,{" "}
+                  <Link href="/vehicles/porsche" className="text-catalyst-red-light hover:underline">Porsche</Link>, and{" "}
+                  <Link href="/vehicles/mercedes-g-wagon" className="text-catalyst-red-light hover:underline">Mercedes G-Wagon</Link>.
+                </p>
+              )}
+              {service.slug === "paint-protection-film" && (
+                <p className="mt-4 text-catalyst-grey-400 text-sm leading-relaxed">
+                  Many owners pair PPF with a{" "}
+                  <Link href="/services/vinyl-wrap" className="text-catalyst-red-light hover:underline">vinyl wrap</Link>{" "}
+                  for both protection and color transformation. We also offer{" "}
+                  <Link href="/services/window-tint" className="text-catalyst-red-light hover:underline">ceramic window tint</Link>{" "}
+                  for complete vehicle protection.
+                </p>
+              )}
+              {service.slug === "window-tint" && (
+                <p className="mt-4 text-catalyst-grey-400 text-sm leading-relaxed">
+                  Window tint is especially popular on vehicles with large glass surfaces like the{" "}
+                  <Link href="/vehicles/tesla" className="text-catalyst-red-light hover:underline">Tesla Model 3 and Model Y</Link>.
+                  Combine tint with{" "}
+                  <Link href="/services/paint-protection-film" className="text-catalyst-red-light hover:underline">paint protection film</Link>{" "}
+                  for a full protection package.
+                </p>
+              )}
+              {service.slug === "off-road-builds" && (
+                <p className="mt-4 text-catalyst-grey-400 text-sm leading-relaxed">
+                  Combine your build with a{" "}
+                  <Link href="/services/vinyl-wrap" className="text-catalyst-red-light hover:underline">vinyl wrap</Link>{" "}
+                  or{" "}
+                  <Link href="/services/paint-protection-film" className="text-catalyst-red-light hover:underline">paint protection film</Link>{" "}
+                  for a complete transformation. We also offer{" "}
+                  <Link href="/services/window-tint" className="text-catalyst-red-light hover:underline">ceramic window tint</Link>{" "}
+                  for all truck and SUV builds.
+                </p>
+              )}
+
               {/* What You Get */}
               <h2 className="mt-10 font-heading text-xl font-bold text-white">
                 What You Get
@@ -99,7 +152,7 @@ export default async function ServicePage({ params }: PageProps) {
             <div className="relative aspect-[4/3] overflow-hidden rounded-xl">
               <Image
                 src={service.image}
-                alt={`${service.title} at Catalyst Motorsport`}
+                alt={`${service.title} installation at Catalyst Motorsport in Anaheim, CA`}
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 50vw"

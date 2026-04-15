@@ -39,9 +39,9 @@ export const servicePages: ServicePage[] = [
     title: "Vinyl Wrap",
     shortName: "Wraps",
     metaTitle:
-      "Vinyl Wrap in Anaheim, CA — Premium Vehicle Wraps",
+      "Car Wrap Anaheim | Vinyl Wrap Orange County | Color Change Wraps",
     metaDescription:
-      "Professional vinyl wraps in Anaheim, serving Orange County and Los Angeles. Full color changes, partial wraps, and commercial fleet wraps with premium films and precision installation.",
+      "Professional car wraps in Anaheim & Orange County. Full color changes, chrome deletes, fleet wraps. 3M, Avery Dennison, XPEL films. Free quote: (714) 442-1333.",
     heroHeadline: "Professional Vinyl Wrap in Anaheim",
     heroSubheadline:
       "Full color changes, partial wraps, and custom designs with premium films installed by certified technicians.",
@@ -101,52 +101,52 @@ export const servicePages: ServicePage[] = [
       {
         question: "How much does a vinyl wrap cost in Anaheim?",
         answer:
-          "Full vehicle wraps typically range from $3,000 to $7,000 depending on the vehicle size, film selection, and complexity of the body lines. Partial wraps and accent packages start lower. We provide accurate quotes after reviewing your vehicle and discussing your goals.",
+          "A full vehicle vinyl wrap in Anaheim typically ranges from $3,000 to $7,000 depending on vehicle size, film type, and complexity. Partial wraps such as hood, roof, or chrome deletes start around $500 to $1,500. Premium finishes like color-shift or printed wraps may cost more. Contact Catalyst Motorsport at (714) 442-1333 for a free custom quote.",
       },
       {
         question: "How long does a vinyl wrap last in Southern California?",
         answer:
-          "With proper care, a professionally installed vinyl wrap lasts 5 to 7 years in the Southern California climate. Vehicles that are garaged regularly and hand washed tend to see the longest lifespan. We use premium UV resistant films to maximize longevity.",
+          "A professionally installed vinyl wrap lasts 5 to 7 years in Southern California with proper care. The intense SoCal sun can impact longevity, so using premium films from 3M or Avery Dennison and following care guidelines — like hand washing and avoiding prolonged direct sun exposure — helps maximize wrap lifespan.",
       },
       {
         question: "Will a vinyl wrap damage my car's paint?",
         answer:
-          "No. A properly installed and removed vinyl wrap will not damage factory paint. The wrap actually protects the paint from UV exposure, road debris, and minor abrasions. When removed, the original paint is revealed in preserved condition, which helps maintain resale value.",
+          "No. A quality vinyl wrap actually protects your factory paint from UV exposure, minor scratches, and road debris. When removed properly by a professional, the original paint underneath is preserved in its original condition. This makes wraps popular for protecting resale value on leased and financed vehicles.",
       },
       {
         question: "How long does it take to wrap a car?",
         answer:
-          "A full vehicle wrap typically requires 3 to 5 business days. Partial wraps can often be completed in 1 to 2 days. We never rush the process because proper surface preparation, precise installation, and thorough post heating are critical for a quality result.",
+          "A full body color change wrap typically takes 3 to 5 business days at Catalyst Motorsport. Partial wraps like hoods, roofs, or chrome deletes can often be completed in 1 to 2 days. The timeline depends on vehicle size, complexity, and whether component removal is needed for seamless results.",
       },
       {
         question: "Can I wrap a leased vehicle?",
         answer:
-          "Absolutely. Vinyl wraps are one of the best modifications for a leased vehicle because they are completely removable. When your lease ends, we can remove the wrap cleanly, leaving the factory paint untouched and in excellent condition.",
+          "Yes. Vinyl wraps are one of the best modifications for leased vehicles because they are fully reversible. The wrap protects the factory paint during your lease term, and when removed, the car is returned in better condition than without it. Many lease holders use wraps to personalize their vehicle without risking damage to the original finish.",
       },
       {
         question: "What is the difference between a wrap and paint?",
         answer:
-          "Vinyl wraps offer a much wider range of finishes and colors than paint, at a fraction of the cost. Wraps are also reversible and can be removed without affecting the original paint. A quality respray can cost $10,000 or more, while a full wrap achieves a similar transformation for significantly less.",
+          "A vinyl wrap is a removable film applied over your existing paint, while a paint job permanently alters the vehicle surface. Wraps offer more color and finish options, cost less than premium paint, protect the factory finish, and can be removed or changed. Paint is permanent, requires body prep, and typically costs $5,000 to $15,000+ for a quality job.",
       },
       {
         question: "Can you match a specific color with a vinyl wrap?",
         answer:
-          "Yes. There are thousands of wrap colors and finishes available, and many can be closely matched to specific references. For exact brand color matching, custom printed wraps are also available. During your consultation, we will help you find the right film for the look you want.",
+          "Yes. With thousands of vinyl wrap colors and finishes available from 3M, Avery Dennison, XPEL, and Inozetek, we can match or closely replicate nearly any color. Custom printed wraps also allow for exact color matching, custom gradients, patterns, and branded designs.",
       },
       {
         question: "Do you offer commercial fleet wraps?",
         answer:
-          "Yes. We provide full service fleet wrapping including branding, graphics, and full color changes. Fleet wraps are one of the most cost effective forms of mobile advertising and we can handle vehicles of all sizes. Contact us for volume pricing.",
+          "Yes. Catalyst Motorsport provides commercial fleet wrapping and vehicle branding services for businesses in Orange County and Los Angeles. Fleet wraps include full and partial vehicle graphics, logo installation, and consistent brand application across multiple vehicles. Contact us for fleet pricing and volume discounts.",
       },
       {
         question: "How do I maintain a vinyl wrap?",
         answer:
-          "Hand washing with a mild automotive soap is the best approach. Avoid automatic car washes with abrasive brushes. For matte and satin finishes, skip wax and use a detail spray made for vinyl. We provide full care instructions with every installation.",
+          "Hand wash your wrapped vehicle using a gentle car soap and a microfiber mitt. Avoid automatic car washes with brushes, as they can scratch or lift edges. In Southern California, park in shade when possible and use a spray detailer between washes. Avoid waxing unless it is a wrap-safe product, and clean bird droppings or tree sap promptly to prevent staining.",
       },
       {
         question: "Can you wrap just the roof or hood of my car?",
         answer:
-          "Yes. Partial wraps are very popular and include options like hood wraps, roof wraps, mirror caps, trim accents, and two tone designs. This is a great way to customize your vehicle at a lower cost than a full wrap.",
+          "Absolutely. Partial wraps are one of our most popular services. Gloss black roof wraps, carbon fiber hood wraps, mirror caps, and custom accent panels are great ways to change your vehicle's look without committing to a full wrap. Partial wraps typically range from $300 to $1,500 depending on the panels covered.",
       },
     ],
     image: "/images/green_G_wrap.webp",
@@ -165,9 +165,9 @@ export const servicePages: ServicePage[] = [
     title: "Paint Protection Film",
     shortName: "PPF",
     metaTitle:
-      "Paint Protection Film (PPF) in Anaheim, CA — Clear Bra Installation",
+      "PPF Anaheim | Paint Protection Film Orange County | Clear Bra",
     metaDescription:
-      "Premium paint protection film installation in Anaheim. Self healing, optically clear PPF to guard your vehicle from rock chips, scratches, and road debris. Serving Orange County and LA.",
+      "Paint protection film in Anaheim, CA. Self-healing XPEL, SunTek & 3M PPF. Front-end & full body packages. Protect your paint. Free quote: (714) 442-1333.",
     heroHeadline: "Paint Protection Film in Anaheim",
     heroSubheadline:
       "Self healing, optically clear urethane film that guards your paint from rock chips, road debris, and daily wear.",
@@ -227,52 +227,52 @@ export const servicePages: ServicePage[] = [
       {
         question: "How much does PPF cost in Anaheim?",
         answer:
-          "PPF pricing depends on the coverage area. Partial front end packages typically start around $1,500, while full front end coverage ranges from $2,500 to $4,000. Full body PPF installations range from $5,000 to $8,000 or more depending on the vehicle. We provide detailed quotes for every project.",
+          "PPF pricing in Anaheim ranges from approximately $800 to $2,000 for a partial front package (bumper, partial hood, mirrors), $2,500 to $4,500 for a full front end, and $5,000 to $8,000+ for full body coverage. Pricing varies by vehicle size, film brand, and finish. Contact Catalyst Motorsport at (714) 442-1333 for an exact quote.",
       },
       {
         question: "How long does paint protection film last?",
         answer:
-          "Premium PPF lasts 7 to 10 years or more with proper maintenance. The films we install are UV stabilized, so they will not yellow, crack, or peel over time. Most come with a manufacturer warranty for additional peace of mind.",
+          "Premium PPF from brands like XPEL and SunTek lasts 7 to 10 years with proper care. XPEL Ultimate Plus comes with a 10-year manufacturer warranty. In Southern California's sun, quality PPF maintains its clarity and self-healing properties for the full warranty period when maintained correctly.",
       },
       {
         question: "Can you see PPF on the car?",
         answer:
-          "Modern PPF is optically clear and virtually invisible once properly installed. In certain angles you may notice subtle edges at panel transitions, but when applied by experienced technicians, the film blends seamlessly with the paint.",
+          "Modern paint protection film is virtually invisible when professionally installed. High-quality films from XPEL and SunTek have optical clarity that matches your factory paint. Proper installation with wrapped edges and minimal seams makes the film undetectable to the casual observer.",
       },
       {
-        question: "What is self healing PPF?",
+        question: "What is self-healing PPF?",
         answer:
-          "Self healing PPF has a special top coat that repairs light surface scratches when exposed to heat. Warm sunlight, a heat gun, or hot water cause the top layer to flow back together, removing swirl marks and light scratches without any polishing needed.",
+          "Self-healing PPF contains an elastomeric polymer topcoat that repairs minor scratches and swirl marks when exposed to heat. When the film surface gets a light scratch, warmth from sunlight or warm water causes the topcoat to flow back to its original smooth state, effectively erasing the imperfection without polishing or buffing.",
       },
       {
         question: "Should I get PPF or a vinyl wrap?",
         answer:
-          "PPF is designed for protection, while vinyl wraps are primarily for appearance changes. Many clients combine both, using PPF on high impact areas and a wrap for color or finish. Our team can advise on the best combination for your vehicle and goals.",
+          "PPF and vinyl wraps serve different purposes. PPF is a clear or tinted protective film designed to guard against rock chips, scratches, and environmental damage. Vinyl wraps change your vehicle's color or appearance. Many owners choose both — PPF on high-impact areas and a vinyl wrap for color transformation. We can help you determine the best combination.",
       },
       {
         question: "Can PPF be applied over a vinyl wrap?",
         answer:
-          "Yes. PPF can be layered over a vinyl wrap for added protection, especially on the front end. For the cleanest results, we recommend planning both installations together so the films integrate properly.",
+          "It is generally not recommended to apply traditional PPF over a vinyl wrap because the adhesives can interact and cause removal issues. The better approach is to apply PPF first on areas that need chip protection, then apply the vinyl wrap over remaining panels. Discuss your specific project with our team for the best approach.",
       },
       {
         question: "Does PPF protect against rock chips?",
         answer:
-          "Yes. That is one of the primary purposes of paint protection film. The thick urethane material absorbs impacts from rocks, road debris, gravel, and sand that would otherwise chip or scratch your paint. It is the most effective defense available for high impact areas.",
+          "Yes, protection against rock chips is the primary purpose of paint protection film. PPF absorbs the impact of gravel, road debris, and small stones that would otherwise chip your paint. The self-healing properties also maintain a smooth surface after impacts. This is especially valuable on Southern California freeways.",
       },
       {
         question: "How do I care for paint protection film?",
         answer:
-          "PPF is low maintenance. Wash your vehicle normally with a gentle automotive soap. Avoid abrasive polishes directly on the film. The self healing surface handles light scratches on its own, and the film remains clear and glossy with regular washing.",
+          "Care for PPF by hand washing with pH-neutral car soap and a microfiber wash mitt. Avoid abrasive cleaners, polishing compounds, and automatic car washes with brushes. Use spray detailers and PPF-safe sealants for added gloss. Remove bug splatter, bird droppings, and tree sap promptly. Regular washing every 1 to 2 weeks is ideal in SoCal.",
       },
       {
         question: "Can PPF be removed?",
         answer:
-          "Yes. Professional removal of PPF leaves the paint in the same condition it was in when the film was applied. This is one of the key benefits of PPF: it protects and preserves your factory finish for the long term.",
+          "Yes, PPF can be professionally removed without damaging the paint underneath. Professional removal involves heating the film to soften the adhesive and carefully peeling it away. The paint underneath is revealed in the same condition as when the film was applied. We recommend professional removal to avoid issues.",
       },
       {
         question: "Is PPF worth it on a new car?",
         answer:
-          "A new car is the ideal time to apply PPF. The paint is in pristine condition, and PPF locks in that factory fresh finish from day one. It protects your investment and can significantly help resale value by keeping the exterior damage free.",
+          "PPF is most effective on a new car because the paint is pristine with no chips or scratches to trap under the film. Applying PPF from day one preserves the factory finish, protects resale value, and avoids paint correction costs. For vehicles with thin factory paint like Tesla, PPF is especially recommended.",
       },
     ],
     image: "/images/blue_bmw850.webp",
@@ -291,9 +291,9 @@ export const servicePages: ServicePage[] = [
     title: "Window Tint",
     shortName: "Tint",
     metaTitle:
-      "Window Tint in Anaheim, CA — Ceramic & Carbon Tint",
+      "Ceramic Window Tint Anaheim | Car Tint Orange County",
     metaDescription:
-      "Professional ceramic and carbon window tint in Anaheim. Heat rejection, UV protection, and premium privacy. Serving Orange County and Los Angeles. California legal options available.",
+      "Ceramic window tint in Anaheim & Orange County. Up to 98% heat rejection. XPEL, 3M, Llumar films. Computer-cut install. Free quote: (714) 442-1333.",
     heroHeadline: "Ceramic Window Tint in Anaheim",
     heroSubheadline:
       "Premium ceramic and carbon films that cut heat, block UV, and deliver a clean, finished look.",
@@ -348,52 +348,52 @@ export const servicePages: ServicePage[] = [
       {
         question: "How much does window tint cost in Anaheim?",
         answer:
-          "Window tint pricing depends on the type of film and the number of windows. Full vehicle ceramic tint packages typically range from $400 to $900. Carbon tint is slightly less. Windshield tint and specialty vehicles may be priced separately. Contact us for an accurate quote.",
+          "Window tint in Anaheim ranges from $200 to $400 for carbon tint on side and rear windows, and $400 to $800+ for ceramic tint on the full vehicle. Windshield ceramic tint is an additional $150 to $300. Ceramic films cost more but offer significantly better heat rejection. Call (714) 442-1333 for a quote.",
       },
       {
         question: "What is the best window tint for Southern California?",
         answer:
-          "Ceramic window tint is the top choice for Southern California drivers. It offers the highest heat rejection available, blocks 99% of UV rays, and maintains excellent visibility. For the intense sun, long commutes, and hot summers here, ceramic tint provides measurable comfort improvement.",
+          "Ceramic window tint is the best option for Southern California because it rejects up to 98% of infrared heat while maintaining excellent clarity and no signal interference. Carbon tint is a good budget alternative with solid UV and heat performance. Given SoCal's extreme sun and heat, ceramic tint provides the most noticeable comfort improvement.",
       },
       {
         question: "Is window tint legal in California?",
         answer:
-          "California allows any shade of tint on rear and back side windows. Front side windows must allow at least 70% of light to pass through. The windshield may only have tint on the top 4 to 5 inches. We are well versed in California tint law and will help you choose a setup that looks great and stays compliant.",
+          "California allows any tint darkness on rear side windows and the rear windshield. Front side windows must allow more than 70% of light through. The windshield may only have a non-reflective tint strip along the top AS-1 line. Catalyst Motorsport guides every customer through California tint law compliance.",
       },
       {
         question: "How long does window tint installation take?",
         answer:
-          "Most full vehicle tint installations are completed in 2 to 4 hours. The exact timing depends on the number of windows and the vehicle type. We use precision computer cut patterns that speed up the process while ensuring a perfect fit.",
+          "Window tint installation typically takes 2 to 4 hours for a full vehicle at Catalyst Motorsport. Sedans with fewer windows are closer to 2 hours, while larger SUVs and trucks with more glass take longer. Windshield tint adds approximately 1 additional hour. We recommend leaving the vehicle for a half day.",
       },
       {
         question: "What is the difference between ceramic and carbon tint?",
         answer:
-          "Ceramic tint uses nano ceramic technology for the highest heat rejection and optical clarity available. Carbon tint uses carbon particles and provides excellent UV blocking and heat reduction at a lower price point. Both are far superior to dyed films. Ceramic is the premium choice for maximum performance.",
+          "Ceramic tint uses nano-ceramic particles that reject up to 98% of infrared heat and 99% of UV rays while maintaining excellent clarity. Carbon tint uses carbon particles for good performance at a lower price. Ceramic offers superior heat rejection, no signal interference, and longer lifespan. In SoCal's heat, the ceramic upgrade is worth it.",
       },
       {
         question: "Will window tint bubble or peel over time?",
         answer:
-          "The ceramic and carbon films we install will not bubble, peel, or turn purple. These are premium films designed to last the lifetime of your vehicle. Lower quality dyed films can degrade over time, which is why we only stock and install professional grade products.",
+          "Quality window tint professionally installed does not bubble or peel. Bubbling and peeling are caused by low-quality films, poor installation technique, or adhesive failure from cheap products. Premium films from XPEL, 3M, Llumar, and SunTek carry manufacturer warranties against these defects.",
       },
       {
         question: "Does ceramic tint really make a difference in heat?",
         answer:
-          "Yes. Ceramic tint can reject over 50% of solar heat while maintaining clear visibility. On a hot Southern California day, the difference inside the cabin is immediately noticeable. Many clients report significantly less reliance on air conditioning after a ceramic tint install.",
+          "Yes, significantly. Ceramic window tint can reduce interior temperatures by 20 to 40 degrees Fahrenheit compared to untinted glass. In Southern California where summer temperatures regularly exceed 90 degrees, ceramic tint makes a major difference in cabin comfort, reduces AC load, and protects your interior from UV fading.",
       },
       {
         question: "Can window tint be removed and replaced?",
         answer:
-          "Yes. Our team can professionally remove existing tint and install new film. If you have old tint that is bubbling, fading, or no longer meets your needs, we will strip it cleanly and re tint the windows with fresh, premium film.",
+          "Yes. Old or damaged window tint can be professionally removed and replaced with new film. Removal involves steaming or heating the old film to soften the adhesive, then carefully peeling it off. The glass is cleaned and prepped before new tint is applied. Professional removal avoids scratching the glass or defroster lines.",
       },
       {
         question: "Do you tint windshields?",
         answer:
-          "Yes. We offer full windshield ceramic tint and windshield strips. A full windshield ceramic film dramatically reduces heat and glare. We use high VLT ceramic film on the windshield to maintain legal compliance and excellent visibility.",
+          "Yes. Catalyst Motorsport installs ceramic windshield film that significantly reduces heat and glare while maintaining full visibility. Windshield tint must comply with California law, which permits non-reflective tint along the top portion. We also offer full windshield ceramic film at compliant VLT levels for maximum heat reduction.",
       },
       {
         question: "How long does window tint last?",
         answer:
-          "The ceramic and carbon films we install are designed to last the lifetime of your vehicle. They come backed by a manufacturer warranty and our installation quality ensures the film performs as designed for years to come.",
+          "Quality ceramic and carbon window tint lasts 10 to 15 years or longer when professionally installed. Premium films from XPEL, 3M, Llumar, and SunTek come with manufacturer warranties ranging from limited lifetime to lifetime coverage. Proper installation and care maximizes longevity.",
       },
     ],
     image: "/images/grey_raptor.webp",
@@ -412,9 +412,9 @@ export const servicePages: ServicePage[] = [
     title: "Off-Road Builds",
     shortName: "Off-Road",
     metaTitle:
-      "Off-Road Builds in Anaheim, CA — Lift Kits, Suspension & Accessories",
+      "Off-Road Builds Anaheim | Lift Kits & Suspension OC",
     metaDescription:
-      "Custom off road builds in Anaheim. Lift kits, suspension upgrades, lighting, bumpers, and accessories for trucks and SUVs. Serving Orange County and Los Angeles.",
+      "Off-road builds in Anaheim. Lift kits, suspension, LED lighting, bumpers & accessories for trucks & SUVs. Dirt King, Icon, King Shocks. Call (714) 442-1333.",
     heroHeadline: "Off-Road Builds in Anaheim",
     heroSubheadline:
       "Lift kits, suspension, lighting, armor, and accessories for trucks and SUVs built to handle anything.",
@@ -472,54 +472,54 @@ export const servicePages: ServicePage[] = [
     ],
     faqs: [
       {
-        question: "How much does an off road build cost?",
+        question: "How much does an off-road build cost?",
         answer:
-          "Off road build costs vary widely based on the scope. A basic lift kit installation may start around $1,500 to $3,000 installed, while a comprehensive build with suspension, bumpers, lighting, and accessories can range from $8,000 to $20,000 or more. We provide detailed quotes for every project.",
+          "Off-road build costs vary by scope. Basic lift kits with installation start around $1,500 to $3,000. Mid-level builds with suspension, lighting, and bumpers range from $5,000 to $15,000. Full builds with premium components and accessories can exceed $20,000. Catalyst Motorsport provides detailed build proposals with itemized pricing.",
       },
       {
         question: "What trucks and SUVs do you build?",
         answer:
-          "We work on all popular truck and SUV platforms including Toyota Tacoma, Toyota 4Runner, Ford Raptor, Ford Bronco, Jeep Wrangler, Jeep Gladiator, Chevrolet Colorado, and many more. Whether it is a midsize truck or a full size SUV, we have the experience and parts access to build it right.",
+          "We work on all major truck and SUV platforms including Toyota Tacoma, Toyota 4Runner, Ford Raptor, Ford Bronco, Jeep Wrangler, Jeep Gladiator, Chevrolet Colorado, GMC Sierra, Ram trucks, and more. Whether it is a mid-size truck or full-size platform, we have the experience and vendor relationships to build it right.",
       },
       {
-        question: "How long does an off road build take?",
+        question: "How long does an off-road build take?",
         answer:
-          "Simple installations like a lift kit or light bar can be completed in 1 to 2 days. More comprehensive builds involving suspension, bumpers, and multiple accessories may take 3 to 7 business days depending on parts availability and the scope of work.",
+          "Build timelines depend on scope and parts availability. A basic lift kit install takes 1 to 2 days. Mid-level builds with suspension, bumpers, and lighting typically take 3 to 5 days. Full builds with multiple systems can take 1 to 2 weeks. We provide estimated timelines during the build consultation.",
       },
       {
         question: "Will a lift kit affect my warranty?",
         answer:
-          "Aftermarket modifications can potentially affect specific warranty claims related to the modified components. However, under the Magnuson Moss Warranty Act, a dealer must prove that the modification directly caused the failure to deny a claim. We install reputable, engineered components and follow manufacturer guidelines.",
+          "Under the Magnuson-Moss Warranty Act, a dealer cannot void your entire warranty for installing a lift kit. However, if a failure is directly caused by the modification, the dealer may deny that specific claim. Using quality components from brands like Icon and Dirt King with professional installation minimizes warranty concerns.",
       },
       {
         question: "Do you do alignments after lift kit installs?",
         answer:
-          "Yes. Proper alignment is critical after any suspension modification. We verify alignment settings after every lift or suspension install to ensure correct tire wear, handling, and safety. This is included as part of our installation process.",
+          "Yes. Every lift kit and suspension install includes alignment and geometry verification. Proper alignment after a lift is critical for tire wear, handling, and safety. We set suspension geometry to manufacturer specifications and verify all angles before delivery.",
       },
       {
-        question: "Can I combine an off road build with a wrap or PPF?",
+        question: "Can I combine an off-road build with a wrap or PPF?",
         answer:
-          "Absolutely. Many clients do a full build and then protect the vehicle with PPF on the front end, a color change wrap, or ceramic tint. We coordinate the full project so everything is installed in the right order for the best results.",
+          "Absolutely. Many clients combine lift kit and suspension work with vinyl wraps and PPF for a complete transformation. We recommend completing the off-road build first, then wrapping or applying PPF so the film is applied to the final body geometry. Catalyst Motorsport is a one-stop shop for both protection and customization.",
       },
       {
         question: "What brands do you recommend for lift kits?",
         answer:
-          "We work with Dirt King, Icon Vehicle Dynamics, King Shocks, Fox, and other respected manufacturers. The right brand depends on your vehicle, your driving style, and your budget. We will recommend the best fit during your consultation.",
+          "We recommend and install components from Dirt King Fabrication, Icon Vehicle Dynamics, King Shocks, Fox Racing Shocks, and other proven manufacturers. Brand selection depends on your vehicle, intended use, and budget. We only install components we trust for durability and performance.",
       },
       {
         question: "Do you install roof racks and bed racks?",
         answer:
-          "Yes. We install roof racks, bed racks, cargo systems, and mounting hardware from leading brands. Proper installation matters for load capacity and safety, and we make sure everything is secure and correctly mounted.",
+          "Yes. We install roof racks, bed racks, crossbars, and cargo management systems from leading brands. Proper rack installation includes correct torque, weatherproofing, and integration with your existing accessories. We can also combine rack installs with lighting and other accessories.",
       },
       {
         question: "Can you add lighting to my truck?",
         answer:
-          "Yes. We install LED light bars, pod lights, ditch lights, rock lights, and auxiliary driving lights. All wiring is done cleanly with proper switches, relays, and fuse protection. We focus on reliable, professional results.",
+          "Yes. We install LED light bars, pod lights, ditch lights, rock lights, and auxiliary lighting systems. All wiring is done cleanly with proper relays, fuses, and switching. We integrate lighting with your existing electrical system using professional-grade wiring harnesses.",
       },
       {
         question: "Do you work on Jeep Wranglers?",
         answer:
-          "Yes. Jeep Wranglers and Gladiators are among the most common vehicles in our shop. From lift kits and bumpers to fender flares and lighting, we have extensive experience building Jeeps for both trail capability and street presence.",
+          "Yes. Jeep Wranglers are one of the most popular platforms in our shop. We install lift kits, bumpers, fenders, rock sliders, lighting, winches, and more for both JK and JL platforms. We also offer wraps, PPF, and tint for Wranglers as part of complete build packages.",
       },
     ],
     image: "/images/green_tacoma.webp",

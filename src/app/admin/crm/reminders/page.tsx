@@ -18,6 +18,7 @@ const TAG_DOT: Record<string, string> = {
   A: "bg-green-500",
   B: "bg-amber-500",
   C: "bg-red-500",
+  "!": "bg-violet-500",
 };
 
 const TABS = [

@@ -9,29 +9,29 @@ export const siteConfig = {
   tagline: "PPF — Wraps — Tint",
   description:
     "Premier auto customization in Anaheim, CA. Vinyl wraps, paint protection film (PPF), window tint, and off-road and luxury vehicle customization — serving Los Angeles and Orange County.",
-  url: "https://catalystmotorsport.com", // TODO: Update with actual domain
+  url: "https://www.catalystmotorsport.com",
 
   phone: "(714) 442-1333",
   phoneHref: "tel:+17144421333",
+  email: "team@catalystmotorsport.com",
 
   address: {
     street: "1161 N Cosby Way, Unit T",
     city: "Anaheim",
     state: "CA",
-    zip: "", // TODO: Add zip code
-    full: "1161 N Cosby Way, Unit T, Anaheim, CA",
+    zip: "92806",
+    full: "1161 N Cosby Way, Unit T, Anaheim, CA 92806",
     mapsUrl:
-      "https://www.google.com/maps/search/?api=1&query=1161+N+Cosby+Way+Unit+T+Anaheim+CA",
+      "https://www.google.com/maps/search/?api=1&query=1161+N+Cosby+Way+Unit+T+Anaheim+CA+92806",
   },
 
   serviceArea: "Los Angeles & Orange County",
 
   social: {
-    // TODO: Replace # with real social URLs
-    instagram: "https://www.instagram.com/catalyst_motorsport",
-    facebook: "#",
+    instagram: "https://www.instagram.com/catalyst_motorsport/",
+    facebook: "https://www.facebook.com/100085310825383/",
     tiktok: "#",
-    yelp: "#",
+    yelp: "https://www.yelp.com/biz/catalyst-motorsport-wraps-anaheim",
   },
 } as const;
 

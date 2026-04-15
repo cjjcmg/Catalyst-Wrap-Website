@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface Contact {
   id: number;
@@ -70,8 +70,21 @@ function TimeSelect({ value, onChange }: { value: string; onChange: (v: string) 
   );
 }
 
-export default function SchedulePage() {
+function toLocalDate(iso: string) {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function toLocalTime(iso: string) {
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+function ScheduleInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("edit");
+
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedContact, setSelectedContact] = useState("");
   const [title, setTitle] = useState("");
@@ -82,12 +95,35 @@ export default function SchedulePage() {
   const [details, setDetails] = useState("");
   const [share, setShare] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [loadingEdit, setLoadingEdit] = useState(!!editId);
 
   useEffect(() => {
     fetch("/api/admin/quotes")
       .then((r) => r.json())
       .then((d) => setContacts((d.quotes || []).map((q: Contact) => ({ id: q.id, name: q.name, email: q.email, service: q.service }))));
   }, []);
+
+  useEffect(() => {
+    if (!editId) return;
+    fetch(`/api/admin/appointments?id=${editId}`)
+      .then((r) => r.json())
+      .then((d) => {
+        const appt = d.appointment;
+        if (appt) {
+          setSelectedContact(String(appt.quote_id));
+          setTitle(appt.title || "");
+          setDate(toLocalDate(appt.date_time));
+          setTime(toLocalTime(appt.date_time));
+          if (appt.end_time) {
+            setEndDate(toLocalDate(appt.end_time));
+            setEndTime(toLocalTime(appt.end_time));
+          }
+          setDetails(appt.details || "");
+          setShare(!!appt.share_with_contact);
+        }
+        setLoadingEdit(false);
+      });
+  }, [editId]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -97,17 +133,19 @@ export default function SchedulePage() {
     const dateTime = new Date(`${date}T${time}`).toISOString();
     const endDateTime = endDate && endTime ? new Date(`${endDate}T${endTime}`).toISOString() : null;
 
+    const body = {
+      ...(editId ? { id: Number(editId) } : { quote_id: Number(selectedContact) }),
+      title,
+      date_time: dateTime,
+      end_time: endDateTime,
+      details,
+      share_with_contact: share,
+    };
+
     const res = await fetch("/api/admin/appointments", {
-      method: "POST",
+      method: editId ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        quote_id: Number(selectedContact),
-        title,
-        date_time: dateTime,
-        end_time: endDateTime,
-        details,
-        share_with_contact: share,
-      }),
+      body: JSON.stringify(body),
     });
 
     if (res.ok) {
@@ -117,6 +155,10 @@ export default function SchedulePage() {
   }
 
   const selectedEmail = contacts.find((c) => c.id === Number(selectedContact))?.email;
+
+  if (loadingEdit) {
+    return <div className="max-w-2xl mx-auto px-4 py-6"><p className="text-catalyst-grey-500">Loading...</p></div>;
+  }
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -130,7 +172,7 @@ export default function SchedulePage() {
             <polyline points="12 19 5 12 12 5" />
           </svg>
         </button>
-        <h1 className="font-heading text-2xl sm:text-3xl font-bold text-white">New Appointment</h1>
+        <h1 className="font-heading text-2xl sm:text-3xl font-bold text-white">{editId ? "Edit Appointment" : "New Appointment"}</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="rounded-xl border border-catalyst-border bg-catalyst-card p-5 sm:p-6 space-y-4">
@@ -140,7 +182,8 @@ export default function SchedulePage() {
             value={selectedContact}
             onChange={(e) => setSelectedContact(e.target.value)}
             required
-            className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-4 py-2 text-white focus:border-catalyst-red focus:outline-none appearance-none"
+            disabled={!!editId}
+            className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-4 py-2 text-white focus:border-catalyst-red focus:outline-none appearance-none disabled:opacity-50"
           >
             <option value="" disabled>Select a contact</option>
             {contacts.map((c) => (
@@ -164,7 +207,17 @@ export default function SchedulePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs text-catalyst-grey-400 mb-1">Date</label>
-            <input type="date" value={date} onChange={(e) => { setDate(e.target.value); if (!endDate) setEndDate(e.target.value); }} required className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-4 py-2 text-white focus:border-catalyst-red focus:outline-none [color-scheme:dark]" />
+            <input type="date" value={date} onChange={(e) => {
+              const newStart = e.target.value;
+              if (date && endDate) {
+                const offset = new Date(endDate).getTime() - new Date(date).getTime();
+                const newEnd = new Date(new Date(newStart).getTime() + offset);
+                setEndDate(`${newEnd.getFullYear()}-${String(newEnd.getMonth() + 1).padStart(2, "0")}-${String(newEnd.getDate()).padStart(2, "0")}`);
+              } else if (!endDate) {
+                setEndDate(newStart);
+              }
+              setDate(newStart);
+            }} required className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-4 py-2 text-white focus:border-catalyst-red focus:outline-none [color-scheme:dark]" />
           </div>
           <div>
             <label className="block text-xs text-catalyst-grey-400 mb-1">Time</label>
@@ -201,10 +254,18 @@ export default function SchedulePage() {
             Cancel
           </button>
           <button type="submit" disabled={saving || !selectedContact || !date || !time} className="rounded-lg bg-catalyst-red px-5 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-50">
-            {saving ? "Scheduling..." : "Schedule"}
+            {saving ? "Saving..." : editId ? "Update" : "Schedule"}
           </button>
         </div>
       </form>
     </div>
+  );
+}
+
+export default function SchedulePage() {
+  return (
+    <Suspense fallback={<div className="max-w-2xl mx-auto px-4 py-6"><p className="text-catalyst-grey-500">Loading...</p></div>}>
+      <ScheduleInner />
+    </Suspense>
   );
 }

@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { siteConfig } from "@/config/site";
 import QuoteButton from "@/components/ui/QuoteButton";
+import { generateFAQSchema } from "@/lib/schema";
 
 interface FAQItem {
   question: string;
@@ -20,45 +22,45 @@ const faqs: FAQItem[] = [
   },
   {
     category: "wrap",
-    question: "How long does a vinyl wrap last?",
+    question: "How much does a vinyl wrap cost in Anaheim?",
     answer:
-      "A professionally installed vinyl wrap typically lasts 5 to 7 years, depending on the film quality, how the vehicle is stored, and how well it's maintained. Vehicles that are garaged and regularly hand-washed tend to see the longest life out of their wrap. We use only premium films from trusted manufacturers to ensure maximum durability.",
+      "A full vehicle vinyl wrap in Anaheim typically ranges from $3,000 to $7,000 depending on vehicle size, film type, and complexity. Partial wraps such as hood, roof, or chrome deletes start around $500 to $1,500. Premium finishes like color-shift or printed wraps may cost more. Contact Catalyst Motorsport at (714) 442-1333 for a free custom quote.",
   },
   {
     category: "wrap",
-    question: "Will a vinyl wrap damage my paint?",
+    question: "How long does a vinyl wrap last in Southern California?",
     answer:
-      "No. When installed and removed properly by professionals, a vinyl wrap will not damage factory paint. In fact, wraps protect the original paint from UV exposure, minor scratches, and road debris. When you're ready for a change, the wrap is removed cleanly, revealing the preserved paint underneath, which can actually help maintain your vehicle's resale value.",
+      "A professionally installed vinyl wrap lasts 5 to 7 years in Southern California with proper care. The intense SoCal sun can impact longevity, so using premium films from 3M or Avery Dennison and following care guidelines — like hand washing and avoiding prolonged direct sun exposure — helps maximize wrap lifespan.",
   },
   {
     category: "wrap",
-    question: "How much does a full vehicle wrap cost?",
+    question: "Will a vinyl wrap damage my car's paint?",
     answer:
-      "The cost of a full vehicle wrap depends on the size of the vehicle, the complexity of the body lines, and the type of film selected. Most full wraps range from $3,000 to $7,000+. We provide personalized quotes for every project because no two vehicles are the same, so reach out and we'll give you an accurate estimate.",
+      "No. A quality vinyl wrap actually protects your factory paint from UV exposure, minor scratches, and road debris. When removed properly by a professional, the original paint underneath is preserved in its original condition. This makes wraps popular for protecting resale value on leased and financed vehicles.",
   },
   {
     category: "wrap",
-    question: "Can I wrap just part of my car?",
+    question: "How long does it take to wrap a car?",
     answer:
-      "Absolutely. Partial wraps are very popular, and you can wrap the hood, roof, mirrors, trim, or any combination of panels. This is a great way to add accents, protect high-impact areas, or achieve a two-tone look at a lower cost than a full wrap.",
+      "A full body color change wrap typically takes 3 to 5 business days at Catalyst Motorsport. Partial wraps like hoods, roofs, or chrome deletes can often be completed in 1 to 2 days. The timeline depends on vehicle size, complexity, and whether component removal is needed for seamless results.",
   },
   {
     category: "wrap",
-    question: "How long does it take to wrap a vehicle?",
+    question: "Can I wrap a leased vehicle?",
     answer:
-      "A full vehicle wrap typically takes 3 to 5 business days, depending on the vehicle's size and complexity. Partial wraps and accent work can often be completed in 1 to 2 days. We never rush a job, because proper surface preparation, precise installation, and thorough post-heating are essential for a flawless result.",
+      "Yes. Vinyl wraps are one of the best modifications for leased vehicles because they are fully reversible. The wrap protects the factory paint during your lease term, and when removed, the car is returned in better condition than without it. Many lease holders use wraps to personalize their vehicle without risking damage to the original finish.",
   },
   {
     category: "wrap",
-    question: "How do I care for my vinyl wrap?",
+    question: "How do I maintain a vinyl wrap?",
     answer:
-      "Hand washing is the best way to maintain your wrap. Use a gentle automotive soap and a microfiber mitt, and avoid automatic car washes with abrasive brushes. For stubborn spots, a detail spray designed for vinyl works great. Waxing is not required, and certain waxes should be avoided on matte or satin finishes. We provide care instructions with every wrap job.",
+      "Hand wash your wrapped vehicle using a gentle car soap and a microfiber mitt. Avoid automatic car washes with brushes, as they can scratch or lift edges. In Southern California, park in shade when possible and use a spray detailer between washes. Avoid waxing unless it is a wrap-safe product, and clean bird droppings or tree sap promptly to prevent staining.",
   },
   {
     category: "wrap",
-    question: "Can I take a wrapped car through a car wash?",
+    question: "Can you wrap just the roof or hood of my car?",
     answer:
-      "We recommend hand washing wrapped vehicles. Touchless car washes are acceptable in a pinch, but automatic washes with spinning brushes can scratch or lift the edges of the film over time. A quick hand wash every couple of weeks is the best way to keep your wrap looking pristine.",
+      "Absolutely. Partial wraps are one of our most popular services. Gloss black roof wraps, carbon fiber hood wraps, mirror caps, and custom accent panels are great ways to change your vehicle's look without committing to a full wrap. Partial wraps typically range from $300 to $1,500 depending on the panels covered.",
   },
 
   // ── Paint Protection Film (PPF) ───────────────────────
@@ -70,83 +72,83 @@ const faqs: FAQItem[] = [
   },
   {
     category: "ppf",
-    question: "Where should I apply PPF on my vehicle?",
+    question: "How much does PPF cost in Anaheim?",
     answer:
-      "The most common areas are the full front end, including the hood, fenders, bumper, and mirrors, since these take the most impact from road debris. Many owners also protect rocker panels, door edges, A-pillars, and the area behind the rear wheel arches. For maximum coverage, full-body PPF wraps the entire vehicle in invisible armor.",
+      "PPF pricing in Anaheim ranges from approximately $800 to $2,000 for a partial front package (bumper, partial hood, mirrors), $2,500 to $4,500 for a full front end, and $5,000 to $8,000+ for full body coverage. Pricing varies by vehicle size, film brand, and finish. Contact Catalyst Motorsport at (714) 442-1333 for an exact quote.",
   },
   {
     category: "ppf",
-    question: "How long does PPF last?",
+    question: "How long does paint protection film last?",
     answer:
-      "Premium paint protection film lasts 7 to 10 years or more with proper care. The films we use are UV-stabilized, meaning they won't yellow, crack, or peel over time. Most come backed by a manufacturer's warranty, and our installation quality ensures the film performs as designed for its full lifespan.",
+      "Premium PPF from brands like XPEL and SunTek lasts 7 to 10 years with proper care. XPEL Ultimate Plus comes with a 10-year manufacturer warranty. In Southern California's sun, quality PPF maintains its clarity and self-healing properties for the full warranty period when maintained correctly.",
   },
   {
     category: "ppf",
     question: "Can you see PPF on the car?",
     answer:
-      "Modern paint protection film is virtually invisible once installed. It's optically clear and conforms tightly to every curve and body line. In some lighting, you might notice slight edges at panel boundaries, but when installed by skilled technicians, PPF is nearly undetectable. We also offer matte and satin PPF finishes for vehicles with non-gloss paint.",
+      "Modern paint protection film is virtually invisible when professionally installed. High-quality films from XPEL and SunTek have optical clarity that matches your factory paint. Proper installation with wrapped edges and minimal seams makes the film undetectable to the casual observer.",
   },
   {
     category: "ppf",
-    question: "What does self-healing PPF mean?",
+    question: "What is self-healing PPF?",
     answer:
-      "Self-healing refers to the film's ability to repair light surface scratches and swirl marks on its own. When the film is exposed to heat, whether from the sun, warm water, or a heat gun, the top layer flows back together and the scratch disappears. This keeps the surface looking smooth and glossy without needing to polish or touch up the film.",
+      "Self-healing PPF contains an elastomeric polymer topcoat that repairs minor scratches and swirl marks when exposed to heat. When the film surface gets a light scratch, warmth from sunlight or warm water causes the topcoat to flow back to its original smooth state, effectively erasing the imperfection without polishing or buffing.",
   },
   {
     category: "ppf",
-    question: "Can PPF be applied over a vinyl wrap?",
+    question: "Does PPF protect against rock chips?",
     answer:
-      "Yes, PPF can be layered over a vinyl wrap for added protection, though it's best to plan both installations together for the cleanest result. This combination gives you the custom color or finish of a wrap with the chip and scratch protection of PPF. Our team can advise on the best approach for your specific project.",
+      "Yes, protection against rock chips is the primary purpose of paint protection film. PPF absorbs the impact of gravel, road debris, and small stones that would otherwise chip your paint. The self-healing properties also maintain a smooth surface after impacts. This is especially valuable on Southern California freeways.",
   },
   {
     category: "ppf",
-    question: "How much does PPF cost?",
+    question: "Is PPF worth it on a new car?",
     answer:
-      "PPF pricing depends on how much of the vehicle you want covered. A partial front-end package (bumper, partial hood, mirrors) typically starts around $1,500, while a full front-end or full-body installation ranges from $4,000 to $8,000+. We offer several coverage levels and provide detailed quotes tailored to your vehicle and goals.",
+      "PPF is most effective on a new car because the paint is pristine with no chips or scratches to trap under the film. Applying PPF from day one preserves the factory finish, protects resale value, and avoids paint correction costs. For vehicles with thin factory paint like Tesla, PPF is especially recommended.",
   },
 
   // ── Window Tint ────────────────────────────────────────
   {
     category: "tint",
-    question: "What are the benefits of window tint?",
+    question: "How much does window tint cost in Anaheim?",
     answer:
-      "Window tint blocks up to 99% of harmful UV rays, significantly reduces interior heat, cuts annoying glare, enhances privacy and security, and protects your interior surfaces from fading and cracking. Beyond the functional benefits, tint also gives your vehicle a cleaner, more finished appearance.",
+      "Window tint in Anaheim ranges from $200 to $400 for carbon tint on side and rear windows, and $400 to $800+ for ceramic tint on the full vehicle. Windshield ceramic tint is an additional $150 to $300. Ceramic films cost more but offer significantly better heat rejection. Call (714) 442-1333 for a quote.",
   },
   {
     category: "tint",
-    question: "What's the difference between ceramic and carbon tint?",
+    question: "What is the best window tint for Southern California?",
     answer:
-      "Carbon tint uses carbon particles to block heat and UV rays. It's durable, doesn't fade, and offers solid performance at a great price. Ceramic tint uses nano-ceramic technology for the highest heat rejection available, often blocking 50%+ of solar heat while maintaining excellent visibility. Ceramic is the premium option for maximum comfort and performance.",
+      "Ceramic window tint is the best option for Southern California because it rejects up to 98% of infrared heat while maintaining excellent clarity and no signal interference. Carbon tint is a good budget alternative with solid UV and heat performance. Given SoCal's extreme sun and heat, ceramic tint provides the most noticeable comfort improvement.",
   },
   {
     category: "tint",
     question: "Is window tint legal in California?",
     answer:
-      "California law allows any darkness of tint on the rear and back side windows. The front side windows must allow at least 70% of light to pass through (70% VLT). The windshield may only have tint on the top 4–5 inches (the \"AS-1\" line). We're well-versed in California tint laws and will help you choose a setup that looks great and stays compliant.",
+      "California allows any tint darkness on rear side windows and the rear windshield. Front side windows must allow more than 70% of light through. The windshield may only have a non-reflective tint strip along the top AS-1 line. Catalyst Motorsport guides every customer through California tint law compliance.",
   },
   {
     category: "tint",
-    question: "How long does window tint take to install?",
+    question: "What is the difference between ceramic and carbon tint?",
     answer:
-      "Most full-vehicle tint installations are completed in 2 to 4 hours, depending on the number of windows and the type of vehicle. We use precision computer-cut patterns for a perfect fit on every window, with no trimming on the glass. This ensures clean edges and protects your vehicle's interior from accidental blade marks.",
+      "Ceramic tint uses nano-ceramic particles that reject up to 98% of infrared heat and 99% of UV rays while maintaining excellent clarity. Carbon tint uses carbon particles for good performance at a lower price. Ceramic offers superior heat rejection, no signal interference, and longer lifespan. In SoCal's heat, the ceramic upgrade is worth it.",
+  },
+  {
+    category: "tint",
+    question: "Does ceramic tint really make a difference in heat?",
+    answer:
+      "Yes, significantly. Ceramic window tint can reduce interior temperatures by 20 to 40 degrees Fahrenheit compared to untinted glass. In Southern California where summer temperatures regularly exceed 90 degrees, ceramic tint makes a major difference in cabin comfort, reduces AC load, and protects your interior from UV fading.",
   },
   {
     category: "tint",
     question: "How long does window tint last?",
     answer:
-      "The ceramic and carbon films we install are designed to last the lifetime of your vehicle. They won't bubble, peel, or turn purple like cheaper dyed films. Our tint comes with a manufacturer's warranty, and our installation quality ensures it stays looking perfect for years to come.",
+      "Quality ceramic and carbon window tint lasts 10 to 15 years or longer when professionally installed. Premium films from XPEL, 3M, Llumar, and SunTek come with manufacturer warranties ranging from limited lifetime to lifetime coverage. Proper installation and care maximizes longevity.",
   },
   {
     category: "tint",
-    question: "Can window tint be removed?",
+    question: "Do you tint windshields?",
     answer:
-      "Yes, window tint can be professionally removed without damaging your glass. Over time, lower-quality films may degrade and become harder to remove, which is one reason we only install premium films. If you ever want to change your tint level or replace it, our team can strip the old film and re-tint cleanly.",
-  },
-  {
-    category: "tint",
-    question: "Will window tint affect my visibility at night?",
-    answer:
-      "A properly chosen tint level should not significantly impact nighttime visibility. Ceramic tint, in particular, maintains excellent optical clarity even at darker shades. During your consultation, we'll help you select a shade that balances the privacy and heat rejection you want with comfortable visibility in all driving conditions.",
+      "Yes. Catalyst Motorsport installs ceramic windshield film that significantly reduces heat and glare while maintaining full visibility. Windshield tint must comply with California law, which permits non-reflective tint along the top portion. We also offer full windshield ceramic film at compliant VLT levels for maximum heat reduction.",
   },
 
   // ── General ────────────────────────────────────────────
@@ -154,21 +156,19 @@ const faqs: FAQItem[] = [
     category: "general",
     question: "Do you offer warranties on your work?",
     answer:
-      "Yes. Every installation at Catalyst Motorsport is backed by both our workmanship warranty and the film manufacturer's product warranty. We stand behind the quality of our work, and if there's ever an issue with the installation, we'll make it right. Specific warranty terms vary by product and are explained in detail during your consultation.",
+      "Yes. Every installation at Catalyst Motorsport is backed by our workmanship warranty. Additionally, the films we install carry manufacturer warranties — XPEL Ultimate Plus PPF includes a 10-year warranty, and premium window tint films carry limited lifetime to lifetime warranties. We stand behind every install.",
   },
   {
     category: "general",
     question: "Do I need an appointment?",
     answer:
-      "We recommend scheduling an appointment so we can dedicate the proper time and bay space to your vehicle. Call us at " +
-      siteConfig.phone +
-      " or submit a quote request to get on the schedule.",
+      "Yes. Catalyst Motorsport operates by appointment only to ensure every vehicle receives dedicated time and attention. Call (714) 442-1333 or fill out our online quote form to schedule. We recommend booking 1 to 2 weeks in advance for full wraps and full body PPF installations.",
   },
   {
     category: "general",
     question: "Why Catalyst Motorsport?",
     answer:
-      "Catalyst Motorsport is the #1 choice for vinyl wraps, PPF, and window tint in Orange County and Los Angeles, and there's a reason our clients keep coming back. We combine meticulous craftsmanship with premium materials, treating every vehicle like it's our own. Our facility is purpose-built for precision installs, our team is trained on the latest techniques and products, and we hold ourselves to a standard most shops can't match. Whether it's a daily driver or a six-figure build, we deliver results that speak for themselves. When quality, attention to detail, and customer experience matter, Catalyst Motorsport is where you bring your car.",
+      "Catalyst Motorsport combines certified installation expertise, premium materials from brands like XPEL, 3M, and Avery Dennison, and meticulous attention to detail. We serve Orange County and Los Angeles from our Anaheim facility, specializing in both luxury vehicles and off-road builds. Every install is backed by our workmanship warranty.",
   },
 ];
 
@@ -255,13 +255,29 @@ export default function FAQSection() {
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
                 </button>
-                {isOpen && (
-                  <div className="px-6 pb-5">
-                    <p className="text-sm leading-relaxed text-catalyst-grey-400">
-                      {faq.answer}
-                    </p>
+                <div
+                  className="grid transition-all duration-200 ease-in-out"
+                  style={{
+                    gridTemplateRows: isOpen ? "1fr" : "0fr",
+                  }}
+                >
+                  <div className="overflow-hidden">
+                    <div className="px-6 pb-5">
+                      <p className="text-sm leading-relaxed text-catalyst-grey-400">
+                        {faq.answer}
+                        {faq.category === "wrap" && (
+                          <> <Link href="/services/vinyl-wrap" className="text-catalyst-red-light hover:underline">Learn more about our vinyl wrap services</Link>.</>
+                        )}
+                        {faq.category === "ppf" && (
+                          <> <Link href="/services/paint-protection-film" className="text-catalyst-red-light hover:underline">Learn more about our PPF services</Link>.</>
+                        )}
+                        {faq.category === "tint" && (
+                          <> <Link href="/services/window-tint" className="text-catalyst-red-light hover:underline">Learn more about our window tint services</Link>.</>
+                        )}
+                      </p>
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
             );
           })}
@@ -276,6 +292,14 @@ export default function FAQSection() {
             Get a Quote
           </QuoteButton>
         </div>
+
+        {/* FAQPage JSON-LD — all questions, not just filtered */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateFAQSchema(faqs)),
+          }}
+        />
       </div>
     </section>
   );

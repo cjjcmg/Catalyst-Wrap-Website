@@ -62,7 +62,7 @@ interface Appointment {
 const STATUSES = ["new", "contacted", "quoted", "scheduled", "in_progress", "completed", "client", "past_client", "lost"];
 const STATUS_LABELS: Record<string, string> = { new: "New", contacted: "Contacted", quoted: "Quoted", scheduled: "Scheduled", in_progress: "In Progress", completed: "Completed", client: "Client", past_client: "Past Client", lost: "Lost" };
 const STATUS_COLORS: Record<string, string> = { new: "bg-blue-500", contacted: "bg-cyan-500", quoted: "bg-purple-500", scheduled: "bg-amber-500", in_progress: "bg-orange-500", completed: "bg-green-500", client: "bg-emerald-500", past_client: "bg-catalyst-grey-500", lost: "bg-red-500" };
-const TAG_COLORS: Record<string, string> = { A: "bg-green-500 text-white", B: "bg-amber-500 text-black", C: "bg-red-500 text-white" };
+const TAG_COLORS: Record<string, string> = { A: "bg-green-500 text-white", B: "bg-amber-500 text-black", C: "bg-red-500 text-white", "!": "bg-violet-500 text-white" };
 const US_STATES = ["CA","AL","AK","AZ","AR","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"];
 const ACTIVITY_TYPES = ["call", "email", "text", "meeting", "note", "quote_sent", "follow_up"];
 const ACTIVITY_ICONS: Record<string, string> = { call: "📞", email: "📧", text: "💬", meeting: "🤝", note: "📝", quote_sent: "📋", follow_up: "🔄" };
@@ -232,7 +232,7 @@ export default function CRMContactDetailPage() {
 
           {/* Tag buttons */}
           <div className="flex items-center gap-1 flex-shrink-0">
-            {(["A", "B", "C"] as const).map((t) => (
+            {(["A", "B", "C", "!"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => updateField("contact_tag", quote.contact_tag === t ? null : t)}

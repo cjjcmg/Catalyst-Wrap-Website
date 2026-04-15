@@ -64,7 +64,7 @@ const PIPELINE_COLORS: Record<string, string> = {
 };
 
 const TAG_COLORS: Record<string, string> = {
-  A: "bg-green-500 text-white", B: "bg-amber-500 text-black", C: "bg-red-500 text-white",
+  A: "bg-green-500 text-white", B: "bg-amber-500 text-black", C: "bg-red-500 text-white", "!": "bg-violet-500 text-white",
 };
 
 const ACTIVITY_ICONS: Record<string, string> = {
@@ -98,6 +98,7 @@ export default function CRMDashboard() {
   const [calStart, setCalStart] = useState(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; });
   const [calAppts, setCalAppts] = useState<Record<string, DayAppointment[]>>({});
   const [calLoading, setCalLoading] = useState(true);
+  const [deletingApptId, setDeletingApptId] = useState<number | null>(null);
 
   const threeDays = [0, 1, 2].map((offset) => { const d = new Date(calStart); d.setDate(d.getDate() + offset); return d; });
 
@@ -149,6 +150,18 @@ export default function CRMDashboard() {
     if (res.ok && stats) {
       setStats({ ...stats, overdueReminders: stats.overdueReminders.filter((r) => r.id !== id) });
     }
+  }
+
+  async function deleteAppt(id: number) {
+    const res = await fetch("/api/admin/appointments", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    if (res.ok) {
+      setCalAppts((prev) => {
+        const next: Record<string, DayAppointment[]> = {};
+        Object.entries(prev).forEach(([k, v]) => { next[k] = v.filter((a) => a.id !== id); });
+        return next;
+      });
+    }
+    setDeletingApptId(null);
   }
 
   async function handleLogout() {
@@ -243,7 +256,7 @@ export default function CRMDashboard() {
             <div className="rounded-xl border border-catalyst-border bg-catalyst-card p-4">
               <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Tags</p>
               <div className="flex items-center gap-2 mt-1">
-                {(["A", "B", "C"] as const).map((t) => (
+                {(["A", "B", "C", "!"] as const).map((t) => (
                   <button
                     key={t}
                     onClick={() => router.push(`/admin/crm/contacts?tag=${t}`)}
@@ -298,7 +311,7 @@ export default function CRMDashboard() {
                     <div key={r.id} className="flex items-start justify-between gap-2 rounded-lg border border-red-500/20 bg-red-500/5 p-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          {r.quotes?.contact_tag && <span className={`w-2 h-2 rounded-full flex-shrink-0 ${r.quotes.contact_tag === "A" ? "bg-green-500" : r.quotes.contact_tag === "B" ? "bg-amber-500" : "bg-red-500"}`} />}
+                          {r.quotes?.contact_tag && <span className={`w-2 h-2 rounded-full flex-shrink-0 ${r.quotes.contact_tag === "A" ? "bg-green-500" : r.quotes.contact_tag === "B" ? "bg-amber-500" : r.quotes.contact_tag === "!" ? "bg-violet-500" : "bg-red-500"}`} />}
                           <button onClick={() => router.push(`/admin/crm/contacts/${r.quote_id}`)} className="text-sm text-white font-medium hover:text-catalyst-red truncate">{r.quotes?.name || `#${r.quote_id}`}</button>
                         </div>
                         {r.message && <p className="text-xs text-catalyst-grey-400 mt-0.5">{r.message}</p>}
@@ -318,7 +331,7 @@ export default function CRMDashboard() {
                 <p className="text-catalyst-grey-500 text-sm py-4">No activity yet.</p>
               ) : (
                 <div className="space-y-2">
-                  {stats.recentActivities.map((a) => (
+                  {stats.recentActivities.slice(0, 4).map((a) => (
                     <div key={a.id} className="flex items-start gap-3 py-2 border-b border-catalyst-border/30 last:border-0">
                       <span className="text-lg flex-shrink-0">{ACTIVITY_ICONS[a.activity_type] || "📌"}</span>
                       <div className="min-w-0">
@@ -331,6 +344,9 @@ export default function CRMDashboard() {
                       </div>
                     </div>
                   ))}
+                  {stats.recentActivities.length > 4 && (
+                    <button onClick={() => router.push("/admin/audit-log")} className="text-xs text-catalyst-grey-500 hover:text-white transition-colors pt-1">more . . .</button>
+                  )}
                 </div>
               )}
             </div>
@@ -375,13 +391,33 @@ export default function CRMDashboard() {
                         ) : (
                           <div className="space-y-1.5">
                             {dayAppts.map((appt) => (
-                              <div key={appt.id} className="rounded-lg border border-catalyst-border/50 bg-catalyst-black p-2.5 cursor-pointer hover:border-catalyst-grey-600 transition-colors" onClick={() => router.push(`/admin/crm/contacts/${appt.quote_id}`)}>
-                                {appt.title && <p className="text-white text-sm font-medium truncate">{appt.title}</p>}
-                                <p className="text-catalyst-grey-300 text-xs">
-                                  {new Date(appt.date_time).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
-                                  {appt.end_time && <> — {new Date(appt.end_time).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</>}
-                                </p>
-                                {appt.quotes?.name && <p className="text-catalyst-grey-400 text-xs mt-0.5">{appt.quotes.name}</p>}
+                              <div key={appt.id} className="group relative rounded-lg border border-catalyst-border/50 bg-catalyst-black p-2.5 cursor-pointer hover:border-catalyst-grey-600 transition-colors" onClick={() => router.push(`/admin/crm/contacts/${appt.quote_id}`)}>
+                                <div className="flex items-start justify-between gap-1">
+                                  <div className="min-w-0 flex-1">
+                                    {appt.title && <p className="text-white text-sm font-medium truncate">{appt.title}</p>}
+                                    <p className="text-catalyst-grey-300 text-xs">
+                                      {new Date(appt.date_time).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                                      {appt.end_time && <> — {new Date(appt.end_time).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</>}
+                                    </p>
+                                    {appt.quotes?.name && <p className="text-catalyst-grey-400 text-xs mt-0.5">{appt.quotes.name}</p>}
+                                  </div>
+                                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                    <button onClick={() => router.push(`/admin/schedule?edit=${appt.id}`)} className="p-1 text-catalyst-grey-600 hover:text-white transition-colors" title="Edit">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                                    </button>
+                                    <button onClick={() => setDeletingApptId(appt.id)} className="p-1 text-catalyst-grey-600 hover:text-red-400 transition-colors" title="Cancel">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                                    </button>
+                                  </div>
+                                </div>
+                                {/* Delete confirmation */}
+                                {deletingApptId === appt.id && (
+                                  <div className="mt-2 flex items-center gap-2 rounded-md border border-red-500/30 bg-red-500/10 p-2" onClick={(e) => e.stopPropagation()}>
+                                    <p className="text-xs text-red-400 flex-1">Cancel this appointment?</p>
+                                    <button onClick={() => deleteAppt(appt.id)} className="rounded bg-red-600 px-2 py-0.5 text-xs font-semibold text-white hover:bg-red-700 transition-colors">Yes</button>
+                                    <button onClick={() => setDeletingApptId(null)} className="rounded border border-catalyst-border px-2 py-0.5 text-xs text-catalyst-grey-400 hover:text-white transition-colors">No</button>
+                                  </div>
+                                )}
                               </div>
                             ))}
                           </div>

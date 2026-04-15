@@ -6,64 +6,71 @@
 export const seoConfig = {
   // ── Brand ──────────────────────────────────────────────
   siteName: "Catalyst Motorsport",
+  alternateName: "Catalyst Motorsport Wraps",
   legalName: "Catalyst Motorsport LLC",
-  domain: "https://catalystmotorsport.com",
+  domain: "https://www.catalystmotorsport.com",
 
   // ── Default metadata ───────────────────────────────────
   defaultTitle:
-    "Catalyst Motorsport — Premium Auto Wraps, PPF & Tint in Anaheim, CA",
+    "Catalyst Motorsport | Auto Wraps, PPF & Ceramic Tint in Anaheim, CA | Orange County",
   titleTemplate: "%s | Catalyst Motorsport",
   defaultDescription:
-    "Premier vinyl wraps, paint protection film (PPF), ceramic window tint, and off road builds in Anaheim, CA. Serving Orange County and Los Angeles with precision craftsmanship and premium materials.",
+    "Premium vinyl wraps, PPF, ceramic window tint & off-road builds in Anaheim, CA. Serving Orange County & LA. Free quotes. Call (714) 442-1333.",
 
   // ── Contact ────────────────────────────────────────────
   phone: "(714) 442-1333",
   phoneHref: "tel:+17144421333",
-  email: "", // TODO: Add business email
+  email: "team@catalystmotorsport.com",
 
   // ── Address ────────────────────────────────────────────
   address: {
     street: "1161 N Cosby Way, Unit T",
     city: "Anaheim",
     state: "CA",
-    zip: "", // TODO: Add zip code
+    zip: "92806",
     country: "US",
   },
 
   // ── Geo coordinates ────────────────────────────────────
   geo: {
-    latitude: 33.8463,
-    longitude: -117.8858,
+    latitude: 33.8525,
+    longitude: -117.8868,
   },
 
   // ── Service areas ──────────────────────────────────────
   serviceAreas: [
     { type: "City" as const, name: "Anaheim" },
+    { type: "City" as const, name: "Irvine" },
+    { type: "City" as const, name: "Orange" },
+    { type: "City" as const, name: "Santa Ana" },
     { type: "City" as const, name: "Fullerton" },
-    { type: "City" as const, name: "Placentia" },
-    { type: "City" as const, name: "Brea" },
+    { type: "City" as const, name: "Huntington Beach" },
+    { type: "City" as const, name: "Costa Mesa" },
+    { type: "City" as const, name: "Newport Beach" },
+    { type: "City" as const, name: "Tustin" },
     { type: "City" as const, name: "Yorba Linda" },
-    { type: "AdministrativeArea" as const, name: "Orange County" },
-    { type: "AdministrativeArea" as const, name: "Los Angeles County" },
-    { type: "AdministrativeArea" as const, name: "Southern California" },
+    { type: "City" as const, name: "Brea" },
+    { type: "City" as const, name: "Placentia" },
+    { type: "City" as const, name: "Long Beach" },
+    { type: "City" as const, name: "Los Angeles" },
+    { type: "City" as const, name: "Riverside" },
   ],
 
   // ── Social profiles ────────────────────────────────────
   socialProfiles: [
-    "https://www.instagram.com/catalyst_motorsport",
-    // TODO: Add Facebook, TikTok, Yelp URLs when available
+    "https://www.instagram.com/catalyst_motorsport/",
+    "https://www.facebook.com/100085310825383/",
+    "https://www.yelp.com/biz/catalyst-motorsport-wraps-anaheim",
   ],
 
   // ── Opening hours ──────────────────────────────────────
-  // Format: DayOfWeek HH:MM-HH:MM (ISO 8601)
   openingHours: [
-    "Mo-Fr 08:00-18:00",
+    "Mo-Fr 09:00-18:00",
     "Sa 09:00-15:00",
-    // TODO: Verify actual business hours
   ],
 
   // ── Price range ────────────────────────────────────────
-  priceRange: "$$",
+  priceRange: "$$$",
 
   // ── OG defaults ────────────────────────────────────────
   ogImage: "/images/og-image.jpg",
@@ -71,7 +78,7 @@ export const seoConfig = {
   ogImageHeight: 630,
 
   // ── Google Business Profile ────────────────────────────
-  googleBusinessUrl: "", // TODO: Add Google Business Profile URL
+  googleBusinessUrl: "",
 } as const;
 
 // ── Type exports ───────────────────────────────────────────
@@ -106,6 +113,11 @@ export function generatePageMetadata({
   const url = fullUrl(path);
   const image = ogImage ?? seoConfig.ogImage;
 
+  // Use title directly if it already contains the brand name
+  const ogTitle = title.includes(seoConfig.siteName)
+    ? title
+    : `${title} | ${seoConfig.siteName}`;
+
   return {
     title,
     description,
@@ -113,7 +125,7 @@ export function generatePageMetadata({
       canonical: url,
     },
     openGraph: {
-      title: `${title} | ${seoConfig.siteName}`,
+      title: ogTitle,
       description,
       url,
       siteName: seoConfig.siteName,
@@ -130,7 +142,7 @@ export function generatePageMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: `${title} | ${seoConfig.siteName}`,
+      title: ogTitle,
       description,
     },
     robots: noIndex
