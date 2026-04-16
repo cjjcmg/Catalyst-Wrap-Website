@@ -44,6 +44,7 @@ export async function POST(request: Request) {
       message,
       text_updates: body.textUpdates ?? false,
       label: "lead",
+      contact_tag: "A",
     }).select("id").single();
 
     if (dbError) {
@@ -63,7 +64,7 @@ export async function POST(request: Request) {
     // Sync to Mailchimp in background
     pushContactToMailchimp({
       email, first_name: firstName, last_name: lastName, phone, service, vehicle,
-      label: "lead", source: "website", subscribed: true,
+      label: "lead", source: "website", subscribed: true, contact_tag: "A",
     }).catch((err: unknown) => console.error("Mailchimp sync error:", err));
 
     const domain = process.env.NEXT_PUBLIC_SITE_URL || "https://catalystmotorsport.com";
