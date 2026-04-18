@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
+import { sendWelcomeEmail } from "@/lib/welcome-email";
 import { pushContactToMailchimp } from "@/lib/mailchimp";
 
 const supabase = createClient(
@@ -99,6 +100,21 @@ export async function POST(request: Request) {
         </p>
       `,
     });
+
+    // Fire-and-forget welcome email to the lead. Must not block or fail the
+    // submission or the team notification.
+    try {
+      await sendWelcomeEmail({
+        firstName,
+        email,
+        request: service,
+        serviceType: service,
+        message,
+        vehicleMake: vehicle,
+      });
+    } catch (welcomeErr) {
+      console.error(`Welcome email failed for ${email}:`, welcomeErr);
+    }
 
     return NextResponse.json(
       { success: true, message: "Quote request received." },

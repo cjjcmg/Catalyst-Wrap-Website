@@ -23,6 +23,7 @@ interface Quote {
   city: string | null;
   state: string | null;
   zip: string | null;
+  archived: boolean;
 }
 
 interface Activity {
@@ -82,6 +83,7 @@ export default function CRMContactDetailPage() {
   const router = useRouter();
   const quoteId = Number(params.id);
 
+  const [user, setUser] = useState<{ role: string } | null>(null);
   const [quote, setQuote] = useState<Quote | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
@@ -111,6 +113,8 @@ export default function CRMContactDetailPage() {
   const [estValue, setEstValue] = useState("");
 
   useEffect(() => {
+    fetch("/api/admin/me").then((r) => r.json()).then((d) => setUser(d.user || null));
+
     async function load() {
       const [qRes, actRes, noteRes, remRes, apptRes] = await Promise.all([
         fetch(`/api/admin/quotes?id=${quoteId}`),
@@ -208,6 +212,31 @@ export default function CRMContactDetailPage() {
     }
   }
 
+  async function toggleArchive() {
+    if (!quote) return;
+    const res = await fetch("/api/admin/quotes", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: quote.id, archived: !quote.archived }),
+    });
+    if (res.ok) {
+      const { quote: updated } = await res.json();
+      setQuote(updated);
+    }
+  }
+
+  async function deleteContact() {
+    if (!confirm("Permanently delete this contact and all associated notes, activities, reminders, and appointments?")) return;
+    const res = await fetch("/api/admin/quotes", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: quoteId }),
+    });
+    if (res.ok) {
+      router.push("/admin/crm/contacts");
+    }
+  }
+
   if (loading) return <div className="max-w-5xl mx-auto px-4 py-6"><p className="text-catalyst-grey-500">Loading...</p></div>;
   if (!quote) return <div className="max-w-5xl mx-auto px-4 py-6"><p className="text-catalyst-grey-500">Contact not found.</p></div>;
 
@@ -229,6 +258,11 @@ export default function CRMContactDetailPage() {
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5" /><polyline points="12 19 5 12 12 5" /></svg>
           </button>
           <h1 className="font-heading text-2xl sm:text-3xl font-bold text-white truncate">{quote.name}</h1>
+          {quote.archived && (
+            <span className="flex-shrink-0 rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-medium text-amber-400">
+              Archived
+            </span>
+          )}
 
           {/* Tag buttons */}
           <div className="flex items-center gap-1 flex-shrink-0">
@@ -247,10 +281,51 @@ export default function CRMContactDetailPage() {
         </div>
 
         {/* Quick actions */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
           <a href={`tel:${quote.phone}`} className="rounded-lg border border-catalyst-border px-3 py-1.5 text-sm text-green-400 hover:bg-green-500/10 transition-colors">Call</a>
           <a href={`sms:${quote.phone}`} className="rounded-lg border border-catalyst-border px-3 py-1.5 text-sm text-blue-400 hover:bg-blue-500/10 transition-colors">Text</a>
           <a href={`mailto:${quote.email}`} className="rounded-lg border border-catalyst-border px-3 py-1.5 text-sm text-purple-400 hover:bg-purple-500/10 transition-colors">Email</a>
+          <button
+            onClick={toggleArchive}
+            className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-colors ${
+              quote.archived
+                ? "border-green-500/30 text-green-400 hover:bg-green-500/10"
+                : "border-catalyst-border text-catalyst-grey-400 hover:text-amber-400 hover:border-amber-500/30"
+            }`}
+            title={quote.archived ? "Restore contact" : "Archive contact"}
+          >
+            {quote.archived ? (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="1 4 1 10 7 10" />
+                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                </svg>
+                Restore
+              </>
+            ) : (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="21 8 21 21 3 21 3 8" />
+                  <rect x="1" y="3" width="22" height="5" />
+                  <line x1="10" y1="12" x2="14" y2="12" />
+                </svg>
+                Archive
+              </>
+            )}
+          </button>
+          {user?.role === "admin" && (
+            <button
+              onClick={deleteContact}
+              className="flex items-center gap-1.5 rounded-lg border border-red-500/30 px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+              title="Delete contact (admin)"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              </svg>
+              Delete
+            </button>
+          )}
         </div>
       </div>
 
