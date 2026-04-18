@@ -177,30 +177,35 @@ CREATE TABLE IF NOT EXISTS invoicing_settings (
 );
 INSERT INTO invoicing_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 
--- 10. NUMBERING FUNCTIONS
+-- 10. NUMBERING — table-backed yearly counters (no dynamic EXECUTE)
+CREATE TABLE IF NOT EXISTS numbering_counters (
+  prefix      text NOT NULL,
+  year        int  NOT NULL,
+  last_value  bigint NOT NULL DEFAULT 0,
+  PRIMARY KEY (prefix, year)
+);
+
 CREATE OR REPLACE FUNCTION next_quote_number() RETURNS text AS $fn_nq$
-DECLARE
-  y text := to_char(now(), 'YYYY');
-  seq_name text := 'sales_quote_seq_' || y;
-  n bigint;
-BEGIN
-  EXECUTE format('CREATE SEQUENCE IF NOT EXISTS %I START 1', seq_name);
-  EXECUTE format('SELECT nextval(%L)', seq_name) INTO n;
-  RETURN 'Q-' || y || '-' || lpad(n::text, 4, '0');
-END;
-$fn_nq$ LANGUAGE plpgsql;
+  WITH upserted AS (
+    INSERT INTO numbering_counters (prefix, year, last_value)
+    VALUES ('Q', extract(year FROM now())::int, 1)
+    ON CONFLICT (prefix, year)
+      DO UPDATE SET last_value = numbering_counters.last_value + 1
+    RETURNING last_value, year
+  )
+  SELECT 'Q-' || year::text || '-' || lpad(last_value::text, 4, '0') FROM upserted;
+$fn_nq$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION next_invoice_number() RETURNS text AS $fn_ni$
-DECLARE
-  y text := to_char(now(), 'YYYY');
-  seq_name text := 'invoice_seq_' || y;
-  n bigint;
-BEGIN
-  EXECUTE format('CREATE SEQUENCE IF NOT EXISTS %I START 1', seq_name);
-  EXECUTE format('SELECT nextval(%L)', seq_name) INTO n;
-  RETURN 'INV-' || y || '-' || lpad(n::text, 4, '0');
-END;
-$fn_ni$ LANGUAGE plpgsql;
+  WITH upserted AS (
+    INSERT INTO numbering_counters (prefix, year, last_value)
+    VALUES ('INV', extract(year FROM now())::int, 1)
+    ON CONFLICT (prefix, year)
+      DO UPDATE SET last_value = numbering_counters.last_value + 1
+    RETURNING last_value, year
+  )
+  SELECT 'INV-' || year::text || '-' || lpad(last_value::text, 4, '0') FROM upserted;
+$fn_ni$ LANGUAGE sql;
 
 -- 11. TRIGGER — updated_at maintenance
 CREATE OR REPLACE FUNCTION touch_updated_at() RETURNS trigger AS $fn_touch$
