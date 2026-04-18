@@ -406,9 +406,9 @@ export default function QuoteDetailPage() {
                 button={<button disabled className="rounded-lg bg-catalyst-grey-500/20 px-4 py-2 text-sm text-catalyst-grey-500 cursor-not-allowed">Send (Phase 3)</button>}
               />
               <ActionCard
-                title="Edit draft"
-                description="Line items and adjustments can be changed while this quote is a draft."
-                button={<Link href={`/admin/quotes-docs/${id}/edit`} className="rounded-lg border border-catalyst-border px-4 py-2 text-sm text-white hover:bg-white/5 transition-colors">Edit (Phase 2.1)</Link>}
+                title="Edit this draft"
+                description="Modify line items or adjustments by duplicating the draft and deleting the original. Inline draft editing ships next."
+                button={<button onClick={duplicateQuote} disabled={busy} className="rounded-lg border border-catalyst-border px-4 py-2 text-sm text-white hover:bg-white/5 transition-colors disabled:opacity-40">Duplicate to edit</button>}
               />
             </>
           )}
