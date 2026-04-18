@@ -21,6 +21,10 @@ const EDITABLE_FIELDS = [
   "terms",
   "assigned_agent_id",
   "status",
+  // Acceptance metadata — writable by staff for in-person acceptance.
+  // Public acceptance goes through a separate route that validates the token.
+  "accepted_by_name",
+  "accepted_at",
 ] as const;
 
 const ALLOWED_STATUS = ["draft", "sent", "viewed", "accepted", "declined", "expired", "converted"] as const;
