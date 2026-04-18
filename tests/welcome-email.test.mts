@@ -11,10 +11,11 @@ process.env.RESEND_WELCOME_FROM_EMAIL = "Catalyst Motorsport <team@catalystmotor
 const { composeWelcomeEmail, sendWelcomeEmail, __TEST__ } = await import("../src/lib/welcome-email");
 const emailMod = await import("../src/lib/email");
 
-function makeMockAnthropic(hype: string) {
+function makeMockAnthropic(jsonPayload: { kind: string; paragraph: string } | string) {
+  const text = typeof jsonPayload === "string" ? jsonPayload : JSON.stringify(jsonPayload);
   return {
     messages: {
-      create: async () => ({ content: [{ type: "text", text: hype }] }),
+      create: async () => ({ content: [{ type: "text", text }] }),
     },
   } as never;
 }
@@ -29,7 +30,8 @@ function makeFailingAnthropic(err: Error) {
   } as never;
 }
 
-test("composeWelcomeEmail sets correct From/To/Cc/Reply-To/Subject", async () => {
+test("composeWelcomeEmail sets correct headers for a real lead", async () => {
+  const paragraph = "Your Raptor is getting the full Catalyst treatment.";
   const composed = await composeWelcomeEmail(
     {
       firstName: "Mike",
@@ -37,53 +39,96 @@ test("composeWelcomeEmail sets correct From/To/Cc/Reply-To/Subject", async () =>
       serviceType: "Vinyl Wrap",
       vehicleMake: "Raptor",
     },
-    makeMockAnthropic("Your Raptor is getting the full Catalyst treatment.")
+    makeMockAnthropic({ kind: "lead", paragraph })
   );
 
+  assert.equal(composed.kind, "lead");
   assert.equal(composed.from, "Catalyst Motorsport <team@catalystmotorsport.com>");
   assert.equal(composed.to, "customer@example.com");
   assert.equal(composed.cc, "team@catalystmotorsport.com");
   assert.equal(composed.replyTo, "team@catalystmotorsport.com");
-  assert.equal(composed.subject, "Welcome to Catalyst Motorsport — we're on it");
+  assert.equal(composed.subject, __TEST__.SUBJECTS.lead);
 });
 
-test("composeWelcomeEmail includes all three body blocks in HTML and text", async () => {
-  const hype = "Your Raptor is getting the full Catalyst treatment and nothing less.";
+test("lead email includes all three body blocks", async () => {
+  const paragraph = "Your Raptor is getting the full Catalyst treatment and nothing less.";
   const composed = await composeWelcomeEmail(
     { firstName: "Mike", email: "customer@example.com", serviceType: "Vinyl Wrap" },
-    makeMockAnthropic(hype)
+    makeMockAnthropic({ kind: "lead", paragraph })
   );
 
-  // Block 1 — static welcome
-  assert.ok(composed.html.includes(__TEST__.STATIC_WELCOME), "HTML missing static welcome block");
-  assert.ok(composed.text.includes(__TEST__.STATIC_WELCOME), "text missing static welcome block");
-
-  // Block 2 — AI hype paragraph
-  assert.ok(composed.html.includes(hype), "HTML missing AI hype block");
-  assert.ok(composed.text.includes(hype), "text missing AI hype block");
-  assert.equal(composed.hype, hype);
-
-  // Block 3 — static sign-off
+  assert.ok(composed.html.includes(__TEST__.STATIC_OPENERS.lead), "HTML missing lead opener");
+  assert.ok(composed.text.includes(__TEST__.STATIC_OPENERS.lead), "text missing lead opener");
+  assert.ok(composed.html.includes(paragraph), "HTML missing AI paragraph");
+  assert.ok(composed.text.includes(paragraph), "text missing AI paragraph");
+  assert.equal(composed.hype, paragraph);
   for (const line of __TEST__.STATIC_SIGNOFF_LINES) {
     assert.ok(composed.html.includes(line), `HTML missing sign-off line: ${line}`);
     assert.ok(composed.text.includes(line), `text missing sign-off line: ${line}`);
   }
 });
 
-test("composeWelcomeEmail falls back when Anthropic throws", async () => {
+test("solicitation uses alternate opener and subject", async () => {
+  const paragraph = "Flattered, but Catalyst works on vehicles, not websites.";
+  const composed = await composeWelcomeEmail(
+    {
+      firstName: "Steve",
+      email: "steve@example.com",
+      message: "We're seeking partners and would like to learn about your services.",
+    },
+    makeMockAnthropic({ kind: "solicitation", paragraph })
+  );
+
+  assert.equal(composed.kind, "solicitation");
+  assert.equal(composed.subject, __TEST__.SUBJECTS.solicitation);
+  assert.ok(composed.text.includes(__TEST__.STATIC_OPENERS.solicitation));
+  assert.ok(!composed.text.includes(__TEST__.STATIC_OPENERS.lead), "should not include lead opener");
+  assert.ok(composed.text.includes(paragraph));
+});
+
+test("partnership uses alternate opener and subject", async () => {
+  const paragraph = "Send a real proposal to team@catalystmotorsport.com — serious inquiries only.";
+  const composed = await composeWelcomeEmail(
+    {
+      firstName: "Jane",
+      email: "jane@example.com",
+      message: "We'd like to propose a referral partnership.",
+    },
+    makeMockAnthropic({ kind: "partnership", paragraph })
+  );
+
+  assert.equal(composed.kind, "partnership");
+  assert.equal(composed.subject, __TEST__.SUBJECTS.partnership);
+  assert.ok(composed.text.includes(__TEST__.STATIC_OPENERS.partnership));
+  assert.ok(composed.text.includes(paragraph));
+});
+
+test("falls back to lead on Anthropic error", async () => {
   const composed = await composeWelcomeEmail(
     { firstName: "Mike", email: "customer@example.com", serviceType: "PPF" },
     makeFailingAnthropic(new Error("anthropic boom"))
   );
 
+  assert.equal(composed.kind, "lead");
   assert.equal(composed.hype, __TEST__.FALLBACK_HYPE);
-  // HTML escapes apostrophes; assert on distinctive unescaped substrings plus text equality.
   assert.ok(composed.html.includes("the kind of work we live for"));
-  assert.ok(composed.html.includes("Keep your phone close"));
   assert.ok(composed.text.includes(__TEST__.FALLBACK_HYPE));
+  assert.ok(composed.text.includes(__TEST__.STATIC_OPENERS.lead));
 });
 
-test("sendWelcomeEmail calls Resend with the composed headers", async (t) => {
+test("handles markdown-fenced JSON from the model", async () => {
+  const paragraph = "Wrapped in backticks, still a real paragraph.";
+  const fenced = "```json\n" + JSON.stringify({ kind: "lead", paragraph }) + "\n```";
+  const composed = await composeWelcomeEmail(
+    { email: "customer@example.com", serviceType: "Vinyl Wrap" },
+    makeMockAnthropic(fenced)
+  );
+
+  assert.equal(composed.kind, "lead");
+  assert.equal(composed.hype, paragraph);
+});
+
+test("sendWelcomeEmail calls Resend with composed headers", async (t) => {
   const sendCalls: unknown[] = [];
   const original = emailMod.resend.emails.send;
   emailMod.resend.emails.send = (async (args: unknown) => {
@@ -94,7 +139,7 @@ test("sendWelcomeEmail calls Resend with the composed headers", async (t) => {
     emailMod.resend.emails.send = original;
   });
 
-  // No ANTHROPIC_API_KEY → fallback path, so we don't need to stub Anthropic.
+  // No ANTHROPIC_API_KEY → fallback to lead path.
   const prevKey = process.env.ANTHROPIC_API_KEY;
   delete process.env.ANTHROPIC_API_KEY;
   t.after(() => {
@@ -121,7 +166,7 @@ test("sendWelcomeEmail calls Resend with the composed headers", async (t) => {
   assert.equal(call.to, "customer@example.com");
   assert.equal(call.cc, "team@catalystmotorsport.com");
   assert.equal(call.replyTo, "team@catalystmotorsport.com");
-  assert.equal(call.subject, "Welcome to Catalyst Motorsport — we're on it");
+  assert.equal(call.subject, __TEST__.SUBJECTS.lead);
   assert.ok(call.html.includes("the kind of work we live for"));
   assert.ok(call.text.includes(__TEST__.FALLBACK_HYPE));
 });

@@ -9,11 +9,27 @@ const TEAM_EMAIL = "team@catalystmotorsport.com";
 const HYPE_MODEL = "claude-sonnet-4-6";
 const HYPE_TIMEOUT_MS = 6000;
 
+export type LeadKind = "lead" | "solicitation" | "partnership";
+
 const FALLBACK_HYPE =
   "Your project is exactly the kind of work we live for. Our team is already mapping out the details, and we'll bring the same obsession to your build that we bring to every car that rolls through our bay. Keep your phone close — we'll be in touch very soon.";
 
-const SYSTEM_PROMPT =
-  "You write short, electrifying email paragraphs for Catalyst Motorsport, a premium auto customization and brokerage shop in Anaheim, CA. Given a customer's request, write ONE paragraph, 3–5 sentences, 60–100 words, that gets them fired up about what we're about to do for their vehicle. Tone: confident, hype, like a pit crew chief who just saw the build come together in their head. No emojis. No tired phrases like 'take it to the next level' or 'turn heads.' Do not greet the customer or use the word 'welcome' — that's handled elsewhere. Do not sign off. Reference the specific service they asked about. Make them want to keep their phone in their hand until we call.";
+const SYSTEM_PROMPT = `You write short email paragraphs for Catalyst Motorsport, a premium auto customization and brokerage shop in Anaheim, CA. We do vinyl wraps, window tint, paint protection film (PPF), ceramic coating, and premium vehicle customization/brokerage. We are NOT looking to buy services — we sell services to vehicle owners.
+
+First, classify the inbound message into one of three kinds:
+- "lead": a real customer asking about vehicle services (wrap, tint, PPF, ceramic, customization, wheels, accessories, install for their car/truck/SUV/etc.).
+- "solicitation": someone pitching services TO us — web design, SEO, AI tools, marketing, staffing, lead-gen, "grow your business," generic "partner with us," etc. Template-style bulk outreach counts even when it asks us to share "offerings, pricing, case studies."
+- "partnership": an explicit B2B partnership, collaboration, referral, reseller, or joint-project proposal — distinct from a vendor pitch.
+
+Then write ONE paragraph (3–5 sentences, 60–110 words) appropriate to that kind. No emojis, no tired phrases like "take it to the next level" or "turn heads." Do not greet the customer or say "welcome." Do not sign off. Reference specifics from their message when possible.
+
+Tone per kind:
+- lead: confident, hype, like a pit crew chief who just saw the build come together in their head. Reference their specific service and vehicle. Make them want to keep their phone in their hand until we call.
+- solicitation: polite, light sarcasm, a little levity. Make it clear Catalyst is an auto customization shop — we work on vehicles, not website backends or pitch decks. If their pitch somehow makes sense for a vehicle, invite them to submit a real request. Otherwise, thanks-but-no-thanks without being mean.
+- partnership: direct and professional with a touch of dry wit. Ask them to email team@catalystmotorsport.com with a real proposal — scope, what they're actually proposing, how it fits auto customization. State plainly that we only respond to serious inquiries; generic templates don't get a reply.
+
+Return ONLY a JSON object, no prose before or after, with this exact shape:
+{"kind": "lead" | "solicitation" | "partnership", "paragraph": "..."}`;
 
 export interface WelcomeLead {
   firstName?: string | null;
@@ -34,22 +50,43 @@ function buildUserMessage(lead: WelcomeLead): string {
 
   const lines: string[] = [];
   if (request && String(request).trim()) lines.push(`Customer request: ${request}`);
+  if (lead.message && lead.message !== request) lines.push(`Message: ${lead.message}`);
   if (lead.firstName && lead.firstName.trim()) lines.push(`First name: ${lead.firstName}`);
   if (vehicleParts) lines.push(`Vehicle: ${vehicleParts}`);
   return lines.join("\n");
 }
 
+export interface HypeResult {
+  kind: LeadKind;
+  paragraph: string;
+}
+
+function parseHypeJson(raw: string): HypeResult | null {
+  // Strip markdown fences if the model wrapped the JSON.
+  const cleaned = raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/```$/i, "").trim();
+  try {
+    const parsed = JSON.parse(cleaned);
+    const kind = parsed?.kind;
+    const paragraph = typeof parsed?.paragraph === "string" ? parsed.paragraph.trim() : "";
+    if (!paragraph) return null;
+    if (kind !== "lead" && kind !== "solicitation" && kind !== "partnership") return null;
+    return { kind, paragraph };
+  } catch {
+    return null;
+  }
+}
+
 export async function generateHypeParagraph(
   lead: WelcomeLead,
   client?: Anthropic
-): Promise<string> {
+): Promise<HypeResult> {
   if (!process.env.ANTHROPIC_API_KEY) {
-    return FALLBACK_HYPE;
+    return { kind: "lead", paragraph: FALLBACK_HYPE };
   }
 
   const anthropic = client || new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const userMessage = buildUserMessage(lead);
-  if (!userMessage) return FALLBACK_HYPE;
+  if (!userMessage) return { kind: "lead", paragraph: FALLBACK_HYPE };
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), HYPE_TIMEOUT_MS);
@@ -58,7 +95,7 @@ export async function generateHypeParagraph(
     const response = await anthropic.messages.create(
       {
         model: HYPE_MODEL,
-        max_tokens: 300,
+        max_tokens: 400,
         temperature: 0.9,
         system: SYSTEM_PROMPT,
         messages: [{ role: "user", content: userMessage }],
@@ -72,17 +109,31 @@ export async function generateHypeParagraph(
       .join("")
       .trim();
 
-    return text || FALLBACK_HYPE;
+    const parsed = parseHypeJson(text);
+    if (parsed) return parsed;
+
+    // Model returned non-JSON — use it as a lead paragraph if non-empty.
+    return { kind: "lead", paragraph: text || FALLBACK_HYPE };
   } catch (err) {
     console.error("Hype paragraph generation failed:", err);
-    return FALLBACK_HYPE;
+    return { kind: "lead", paragraph: FALLBACK_HYPE };
   } finally {
     clearTimeout(timer);
   }
 }
 
-const STATIC_WELCOME =
-  "Welcome to Catalyst Motorsport! Thanks for reaching out — we just received your request and one of our agents will be in touch with you shortly.";
+const STATIC_OPENERS: Record<LeadKind, string> = {
+  lead: "Welcome to Catalyst Motorsport! Thanks for reaching out — we just received your request and one of our agents will be in touch with you shortly.",
+  solicitation: "Thanks for reaching out to Catalyst Motorsport.",
+  partnership: "Thanks for reaching out to Catalyst Motorsport.",
+};
+
+const SUBJECTS: Record<LeadKind, string> = {
+  lead: "Welcome to Catalyst Motorsport — we're on it",
+  solicitation: "Thanks for the outreach — Catalyst Motorsport",
+  partnership: "Partnership inquiries — Catalyst Motorsport",
+};
+
 const STATIC_SIGNOFF_LINES = [
   "Talk soon,",
   "The Catalyst Motorsport Team",
@@ -98,7 +149,7 @@ function escapeHtml(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
-export function buildWelcomeHtml(hype: string, siteUrl: string): string {
+export function buildWelcomeHtml(opener: string, hype: string, siteUrl: string): string {
   const logoSrc = `${siteUrl.replace(/\/$/, "")}/images/CM_logo_wh.png`;
   return `<!DOCTYPE html>
 <html>
@@ -115,7 +166,7 @@ export function buildWelcomeHtml(hype: string, siteUrl: string): string {
             <tr>
               <td style="padding:24px 32px;border-top:2px solid #ffffff;">
                 <p style="margin:0 0 20px 0;font-size:16px;line-height:1.6;color:#ffffff;">
-                  ${escapeHtml(STATIC_WELCOME)}
+                  ${escapeHtml(opener)}
                 </p>
                 <p style="margin:0 0 20px 0;font-size:16px;line-height:1.6;color:#e5e5e5;font-weight:500;">
                   ${escapeHtml(hype)}
@@ -140,14 +191,8 @@ export function buildWelcomeHtml(hype: string, siteUrl: string): string {
 </html>`;
 }
 
-export function buildWelcomeText(hype: string): string {
-  return [
-    STATIC_WELCOME,
-    "",
-    hype,
-    "",
-    ...STATIC_SIGNOFF_LINES,
-  ].join("\n");
+export function buildWelcomeText(opener: string, hype: string): string {
+  return [opener, "", hype, "", ...STATIC_SIGNOFF_LINES].join("\n");
 }
 
 export interface ComposedWelcomeEmail {
@@ -159,6 +204,7 @@ export interface ComposedWelcomeEmail {
   html: string;
   text: string;
   hype: string;
+  kind: LeadKind;
 }
 
 export async function composeWelcomeEmail(
@@ -166,16 +212,18 @@ export async function composeWelcomeEmail(
   anthropicClient?: Anthropic
 ): Promise<ComposedWelcomeEmail> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://catalystmotorsport.com";
-  const hype = await generateHypeParagraph(lead, anthropicClient);
+  const { kind, paragraph } = await generateHypeParagraph(lead, anthropicClient);
+  const opener = STATIC_OPENERS[kind];
   return {
     from: WELCOME_FROM,
     to: lead.email,
     cc: TEAM_EMAIL,
     replyTo: TEAM_EMAIL,
-    subject: "Welcome to Catalyst Motorsport — we're on it",
-    html: buildWelcomeHtml(hype, siteUrl),
-    text: buildWelcomeText(hype),
-    hype,
+    subject: SUBJECTS[kind],
+    html: buildWelcomeHtml(opener, paragraph, siteUrl),
+    text: buildWelcomeText(opener, paragraph),
+    hype: paragraph,
+    kind,
   };
 }
 
@@ -194,6 +242,7 @@ export async function sendWelcomeEmail(lead: WelcomeLead): Promise<void> {
 
 export const __TEST__ = {
   FALLBACK_HYPE,
-  STATIC_WELCOME,
+  STATIC_OPENERS,
   STATIC_SIGNOFF_LINES,
+  SUBJECTS,
 };
