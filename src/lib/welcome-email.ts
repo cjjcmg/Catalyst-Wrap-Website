@@ -1,5 +1,17 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "./email";
+import { logAudit } from "./audit";
+
+export type LeadKind = "lead" | "solicitation" | "partnership";
+
+const SYSTEM_USER_EMAIL = "system@catalystmotorsport.com";
+
+const ACTIVITY_SUBJECTS: Record<LeadKind, string> = {
+  lead: "Welcome email sent",
+  solicitation: "Auto-reply sent (solicitation)",
+  partnership: "Auto-reply sent (partnership inquiry)",
+};
 
 const WELCOME_FROM =
   process.env.RESEND_WELCOME_FROM_EMAIL ||
@@ -8,8 +20,6 @@ const TEAM_EMAIL = "team@catalystmotorsport.com";
 
 const HYPE_MODEL = "claude-sonnet-4-6";
 const HYPE_TIMEOUT_MS = 6000;
-
-export type LeadKind = "lead" | "solicitation" | "partnership";
 
 const FALLBACK_HYPE =
   "Your project is exactly the kind of work we live for. Our team is already mapping out the details, and we'll bring the same obsession to your build that we bring to every car that rolls through our bay. Keep your phone close — we'll be in touch very soon.";
@@ -227,7 +237,46 @@ export async function composeWelcomeEmail(
   };
 }
 
-export async function sendWelcomeEmail(lead: WelcomeLead): Promise<void> {
+async function logWelcomeSend(quoteId: number, composed: ComposedWelcomeEmail, lead: WelcomeLead) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const activitySubject = ACTIVITY_SUBJECTS[composed.kind];
+  const activityBody = `${composed.subject}\n\n${composed.hype}`;
+
+  await Promise.all([
+    supabase.from("crm_activities").insert({
+      quote_id: quoteId,
+      activity_type: "email",
+      subject: activitySubject,
+      body: activityBody,
+      metadata: {
+        source: "welcome_email",
+        kind: composed.kind,
+        to: composed.to,
+        cc: composed.cc,
+        subject_line: composed.subject,
+      },
+    }),
+    logAudit({
+      user_id: null,
+      user_email: SYSTEM_USER_EMAIL,
+      action: "send_welcome_email",
+      entity_type: "quote",
+      entity_id: quoteId,
+      changes: {
+        kind: composed.kind,
+        to: composed.to,
+        subject: composed.subject,
+        inbound_message: lead.message || lead.request || null,
+      },
+    }),
+  ]);
+}
+
+export async function sendWelcomeEmail(lead: WelcomeLead, quoteId?: number): Promise<void> {
   const composed = await composeWelcomeEmail(lead);
   await sendEmail({
     from: composed.from,
@@ -238,6 +287,14 @@ export async function sendWelcomeEmail(lead: WelcomeLead): Promise<void> {
     html: composed.html,
     text: composed.text,
   });
+
+  if (quoteId) {
+    try {
+      await logWelcomeSend(quoteId, composed, lead);
+    } catch (err) {
+      console.error(`Failed to log welcome email for quote ${quoteId}:`, err);
+    }
+  }
 }
 
 export const __TEST__ = {

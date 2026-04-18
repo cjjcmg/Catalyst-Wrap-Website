@@ -6,10 +6,10 @@ const supabase = createClient(
 );
 
 interface AuditEntry {
-  user_id: number;
+  user_id: number | null;
   user_email: string;
-  action: string; // "update_quote" | "archive_quote" | "create_note" | "delete_note" | "update_settings"
-  entity_type: string; // "quote" | "note" | "settings"
+  action: string;
+  entity_type: string;
   entity_id?: number;
   changes?: Record<string, unknown>;
 }

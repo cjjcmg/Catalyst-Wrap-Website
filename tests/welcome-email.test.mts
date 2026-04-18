@@ -5,6 +5,8 @@ process.env.ANTHROPIC_API_KEY = "test-key";
 process.env.RESEND_API_KEY = "re_test_key";
 process.env.NEXT_PUBLIC_SITE_URL = "https://catalystmotorsport.com";
 process.env.RESEND_WELCOME_FROM_EMAIL = "Catalyst Motorsport <team@catalystmotorsport.com>";
+process.env.NEXT_PUBLIC_SUPABASE_URL = "https://test.supabase.co";
+process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
 
 // Dynamic imports AFTER env setup — ESM hoists static imports above statements,
 // so top-level `import { ... } from ...` would run before env vars are assigned.
