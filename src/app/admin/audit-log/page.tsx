@@ -30,6 +30,7 @@ const ACTION_LABELS: Record<string, string> = {
   create_appointment: "scheduled appointment for",
   cancel_appointment: "cancelled appointment for",
   delete_appointment: "deleted appointment for",
+  send_welcome_email: "sent welcome email to",
 };
 
 export default function AuditLogPage() {
@@ -128,6 +129,11 @@ export default function AuditLogPage() {
     if (entry.action === "update_quote") {
       const fields = Object.keys(entry.changes).filter((k) => k !== "id");
       return `Changed: ${fields.join(", ")}`;
+    }
+    if (entry.action === "send_welcome_email") {
+      const kind = entry.changes.kind as string | undefined;
+      const subject = entry.changes.subject as string | undefined;
+      return kind && subject ? `${kind} — ${subject}` : subject || null;
     }
     return null;
   }

@@ -104,14 +104,17 @@ export async function POST(request: Request) {
     // Fire-and-forget welcome email to the lead. Must not block or fail the
     // submission or the team notification.
     try {
-      await sendWelcomeEmail({
-        firstName,
-        email,
-        request: service,
-        serviceType: service,
-        message,
-        vehicleMake: vehicle,
-      });
+      await sendWelcomeEmail(
+        {
+          firstName,
+          email,
+          request: service,
+          serviceType: service,
+          message,
+          vehicleMake: vehicle,
+        },
+        insertedQuote?.id
+      );
     } catch (welcomeErr) {
       console.error(`Welcome email failed for ${email}:`, welcomeErr);
     }
