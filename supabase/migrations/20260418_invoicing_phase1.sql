@@ -2,38 +2,40 @@
 -- CATALYST MOTORSPORT — INVOICING SYSTEM
 -- Phase 1 Migration: Schema + Catalog + Numbering + Settings
 -- Fully idempotent — safe to re-run.
+-- NOTE: uses tagged dollar-quotes ($tag$ ... $tag$) to survive SQL editors
+-- that split naively on bare `$$`.
 -- =============================================================================
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- 1. ENUM TYPES
-DO $$ BEGIN
+DO $enum_sqs$ BEGIN
   CREATE TYPE sales_quote_status AS ENUM (
     'draft', 'sent', 'viewed', 'accepted', 'declined', 'expired', 'converted'
   );
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+EXCEPTION WHEN duplicate_object THEN NULL; END $enum_sqs$;
 
-DO $$ BEGIN
+DO $enum_pc$ BEGIN
   CREATE TYPE product_category AS ENUM ('wrap', 'ppf', 'ceramic', 'detail');
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+EXCEPTION WHEN duplicate_object THEN NULL; END $enum_pc$;
 
-DO $$ BEGIN
+DO $enum_st$ BEGIN
   CREATE TYPE size_tier AS ENUM ('small', 'mid', 'suv', 'truck', 'exotic');
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+EXCEPTION WHEN duplicate_object THEN NULL; END $enum_st$;
 
-DO $$ BEGIN
+DO $enum_it$ BEGIN
   CREATE TYPE invoice_type AS ENUM ('deposit', 'balance', 'full');
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+EXCEPTION WHEN duplicate_object THEN NULL; END $enum_it$;
 
-DO $$ BEGIN
+DO $enum_is$ BEGIN
   CREATE TYPE invoice_status AS ENUM (
     'draft', 'sent_to_square', 'pending_payment', 'paid', 'void'
   );
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+EXCEPTION WHEN duplicate_object THEN NULL; END $enum_is$;
 
-DO $$ BEGIN
+DO $enum_dt$ BEGIN
   CREATE TYPE deposit_type AS ENUM ('fixed_amount', 'percent', 'none');
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+EXCEPTION WHEN duplicate_object THEN NULL; END $enum_dt$;
 
 -- 2. PRODUCTS
 CREATE TABLE IF NOT EXISTS products (
@@ -176,7 +178,7 @@ CREATE TABLE IF NOT EXISTS invoicing_settings (
 INSERT INTO invoicing_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 
 -- 10. NUMBERING FUNCTIONS
-CREATE OR REPLACE FUNCTION next_quote_number() RETURNS text AS $$
+CREATE OR REPLACE FUNCTION next_quote_number() RETURNS text AS $fn_nq$
 DECLARE
   y text := to_char(now(), 'YYYY');
   seq_name text := 'sales_quote_seq_' || y;
@@ -186,9 +188,9 @@ BEGIN
   EXECUTE format('SELECT nextval(%L)', seq_name) INTO n;
   RETURN 'Q-' || y || '-' || lpad(n::text, 4, '0');
 END;
-$$ LANGUAGE plpgsql;
+$fn_nq$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION next_invoice_number() RETURNS text AS $$
+CREATE OR REPLACE FUNCTION next_invoice_number() RETURNS text AS $fn_ni$
 DECLARE
   y text := to_char(now(), 'YYYY');
   seq_name text := 'invoice_seq_' || y;
@@ -198,12 +200,12 @@ BEGIN
   EXECUTE format('SELECT nextval(%L)', seq_name) INTO n;
   RETURN 'INV-' || y || '-' || lpad(n::text, 4, '0');
 END;
-$$ LANGUAGE plpgsql;
+$fn_ni$ LANGUAGE plpgsql;
 
 -- 11. TRIGGER — updated_at maintenance
-CREATE OR REPLACE FUNCTION touch_updated_at() RETURNS trigger AS $$
+CREATE OR REPLACE FUNCTION touch_updated_at() RETURNS trigger AS $fn_touch$
 BEGIN NEW.updated_at := now(); RETURN NEW; END;
-$$ LANGUAGE plpgsql;
+$fn_touch$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS products_touch_updated_at ON products;
 CREATE TRIGGER products_touch_updated_at BEFORE UPDATE ON products
@@ -222,7 +224,7 @@ CREATE TRIGGER invoicing_settings_touch_updated_at BEFORE UPDATE ON invoicing_se
   FOR EACH ROW EXECUTE FUNCTION touch_updated_at();
 
 -- 12. TRIGGER — auto-recompute totals when line items change
-CREATE OR REPLACE FUNCTION recompute_sales_quote_totals() RETURNS trigger AS $$
+CREATE OR REPLACE FUNCTION recompute_sales_quote_totals() RETURNS trigger AS $fn_recomp$
 DECLARE
   v_quote_id bigint; v_subtotal numeric(10,2); v_taxable_sub numeric(10,2);
   v_discount numeric(10,2); v_tax_rate numeric(5,4); v_tax numeric(10,2);
@@ -257,7 +259,7 @@ BEGIN
   WHERE id = v_quote_id;
   RETURN NULL;
 END;
-$$ LANGUAGE plpgsql;
+$fn_recomp$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS sql_items_recompute_on_ins ON sales_quote_line_items;
 CREATE TRIGGER sql_items_recompute_on_ins AFTER INSERT ON sales_quote_line_items
@@ -269,7 +271,7 @@ DROP TRIGGER IF EXISTS sql_items_recompute_on_del ON sales_quote_line_items;
 CREATE TRIGGER sql_items_recompute_on_del AFTER DELETE ON sales_quote_line_items
   FOR EACH ROW EXECUTE FUNCTION recompute_sales_quote_totals();
 
-CREATE OR REPLACE FUNCTION recompute_sales_quote_on_self_change() RETURNS trigger AS $$
+CREATE OR REPLACE FUNCTION recompute_sales_quote_on_self_change() RETURNS trigger AS $fn_recomp_self$
 DECLARE
   v_subtotal numeric(10,2); v_taxable_sub numeric(10,2);
   v_tax numeric(10,2); v_total numeric(10,2); v_deposit_calc numeric(10,2);
@@ -302,37 +304,37 @@ BEGIN
   NEW.total := v_total; NEW.deposit_amount_calc := v_deposit_calc;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$fn_recomp_self$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS sales_quotes_recompute_on_self ON sales_quotes;
 CREATE TRIGGER sales_quotes_recompute_on_self BEFORE UPDATE ON sales_quotes
   FOR EACH ROW EXECUTE FUNCTION recompute_sales_quote_on_self_change();
 
 -- 13. TRIGGER — auto-assign numbers on insert
-CREATE OR REPLACE FUNCTION assign_quote_number() RETURNS trigger AS $$
+CREATE OR REPLACE FUNCTION assign_quote_number() RETURNS trigger AS $fn_aqn$
 BEGIN
   IF NEW.quote_number IS NULL OR NEW.quote_number = '' THEN
     NEW.quote_number := next_quote_number();
   END IF; RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$fn_aqn$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS sales_quotes_assign_number ON sales_quotes;
 CREATE TRIGGER sales_quotes_assign_number BEFORE INSERT ON sales_quotes
   FOR EACH ROW EXECUTE FUNCTION assign_quote_number();
 
-CREATE OR REPLACE FUNCTION assign_invoice_number() RETURNS trigger AS $$
+CREATE OR REPLACE FUNCTION assign_invoice_number() RETURNS trigger AS $fn_ain$
 BEGIN
   IF NEW.invoice_number IS NULL OR NEW.invoice_number = '' THEN
     NEW.invoice_number := next_invoice_number();
   END IF; RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$fn_ain$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS invoices_assign_number ON invoices;
 CREATE TRIGGER invoices_assign_number BEFORE INSERT ON invoices
   FOR EACH ROW EXECUTE FUNCTION assign_invoice_number();
 
 -- 14. TRIGGER — auto-set expires_at and sent_at when status becomes 'sent'
-CREATE OR REPLACE FUNCTION set_quote_expiration_on_send() RETURNS trigger AS $$
+CREATE OR REPLACE FUNCTION set_quote_expiration_on_send() RETURNS trigger AS $fn_setexp$
 DECLARE v_days int;
 BEGIN
   IF (OLD.status IS DISTINCT FROM NEW.status)
@@ -343,13 +345,13 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$fn_setexp$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS sales_quotes_expiration_on_send ON sales_quotes;
 CREATE TRIGGER sales_quotes_expiration_on_send BEFORE UPDATE ON sales_quotes
   FOR EACH ROW EXECUTE FUNCTION set_quote_expiration_on_send();
 
 -- 15. SEED CATALOG (only if empty)
-DO $$
+DO $seed_catalog$
 DECLARE v_product_id bigint;
 BEGIN
   IF EXISTS (SELECT 1 FROM products LIMIT 1) THEN RETURN; END IF;
@@ -462,7 +464,7 @@ BEGIN
   INSERT INTO product_pricing (product_id, size_tier, default_price) VALUES
     (v_product_id, 'small', 400), (v_product_id, 'mid', 500),
     (v_product_id, 'suv', 600), (v_product_id, 'truck', 700), (v_product_id, 'exotic', 900);
-END $$;
+END $seed_catalog$;
 
 -- 16. DASHBOARD VIEWS
 CREATE OR REPLACE VIEW invoicing_revenue_rollup AS
