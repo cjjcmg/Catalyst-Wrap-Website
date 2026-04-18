@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { label: "Reports", href: "/admin/reports/revenue", matchPrefix: "/admin/reports" },
   { label: "Schedule", href: "/admin/schedule", matchPrefix: "/admin/schedule" },
   { label: "Settings", href: "/admin/settings", matchPrefix: "/admin/settings" },
+  { label: "Invoicing", href: "/admin/invoicing-settings", matchPrefix: "/admin/invoicing-settings" },
 ];
 
 const BARE_ROUTES = ["/admin/login", "/admin/reset-password"];
