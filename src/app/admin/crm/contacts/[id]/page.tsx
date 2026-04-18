@@ -282,6 +282,12 @@ export default function CRMContactDetailPage() {
 
         {/* Quick actions */}
         <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+          <button
+            onClick={() => router.push(`/admin/quotes-docs/new?contactId=${quote.id}`)}
+            className="rounded-lg bg-catalyst-red px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+          >
+            Create Quote
+          </button>
           <a href={`tel:${quote.phone}`} className="rounded-lg border border-catalyst-border px-3 py-1.5 text-sm text-green-400 hover:bg-green-500/10 transition-colors">Call</a>
           <a href={`sms:${quote.phone}`} className="rounded-lg border border-catalyst-border px-3 py-1.5 text-sm text-blue-400 hover:bg-blue-500/10 transition-colors">Text</a>
           <a href={`mailto:${quote.email}`} className="rounded-lg border border-catalyst-border px-3 py-1.5 text-sm text-purple-400 hover:bg-purple-500/10 transition-colors">Email</a>
