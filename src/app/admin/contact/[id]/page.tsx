@@ -15,6 +15,7 @@ interface Quote {
   text_updates: boolean;
   archived: boolean;
   label: string | null;
+  contact_tag: string | null;
   first_name: string | null;
   last_name: string | null;
   subscribed: boolean;
@@ -51,6 +52,13 @@ interface Appointment {
 }
 
 const LABELS = ["lead", "contact", "client", "past client"] as const;
+const TAGS = ["A", "B", "C", "!"] as const;
+const TAG_COLORS: Record<string, string> = {
+  A: "bg-green-500 text-white",
+  B: "bg-amber-500 text-black",
+  C: "bg-red-500 text-white",
+  "!": "bg-violet-500 text-white",
+};
 const US_STATES = ["CA","AL","AK","AZ","AR","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"];
 const LABEL_COLORS: Record<string, string> = {
   lead: "bg-blue-500/15 text-blue-400 border-blue-500/30",
@@ -230,6 +238,25 @@ export default function ContactDetailPage() {
       const { quote: updated } = await res.json();
       setQuote(updated);
       setEditForm(updated);
+    }
+  }
+
+  async function setContactTag(nextTag: string | null) {
+    if (!quote) return;
+    const prev = quote;
+    // Optimistic update
+    setQuote({ ...quote, contact_tag: nextTag });
+    const res = await fetch("/api/admin/quotes", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: quote.id, contact_tag: nextTag }),
+    });
+    if (res.ok) {
+      const { quote: updated } = await res.json();
+      setQuote(updated);
+      setEditForm(updated);
+    } else {
+      setQuote(prev);
     }
   }
 
@@ -450,6 +477,23 @@ export default function ContactDetailPage() {
               <option key={l} value={l}>{l}</option>
             ))}
           </select>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {TAGS.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setContactTag(quote.contact_tag === t ? null : t)}
+                className={`w-7 h-7 rounded-full text-xs font-bold transition-colors ${
+                  quote.contact_tag === t
+                    ? TAG_COLORS[t]
+                    : "bg-catalyst-border text-catalyst-grey-600 hover:text-white"
+                }`}
+                title={`Tag: ${t}${quote.contact_tag === t ? " (click to clear)" : ""}`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {user?.role === "admin" && (
