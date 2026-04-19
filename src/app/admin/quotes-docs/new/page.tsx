@@ -329,15 +329,72 @@ function NewQuoteInner() {
     }
 
     if (sendAfter) {
-      const sr = await fetch(`/api/admin/sales-quotes/${d.quote.id}/send`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
-      const sd = await sr.json();
-      setSaving(false);
-      if (!sr.ok) {
-        setError(sd.error || "Saved draft, but failed to send. Try again from the detail page.");
+      try {
+        // Re-fetch the saved quote to get the DB-assigned numbers/totals
+        const fr = await fetch(`/api/admin/sales-quotes/${d.quote.id}`);
+        const fd_ = await fr.json();
+        if (!fr.ok || !fd_.quote) throw new Error("Saved draft, but couldn't read it back to send.");
+
+        const savedQuote = fd_.quote;
+        const finalPdfData: QuotePDFData = {
+          quote: {
+            quote_number: savedQuote.quote_number,
+            status: savedQuote.status,
+            created_at: savedQuote.created_at,
+            expires_at: savedQuote.expires_at,
+            vehicle_year: savedQuote.vehicle_year,
+            vehicle_make: savedQuote.vehicle_make,
+            vehicle_model: savedQuote.vehicle_model,
+            vehicle_color: savedQuote.vehicle_color,
+            vehicle_size_tier: savedQuote.vehicle_size_tier,
+            subtotal: Number(savedQuote.subtotal),
+            discount_amount: Number(savedQuote.discount_amount),
+            discount_reason: savedQuote.discount_reason,
+            tax_rate: Number(savedQuote.tax_rate),
+            tax_amount: Number(savedQuote.tax_amount),
+            total: Number(savedQuote.total),
+            deposit_type: savedQuote.deposit_type,
+            deposit_value: savedQuote.deposit_value == null ? null : Number(savedQuote.deposit_value),
+            deposit_amount_calc: savedQuote.deposit_amount_calc == null ? null : Number(savedQuote.deposit_amount_calc),
+            customer_notes: savedQuote.customer_notes,
+            terms: savedQuote.terms,
+            accepted_at: null,
+            accepted_by_name: null,
+            accepted_ip: null,
+          },
+          line_items: (savedQuote.sales_quote_line_items || []).map((li: { id: number; description: string; quantity: number; unit_price: number; line_total: number; is_taxable: boolean; sort_order: number }) => ({
+            id: li.id,
+            description: li.description,
+            quantity: Number(li.quantity),
+            unit_price: Number(li.unit_price),
+            line_total: Number(li.line_total),
+            is_taxable: li.is_taxable,
+            sort_order: li.sort_order,
+          })),
+          contact: { name: contact.name, email: contact.email, phone: contact.phone },
+          settings: {
+            business_name: settings!.business_name,
+            business_address: settings!.business_address,
+            business_phone: settings!.business_phone,
+            business_website: settings!.business_website,
+            logo_url: settings!.logo_url,
+          },
+        };
+
+        const { renderQuotePDFBlob } = await import("@/lib/pdf/client-render");
+        const blob = await renderQuotePDFBlob(finalPdfData);
+
+        const sfd = new FormData();
+        sfd.append("pdf", blob, `${savedQuote.quote_number}.pdf`);
+        sfd.append("resend_only", "0");
+
+        const sr = await fetch(`/api/admin/sales-quotes/${d.quote.id}/send`, { method: "POST", body: sfd });
+        const sd = await sr.json();
+        if (!sr.ok) throw new Error(sd.error || "Send failed");
+      } catch (err) {
+        setSaving(false);
+        const msg = err instanceof Error ? err.message : "Saved draft, but failed to send. Try again from the detail page.";
+        setError(msg);
         router.push(`/admin/quotes-docs/${d.quote.id}`);
         return;
       }

@@ -222,25 +222,35 @@ export default function QuoteDetailPage() {
   }
 
   async function sendQuote(resend: boolean) {
-    if (!quote) return;
+    if (!quote || !pdfData) return;
     const note = resend ? undefined : (window.prompt(
       "Optional personal note to include in the email (leave blank for the default copy):",
       ""
     ) ?? undefined);
     setBusy(true);
     setError("");
-    const r = await fetch(`/api/admin/sales-quotes/${id}/send`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ note: note && note.trim() ? note.trim() : undefined, resend_only: resend }),
-    });
-    const d = await r.json();
-    setBusy(false);
-    if (!r.ok) { setError(d.error || "Failed to send"); return; }
-    const smsNote = d.sms_sent ? " SMS also sent." : "";
-    setError(resend ? `Email re-sent.${smsNote}` : `Quote sent to customer.${smsNote}`);
-    setTimeout(() => setError(""), 3000);
-    await load();
+    try {
+      // Render the PDF in the browser so server doesn't need to touch react-pdf
+      const { renderQuotePDFBlob } = await import("@/lib/pdf/client-render");
+      const blob = await renderQuotePDFBlob(pdfData);
+
+      const fd = new FormData();
+      fd.append("pdf", blob, `${quote.quote_number}.pdf`);
+      if (note && note.trim()) fd.append("note", note.trim());
+      fd.append("resend_only", resend ? "1" : "0");
+
+      const r = await fetch(`/api/admin/sales-quotes/${id}/send`, { method: "POST", body: fd });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || "Failed to send");
+      const smsNote = d.sms_sent ? " SMS also sent." : "";
+      setError(resend ? `Email re-sent.${smsNote}` : `Quote sent to customer.${smsNote}`);
+      setTimeout(() => setError(""), 3000);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to send");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function duplicateQuote() {
