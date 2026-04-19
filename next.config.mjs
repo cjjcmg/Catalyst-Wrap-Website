@@ -3,10 +3,12 @@ const nextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
   },
-  // @react-pdf/renderer ships as an ESM package whose subpath imports
-  // confuse webpack unless listed here. transpilePackages handles both
-  // server and client bundles.
-  transpilePackages: ["@react-pdf/renderer"],
+  // Leave @react-pdf/renderer external on the server — bundling it through
+  // webpack mangles its react-reconciler dependency and triggers "Cannot
+  // read properties of undefined (reading 'S')" at renderToBuffer(). The
+  // client bundle handles it fine via dynamic import / BlobProvider, so we
+  // only need the server exclusion.
+  serverExternalPackages: ["@react-pdf/renderer"],
 };
 
 export default nextConfig;
