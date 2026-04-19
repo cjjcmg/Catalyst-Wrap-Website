@@ -106,6 +106,20 @@ export default function InvoiceDetailPage() {
     await load();
   }
 
+  async function deleteInvoice() {
+    if (!invoice || user?.role !== "admin") return;
+    const msg = `Permanently delete ${invoice.invoice_number} and its ${payments.length} payment row${payments.length === 1 ? "" : "s"} from the local database?\n\nThis does NOT touch Square — if the invoice exists there, you'll need to void or refund it separately on the Square dashboard.\n\nType DELETE to confirm:`;
+    const confirmation = window.prompt(msg);
+    if (confirmation !== "DELETE") return;
+    setBusy(true);
+    setError("");
+    const r = await fetch(`/api/admin/invoices/${id}`, { method: "DELETE" });
+    const d = await r.json();
+    setBusy(false);
+    if (!r.ok) { setError(d.error || "Delete failed"); return; }
+    router.push("/admin/invoices");
+  }
+
   async function syncFromSquare() {
     if (!invoice) return;
     setBusy(true);
@@ -214,6 +228,13 @@ export default function InvoiceDetailPage() {
               title="Sync from Square"
               description="Pull the authoritative invoice state from Square and update local records. Use this if you know payment happened but the dashboard still shows pending (webhook missed, signature mismatch, etc.)."
               button={<button onClick={syncFromSquare} disabled={busy} className="rounded-lg border border-catalyst-border px-4 py-2 text-sm text-white hover:bg-white/5 transition-colors disabled:opacity-40">{busy ? "..." : "Sync"}</button>}
+            />
+          )}
+          {user.role === "admin" && (
+            <Action
+              title="Delete locally (admin)"
+              description="Wipe this invoice and its payment rows from the Catalyst database. Does NOT touch Square — use this for test invoices or mistaken records. If this is the quote's only invoice, the quote reverts from Converted to Accepted."
+              button={<button onClick={deleteInvoice} disabled={busy} className="rounded-lg border border-red-500/30 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40">{busy ? "..." : "Delete"}</button>}
             />
           )}
           {user.role === "admin" && invoice.status === "paid" && (
