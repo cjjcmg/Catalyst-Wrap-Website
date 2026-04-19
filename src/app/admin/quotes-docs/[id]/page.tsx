@@ -523,6 +523,11 @@ export default function QuoteDetailPage() {
           )}
 
           <ActionCard
+            title="Preview email"
+            description="See exactly what the customer will receive when you click Send — subject, body, acceptance URL."
+            button={<Link href={`/admin/quotes-docs/${id}/email-preview`} className="inline-block rounded-lg border border-catalyst-border px-4 py-2 text-sm text-white hover:bg-white/5 transition-colors">Preview email</Link>}
+          />
+          <ActionCard
             title="Duplicate"
             description="Create a new draft with identical line items and adjustments, linked to the same contact."
             button={<button onClick={duplicateQuote} disabled={busy} className="rounded-lg border border-catalyst-border px-4 py-2 text-sm text-white hover:bg-white/5 transition-colors disabled:opacity-40">Duplicate</button>}
