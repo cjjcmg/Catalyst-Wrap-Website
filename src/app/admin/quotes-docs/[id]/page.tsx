@@ -425,8 +425,8 @@ export default function QuoteDetailPage() {
               />
               <ActionCard
                 title="Edit this draft"
-                description="Modify line items or adjustments by duplicating the draft and deleting the original. Inline draft editing ships next."
-                button={<button onClick={duplicateQuote} disabled={busy} className="rounded-lg border border-catalyst-border px-4 py-2 text-sm text-white hover:bg-white/5 transition-colors disabled:opacity-40">Duplicate to edit</button>}
+                description="Change line items, adjustments, deposit, or notes. Only drafts can be edited — sent or accepted quotes are locked."
+                button={<Link href={`/admin/quotes-docs/${id}/edit`} className="inline-block rounded-lg border border-catalyst-border px-4 py-2 text-sm text-white hover:bg-white/5 transition-colors">Edit draft</Link>}
               />
             </>
           )}
