@@ -60,6 +60,29 @@ interface Appointment {
   details: string | null;
 }
 
+interface DocSalesQuote {
+  id: number;
+  quote_number: string;
+  status: "draft" | "sent" | "viewed" | "accepted" | "declined" | "expired" | "converted";
+  total: number;
+  created_at: string;
+  sent_at: string | null;
+  accepted_at: string | null;
+  expires_at: string | null;
+}
+
+interface DocInvoice {
+  id: number;
+  invoice_number: string;
+  type: "deposit" | "balance" | "full";
+  status: "draft" | "sent_to_square" | "pending_payment" | "paid" | "void";
+  amount: number;
+  paid_at: string | null;
+  sent_to_square_at: string | null;
+  sales_quote_id: number;
+  square_public_url: string | null;
+}
+
 const STATUSES = ["new", "contacted", "quoted", "scheduled", "in_progress", "completed", "client", "past_client", "lost"];
 const STATUS_LABELS: Record<string, string> = { new: "New", contacted: "Contacted", quoted: "Quoted", scheduled: "Scheduled", in_progress: "In Progress", completed: "Completed", client: "Client", past_client: "Past Client", lost: "Lost" };
 const STATUS_COLORS: Record<string, string> = { new: "bg-blue-500", contacted: "bg-cyan-500", quoted: "bg-purple-500", scheduled: "bg-amber-500", in_progress: "bg-orange-500", completed: "bg-green-500", client: "bg-emerald-500", past_client: "bg-catalyst-grey-500", lost: "bg-red-500" };
@@ -67,6 +90,30 @@ const TAG_COLORS: Record<string, string> = { A: "bg-green-500 text-white", B: "b
 const US_STATES = ["CA","AL","AK","AZ","AR","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"];
 const ACTIVITY_TYPES = ["call", "email", "text", "meeting", "note", "quote_sent", "follow_up"];
 const ACTIVITY_ICONS: Record<string, string> = { call: "📞", email: "📧", text: "💬", meeting: "🤝", note: "📝", quote_sent: "📋", follow_up: "🔄" };
+
+const QUOTE_STATUS_LABELS: Record<string, string> = {
+  draft: "Draft", sent: "Sent", viewed: "Viewed", accepted: "Accepted",
+  declined: "Declined", expired: "Expired", converted: "Converted",
+};
+const QUOTE_STATUS_COLORS: Record<string, string> = {
+  draft: "bg-catalyst-grey-500/15 text-catalyst-grey-300",
+  sent: "bg-blue-500/15 text-blue-400",
+  viewed: "bg-indigo-500/15 text-indigo-400",
+  accepted: "bg-green-500/15 text-green-400",
+  declined: "bg-red-500/15 text-red-400",
+  expired: "bg-amber-500/15 text-amber-400",
+  converted: "bg-purple-500/15 text-purple-400",
+};
+const INVOICE_STATUS_LABELS: Record<string, string> = {
+  draft: "Draft", sent_to_square: "Sent", pending_payment: "Pending", paid: "Paid", void: "Void",
+};
+const INVOICE_STATUS_COLORS: Record<string, string> = {
+  draft: "bg-catalyst-grey-500/15 text-catalyst-grey-300",
+  sent_to_square: "bg-blue-500/15 text-blue-400",
+  pending_payment: "bg-amber-500/15 text-amber-400",
+  paid: "bg-green-500/15 text-green-400",
+  void: "bg-red-500/15 text-red-400",
+};
 
 function formatPhone(phone: string) {
   const d = phone.replace(/\D/g, "").slice(-10);
@@ -89,6 +136,8 @@ export default function CRMContactDetailPage() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [salesQuotes, setSalesQuotes] = useState<DocSalesQuote[]>([]);
+  const [invoices, setInvoices] = useState<DocInvoice[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Activity form
@@ -116,15 +165,16 @@ export default function CRMContactDetailPage() {
     fetch("/api/admin/me").then((r) => r.json()).then((d) => setUser(d.user || null));
 
     async function load() {
-      const [qRes, actRes, noteRes, remRes, apptRes] = await Promise.all([
+      const [qRes, actRes, noteRes, remRes, apptRes, docRes] = await Promise.all([
         fetch(`/api/admin/quotes?id=${quoteId}`),
         fetch(`/api/admin/crm/activities?quote_id=${quoteId}`),
         fetch(`/api/admin/notes?quote_id=${quoteId}`),
         fetch(`/api/admin/crm/reminders?filter=all&quote_id=${quoteId}`),
         fetch(`/api/admin/appointments?quote_id=${quoteId}`),
+        fetch(`/api/admin/contacts/${quoteId}/documents`),
       ]);
-      const [qData, actData, noteData, remData, apptData] = await Promise.all([
-        qRes.json(), actRes.json(), noteRes.json(), remRes.json(), apptRes.json(),
+      const [qData, actData, noteData, remData, apptData, docData] = await Promise.all([
+        qRes.json(), actRes.json(), noteRes.json(), remRes.json(), apptRes.json(), docRes.json(),
       ]);
       const q = qData.quote || null;
       setQuote(q);
@@ -134,6 +184,8 @@ export default function CRMContactDetailPage() {
       setNotes(noteData.notes || []);
       setReminders(remData.reminders || []);
       setAppointments(apptData.appointments || []);
+      setSalesQuotes(docData.quotes || []);
+      setInvoices(docData.invoices || []);
       setLoading(false);
     }
     load();
@@ -288,48 +340,49 @@ export default function CRMContactDetailPage() {
           >
             Create Quote
           </button>
-          <a href={`tel:${quote.phone}`} className="rounded-lg border border-catalyst-border px-3 py-1.5 text-sm text-green-400 hover:bg-green-500/10 transition-colors">Call</a>
-          <a href={`sms:${quote.phone}`} className="rounded-lg border border-catalyst-border px-3 py-1.5 text-sm text-blue-400 hover:bg-blue-500/10 transition-colors">Text</a>
-          <a href={`mailto:${quote.email}`} className="rounded-lg border border-catalyst-border px-3 py-1.5 text-sm text-purple-400 hover:bg-purple-500/10 transition-colors">Email</a>
+          <a href={`tel:${quote.phone}`} title="Call" aria-label="Call" className="flex items-center justify-center rounded-lg border border-catalyst-border w-9 h-9 text-green-400 hover:bg-green-500/10 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </a>
+          <a href={`sms:${quote.phone}`} title="Text" aria-label="Text" className="flex items-center justify-center rounded-lg border border-catalyst-border w-9 h-9 text-blue-400 hover:bg-blue-500/10 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </a>
+          <a href={`mailto:${quote.email}`} title="Email" aria-label="Email" className="flex items-center justify-center rounded-lg border border-catalyst-border w-9 h-9 text-purple-400 hover:bg-purple-500/10 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </a>
           <button
             onClick={toggleArchive}
-            className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-colors ${
+            title={quote.archived ? "Restore contact" : "Archive contact"}
+            aria-label={quote.archived ? "Restore contact" : "Archive contact"}
+            className={`flex items-center justify-center rounded-lg border w-9 h-9 transition-colors ${
               quote.archived
                 ? "border-green-500/30 text-green-400 hover:bg-green-500/10"
                 : "border-catalyst-border text-catalyst-grey-400 hover:text-amber-400 hover:border-amber-500/30"
             }`}
-            title={quote.archived ? "Restore contact" : "Archive contact"}
           >
             {quote.archived ? (
-              <>
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="1 4 1 10 7 10" />
-                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
-                </svg>
-                Restore
-              </>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="1 4 1 10 7 10" />
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+              </svg>
             ) : (
-              <>
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="21 8 21 21 3 21 3 8" />
-                  <rect x="1" y="3" width="22" height="5" />
-                  <line x1="10" y1="12" x2="14" y2="12" />
-                </svg>
-                Archive
-              </>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="21 8 21 21 3 21 3 8" />
+                <rect x="1" y="3" width="22" height="5" />
+                <line x1="10" y1="12" x2="14" y2="12" />
+              </svg>
             )}
           </button>
           {user?.role === "admin" && (
             <button
               onClick={deleteContact}
-              className="flex items-center gap-1.5 rounded-lg border border-red-500/30 px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
               title="Delete contact (admin)"
+              aria-label="Delete contact"
+              className="flex items-center justify-center rounded-lg border border-red-500/30 w-9 h-9 text-red-400 hover:bg-red-500/10 transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="3 6 5 6 21 6" />
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
               </svg>
-              Delete
             </button>
           )}
         </div>
@@ -354,6 +407,62 @@ export default function CRMContactDetailPage() {
           ))}
         </div>
       </div>
+
+      {/* Documents (quotes + invoices) */}
+      {(salesQuotes.length > 0 || invoices.length > 0) && (
+        <div className="rounded-xl border border-catalyst-border bg-catalyst-card p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="font-heading text-lg font-semibold text-white">Documents</h2>
+            <span className="text-xs text-catalyst-grey-500">
+              {salesQuotes.length} quote{salesQuotes.length === 1 ? "" : "s"}
+              {invoices.length > 0 && ` · ${invoices.length} invoice${invoices.length === 1 ? "" : "s"}`}
+            </span>
+          </div>
+          <div className="space-y-1.5">
+            {salesQuotes.map((sq) => (
+              <button
+                key={`sq-${sq.id}`}
+                onClick={() => router.push(`/admin/quotes-docs/${sq.id}`)}
+                className="w-full flex items-center justify-between gap-3 rounded-lg border border-catalyst-border/50 bg-catalyst-black/40 px-3 py-2 text-left hover:bg-white/5 transition-colors"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 text-catalyst-grey-400"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                  <span className="font-mono text-xs text-white">{sq.quote_number}</span>
+                  <span className={`flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${QUOTE_STATUS_COLORS[sq.status] || ""}`}>
+                    {QUOTE_STATUS_LABELS[sq.status] || sq.status}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  <span className="text-sm font-semibold text-white">${Number(sq.total).toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+                  <span className="text-xs text-catalyst-grey-500 hidden sm:inline">{new Date(sq.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" })}</span>
+                </div>
+              </button>
+            ))}
+            {invoices.map((inv) => (
+              <button
+                key={`inv-${inv.id}`}
+                onClick={() => router.push(`/admin/invoices/${inv.id}`)}
+                className="w-full flex items-center justify-between gap-3 rounded-lg border border-catalyst-border/50 bg-catalyst-black/40 px-3 py-2 text-left hover:bg-white/5 transition-colors"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 text-catalyst-grey-400"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                  <span className="font-mono text-xs text-white">{inv.invoice_number}</span>
+                  <span className="rounded-full px-2 py-0.5 text-xs font-semibold bg-catalyst-grey-500/15 text-catalyst-grey-300">
+                    {inv.type}
+                  </span>
+                  <span className={`flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${INVOICE_STATUS_COLORS[inv.status] || ""}`}>
+                    {INVOICE_STATUS_LABELS[inv.status] || inv.status}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  <span className="text-sm font-semibold text-white">${Number(inv.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+                  <span className="text-xs text-catalyst-grey-500 hidden sm:inline">{inv.paid_at ? new Date(inv.paid_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" }) : "—"}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left column: Contact info + Activity timeline */}
