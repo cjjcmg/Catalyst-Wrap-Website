@@ -74,6 +74,18 @@ function CRMContactsInner() {
   const [agentFilter, setAgentFilter] = useState("");
   const [sort, setSort] = useState("newest");
 
+  // Keep URL search params in sync with active filters so state is
+  // bookmarkable and the dashboard's pipeline links always reflect the
+  // current view.
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (tagFilter) params.set("tag", tagFilter);
+    if (statusFilter) params.set("status", statusFilter);
+    const qs = params.toString();
+    const url = qs ? `/admin/crm/contacts?${qs}` : "/admin/crm/contacts";
+    router.replace(url);
+  }, [tagFilter, statusFilter, router]);
+
   useEffect(() => {
     Promise.all([
       fetch("/api/admin/quotes").then((r) => r.json()),
@@ -139,13 +151,25 @@ function CRMContactsInner() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap">
           <button onClick={() => router.push("/admin/crm")} className="text-catalyst-grey-500 hover:text-white transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5" /><polyline points="12 19 5 12 12 5" /></svg>
           </button>
           <h1 className="font-heading text-2xl sm:text-3xl font-bold text-white">Contacts</h1>
           <span className="text-catalyst-grey-500 text-sm">({filtered.length})</span>
+          {statusFilter && (
+            <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${STATUS_COLORS[statusFilter] || "bg-catalyst-grey-500/15 text-catalyst-grey-400"}`}>
+              {STATUS_LABELS[statusFilter] || statusFilter}
+              <button onClick={() => setStatusFilter("")} className="hover:text-white" aria-label="Clear status filter">✕</button>
+            </span>
+          )}
+          {tagFilter && (
+            <span className="inline-flex items-center gap-2 rounded-full bg-catalyst-grey-500/15 text-catalyst-grey-300 px-3 py-1 text-xs font-medium">
+              {tagFilter === "__none" ? "Untagged" : `Tag ${tagFilter}`}
+              <button onClick={() => setTagFilter("")} className="hover:text-white" aria-label="Clear tag filter">✕</button>
+            </span>
+          )}
         </div>
       </div>
 
