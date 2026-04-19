@@ -312,6 +312,34 @@ export default function QuoteDetailPage() {
     });
   }
 
+  async function sendToSquare() {
+    if (!quote) return;
+    const choice = window.prompt(
+      `Which invoice? Enter:\n  deposit  (${quote.deposit_amount_calc != null ? `$${Number(quote.deposit_amount_calc).toFixed(2)}` : "not configured"})\n  balance  (quote total minus prior invoices)\n  full     ($${Number(quote.total).toFixed(2)})`,
+      "deposit"
+    );
+    if (!choice) return;
+    const type = choice.trim().toLowerCase();
+    if (!["deposit", "balance", "full"].includes(type)) {
+      setError("Type must be 'deposit', 'balance', or 'full'");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    const r = await fetch(`/api/admin/sales-quotes/${id}/send-to-square`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type }),
+    });
+    const d = await r.json();
+    setBusy(false);
+    if (!r.ok) { setError(d.error || "Failed to send to Square"); return; }
+    setError(`Square invoice ${d.invoice.invoice_number} created.`);
+    setTimeout(() => setError(""), 3000);
+    await load();
+    router.push(`/admin/invoices/${d.invoice.id}`);
+  }
+
   async function cancelAcceptance() {
     if (!quote || user?.role !== "admin") return;
     const reason = prompt(
@@ -477,14 +505,14 @@ export default function QuoteDetailPage() {
             </>
           )}
 
-          {quote.status === "accepted" && (
+          {(quote.status === "accepted" || quote.status === "converted") && (
             <>
               <ActionCard
                 title="Send to Square"
-                description="Create a Square invoice for deposit, balance, or full amount. Lands in Phase 4."
-                button={<button disabled className="rounded-lg bg-catalyst-grey-500/20 px-4 py-2 text-sm text-catalyst-grey-500 cursor-not-allowed">Send to Square (Phase 4)</button>}
+                description="Create a Square invoice for deposit, balance, or full amount. Customer gets a Square email with a pay link. Status flips to 'converted' on first invoice."
+                button={<button onClick={sendToSquare} disabled={busy} className="rounded-lg bg-catalyst-red px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-40">{busy ? "Working…" : "Send to Square"}</button>}
               />
-              {user.role === "admin" && (
+              {user.role === "admin" && quote.status === "accepted" && (
                 <ActionCard
                   title="Cancel acceptance (admin)"
                   description="Reverts the quote to draft, wipes the signature, and removes the auto-generated 'send invoice' reminder. Refuses if any invoice already references the quote."
