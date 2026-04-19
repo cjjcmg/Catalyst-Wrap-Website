@@ -174,6 +174,38 @@ export async function voidSquareInvoice(squareInvoiceId: string): Promise<void> 
   await client.invoices.cancel({ invoiceId: squareInvoiceId, version });
 }
 
+/**
+ * Fetch the current Square invoice state (status + completed payment ids).
+ * Used to reconcile local DB with Square when the webhook didn't land or a
+ * cancel attempt fails because Square already marked it paid/canceled.
+ */
+export async function getSquareInvoiceState(squareInvoiceId: string): Promise<{
+  status: string | null;
+  completedPaymentIds: string[];
+  amount: number;
+} | null> {
+  const client = getSquareClient();
+  const res = await client.invoices.get({ invoiceId: squareInvoiceId });
+  const invoice = res.invoice;
+  if (!invoice) return null;
+
+  const reqs = (invoice.paymentRequests || []) as Array<{
+    completedPaymentIds?: string[];
+    computedAmountMoney?: { amount?: bigint | number };
+  }>;
+  const completedPaymentIds = reqs.flatMap((r) => r.completedPaymentIds || []);
+  const amountCents = reqs.reduce((sum, r) => {
+    const raw = r.computedAmountMoney?.amount;
+    return sum + (typeof raw === "bigint" ? Number(raw) : Number(raw || 0));
+  }, 0);
+
+  return {
+    status: invoice.status || null,
+    completedPaymentIds,
+    amount: amountCents / 100,
+  };
+}
+
 /** Refund a completed Square payment. Square accepts partial refunds too. */
 export async function refundSquarePayment(
   squarePaymentId: string,

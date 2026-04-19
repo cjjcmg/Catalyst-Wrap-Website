@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import { seoConfig } from "@/lib/seo";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-import LeadPopup from "@/components/ui/LeadPopup";
+import PublicSiteChrome from "@/components/layout/PublicSiteChrome";
 import "./globals.css";
 
 const inter = Inter({
@@ -218,13 +216,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <Navbar />
-        {/* Offset for fixed navbar */}
-        <div className="pt-24 sm:pt-28">
-          <main>{children}</main>
-        </div>
-        <Footer />
-        <LeadPopup />
+        <PublicSiteChrome>{children}</PublicSiteChrome>
       </body>
     </html>
   );
