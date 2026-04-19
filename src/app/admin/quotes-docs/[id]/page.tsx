@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import type { QuotePDFData } from "@/lib/pdf/QuotePDF";
@@ -101,7 +101,6 @@ type Tab = "preview" | "activity" | "actions";
 export default function QuoteDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const search = useSearchParams();
   const id = Number(params.id);
 
   const [user, setUser] = useState<SessionUser | null>(null);
@@ -146,13 +145,6 @@ export default function QuoteDetailPage() {
     if (user && id) load();
   }, [user, id, load]);
 
-  // Notify user if arriving here via "Save & send" — Phase 3 will expose /send
-  useEffect(() => {
-    if (search.get("send") === "1" && quote) {
-      setError("Send flow ships in Phase 3. This quote is saved as a draft — you can send it from the Actions tab once that lands.");
-      router.replace(`/admin/quotes-docs/${id}`);
-    }
-  }, [search, quote, id, router]);
 
   const pdfData: QuotePDFData | null = useMemo(() => {
     if (!quote || !settings || !quote.quotes) return null;
@@ -227,6 +219,28 @@ export default function QuoteDetailPage() {
     await navigator.clipboard.writeText(url);
     setError("Public link copied to clipboard.");
     setTimeout(() => setError(""), 2000);
+  }
+
+  async function sendQuote(resend: boolean) {
+    if (!quote) return;
+    const note = resend ? undefined : (window.prompt(
+      "Optional personal note to include in the email (leave blank for the default copy):",
+      ""
+    ) ?? undefined);
+    setBusy(true);
+    setError("");
+    const r = await fetch(`/api/admin/sales-quotes/${id}/send`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ note: note && note.trim() ? note.trim() : undefined, resend_only: resend }),
+    });
+    const d = await r.json();
+    setBusy(false);
+    if (!r.ok) { setError(d.error || "Failed to send"); return; }
+    const smsNote = d.sms_sent ? " SMS also sent." : "";
+    setError(resend ? `Email re-sent.${smsNote}` : `Quote sent to customer.${smsNote}`);
+    setTimeout(() => setError(""), 3000);
+    await load();
   }
 
   async function duplicateQuote() {
@@ -396,8 +410,8 @@ export default function QuoteDetailPage() {
             <>
               <ActionCard
                 title="Send to customer"
-                description="Email the quote PDF and acceptance link to the customer. Lands in Phase 3 once the /send endpoint is wired up."
-                button={<button disabled className="rounded-lg bg-catalyst-grey-500/20 px-4 py-2 text-sm text-catalyst-grey-500 cursor-not-allowed">Send (Phase 3)</button>}
+                description="Email the quote PDF + acceptance link. Transitions the quote to 'sent' and starts the 30-day expiration clock."
+                button={<button onClick={() => sendQuote(false)} disabled={busy} className="rounded-lg bg-catalyst-red px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-40">{busy ? "Sending…" : "Send"}</button>}
               />
               <ActionCard
                 title="Edit this draft"
@@ -409,6 +423,11 @@ export default function QuoteDetailPage() {
 
           {(quote.status === "sent" || quote.status === "viewed") && (
             <>
+              <ActionCard
+                title="Resend email"
+                description="Re-send the same PDF + acceptance link. Does not reset the expiration date."
+                button={<button onClick={() => sendQuote(true)} disabled={busy} className="rounded-lg bg-catalyst-red px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-40">{busy ? "Sending…" : "Resend"}</button>}
+              />
               <ActionCard
                 title="Copy public link"
                 description="Share the acceptance URL directly (e.g. if the email bounces)."

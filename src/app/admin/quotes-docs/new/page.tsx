@@ -328,12 +328,21 @@ function NewQuoteInner() {
       return;
     }
 
-    // Phase 3 will expose a /send endpoint — for now, routing to detail either way.
     if (sendAfter) {
-      router.push(`/admin/quotes-docs/${d.quote.id}?send=1`);
-    } else {
-      router.push(`/admin/quotes-docs/${d.quote.id}`);
+      const sr = await fetch(`/api/admin/sales-quotes/${d.quote.id}/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const sd = await sr.json();
+      setSaving(false);
+      if (!sr.ok) {
+        setError(sd.error || "Saved draft, but failed to send. Try again from the detail page.");
+        router.push(`/admin/quotes-docs/${d.quote.id}`);
+        return;
+      }
     }
+    router.push(`/admin/quotes-docs/${d.quote.id}`);
   }
 
   if (!user) return null;
