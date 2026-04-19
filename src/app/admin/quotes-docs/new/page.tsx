@@ -6,14 +6,10 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { QuotePDFData } from "@/lib/pdf/QuotePDF";
 
-// react-pdf needs browser APIs; load dynamically with SSR off.
-const PDFViewer = dynamic(
-  () => import("@react-pdf/renderer").then((m) => m.PDFViewer),
+// Client-only preview (uses BlobProvider internally so it survives Next 15 bundling).
+const QuotePreview = dynamic(
+  () => import("@/components/admin/QuotePreview").then((m) => m.QuotePreview),
   { ssr: false, loading: () => <div className="text-catalyst-grey-500 text-sm">Loading preview...</div> }
-);
-const QuotePDF = dynamic(
-  () => import("@/lib/pdf/QuotePDF").then((m) => m.QuotePDF),
-  { ssr: false }
 );
 
 type SizeTier = "small" | "mid" | "suv" | "truck" | "exotic";
@@ -617,9 +613,7 @@ function NewQuoteInner() {
         {showPreview && (
           <div className="sticky top-36 h-[80vh] rounded-xl overflow-hidden border border-catalyst-border">
             {previewData ? (
-              <PDFViewer width="100%" height="100%" showToolbar={false}>
-                <QuotePDF data={previewData} />
-              </PDFViewer>
+              <QuotePreview data={previewData} />
             ) : (
               <div className="p-6 text-catalyst-grey-500 text-sm">Add a contact and line items to preview the PDF.</div>
             )}

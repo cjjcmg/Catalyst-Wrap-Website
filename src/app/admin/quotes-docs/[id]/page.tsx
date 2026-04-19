@@ -6,13 +6,9 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import type { QuotePDFData } from "@/lib/pdf/QuotePDF";
 
-const PDFViewer = dynamic(
-  () => import("@react-pdf/renderer").then((m) => m.PDFViewer),
+const QuotePreview = dynamic(
+  () => import("@/components/admin/QuotePreview").then((m) => m.QuotePreview),
   { ssr: false, loading: () => <div className="text-catalyst-grey-500 p-6 text-sm">Loading preview...</div> }
-);
-const QuotePDF = dynamic(
-  () => import("@/lib/pdf/QuotePDF").then((m) => m.QuotePDF),
-  { ssr: false }
 );
 
 type Status = "draft" | "sent" | "viewed" | "accepted" | "declined" | "expired" | "converted";
@@ -350,9 +346,7 @@ export default function QuoteDetailPage() {
       {tab === "preview" && (
         <div className="rounded-xl overflow-hidden border border-catalyst-border h-[80vh]">
           {pdfData ? (
-            <PDFViewer width="100%" height="100%" showToolbar>
-              <QuotePDF data={pdfData} />
-            </PDFViewer>
+            <QuotePreview data={pdfData} />
           ) : (
             <div className="p-6 text-catalyst-grey-500">Preview unavailable.</div>
           )}
