@@ -36,10 +36,10 @@ const STATUS_LABELS: Record<string, string> = {
   new: "New",
   contacted: "Contacted",
   quoted: "Quoted",
+  accepted: "Accepted",
   scheduled: "Scheduled",
   in_progress: "In Progress",
   completed: "Completed",
-  client: "Client",
   past_client: "Past Client",
   lost: "Lost",
 };
@@ -48,10 +48,10 @@ const STATUS_COLORS: Record<string, string> = {
   new: "bg-blue-500/15 text-blue-400",
   contacted: "bg-cyan-500/15 text-cyan-400",
   quoted: "bg-purple-500/15 text-purple-400",
+  accepted: "bg-emerald-500/15 text-emerald-400",
   scheduled: "bg-amber-500/15 text-amber-400",
   in_progress: "bg-orange-500/15 text-orange-400",
   completed: "bg-green-500/15 text-green-400",
-  client: "bg-emerald-500/15 text-emerald-400",
   past_client: "bg-catalyst-grey-500/15 text-catalyst-grey-400",
   lost: "bg-red-500/15 text-red-400",
 };

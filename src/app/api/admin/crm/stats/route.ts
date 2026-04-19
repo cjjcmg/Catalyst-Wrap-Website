@@ -22,7 +22,7 @@ export async function GET() {
   const overdueReminders = remindersRes.data || [];
 
   // Pipeline counts
-  const statuses = ["new", "contacted", "quoted", "scheduled", "in_progress", "completed", "client", "past_client", "lost"];
+  const statuses = ["new", "contacted", "quoted", "accepted", "scheduled", "in_progress", "completed", "past_client", "lost"];
   const pipeline: Record<string, number> = {};
   statuses.forEach((s) => { pipeline[s] = 0; });
   quotes.forEach((q) => { if (q.contact_status) pipeline[q.contact_status] = (pipeline[q.contact_status] || 0) + 1; });
