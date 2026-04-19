@@ -12,7 +12,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
     "@mailchimp/mailchimp_marketing": "^3.0.80",
-    "@react-pdf/renderer": "^3.4.5",
+    "@react-pdf/renderer": "^4.5.1",
     "@supabase/supabase-js": "^2.100.1",
     "googleapis": "^171.4.0",
     "jose": "^6.2.2",
