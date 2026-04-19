@@ -327,20 +327,21 @@ function Chrome({ children, settings }: { children: React.ReactNode; settings?: 
     <div style={{ background: "#F8F8F8", minHeight: "100vh", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif", color: "#111" }}>
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "24px 16px" }}>
         <div style={{ background: "#fff", borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,.08)" }}>
-          {/* Header */}
-          <div style={{ padding: "20px 32px", borderBottom: "2px solid #E10600", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+          {/* Header — matches the quote PDF: dark block, white logo, red underline */}
+          <div style={{ background: "#111", padding: "20px 32px", borderBottom: "3px solid #E10600", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
             {settings?.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={settings.logo_url} alt={settings?.business_name || "Catalyst Motorsport"} style={{ height: 36 }} />
+              <img src={settings.logo_url} alt={settings?.business_name || "Catalyst Motorsport"} style={{ height: 42 }} />
             ) : (
-              <div style={{ fontSize: 22, fontWeight: 700, color: "#E10600", letterSpacing: 1 }}>
+              <div style={{ fontSize: 22, fontWeight: 700, color: "#fff", letterSpacing: 1 }}>
                 {(settings?.business_name || "CATALYST MOTORSPORT").toUpperCase()}
               </div>
             )}
             {settings && (
-              <div style={{ textAlign: "right", fontSize: 12, color: "#666", lineHeight: 1.5 }}>
-                <div>{settings.business_phone}</div>
-                <div>{settings.business_website}</div>
+              <div style={{ textAlign: "right", fontSize: 12, color: "#D4D4D4", lineHeight: 1.55 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 2 }}>{settings.business_name}</div>
+                <div>{settings.business_address}</div>
+                <div>{settings.business_phone} · {settings.business_website}</div>
               </div>
             )}
           </div>
@@ -348,8 +349,8 @@ function Chrome({ children, settings }: { children: React.ReactNode; settings?: 
           <div style={{ padding: 32 }}>{children}</div>
 
           {settings && (
-            <div style={{ padding: "16px 32px", borderTop: "1px solid #EAEAEA", color: "#666", fontSize: 12, lineHeight: 1.5 }}>
-              <strong style={{ color: "#111" }}>{settings.business_name}</strong> · {settings.business_address}
+            <div style={{ padding: "16px 32px", borderTop: "1px solid #EAEAEA", color: "#666", fontSize: 12, lineHeight: 1.5, textAlign: "center" }}>
+              Questions? Call <a href={`tel:${settings.business_phone}`} style={{ color: "#E10600", textDecoration: "none" }}>{settings.business_phone}</a> · {settings.business_website}
             </div>
           )}
         </div>

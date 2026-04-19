@@ -23,7 +23,7 @@ interface ChromeOpts {
 function withChrome(o: ChromeOpts): string {
   const logoBlock = o.logoUrl
     ? `<img src="${o.logoUrl}" alt="${esc(o.businessName)}" height="40" style="display:block;border:0;outline:none;">`
-    : `<span style="font-size:22px;font-weight:700;color:${RED};letter-spacing:1px;">${esc(o.businessName.toUpperCase())}</span>`;
+    : `<span style="font-size:22px;font-weight:700;color:#ffffff;letter-spacing:1px;">${esc(o.businessName.toUpperCase())}</span>`;
 
   return `<!doctype html>
 <html>
@@ -39,8 +39,17 @@ function withChrome(o: ChromeOpts): string {
         <td align="center">
           <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background-color:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);">
             <tr>
-              <td style="padding:24px 32px;border-bottom:2px solid ${RED};">
-                ${logoBlock}
+              <td style="background-color:#111111;padding:20px 32px;border-bottom:3px solid ${RED};">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td style="vertical-align:middle;">${logoBlock}</td>
+                    <td style="vertical-align:middle;text-align:right;color:#D4D4D4;font-size:12px;line-height:1.55;">
+                      <strong style="color:#ffffff;font-size:13px;">${esc(o.businessName)}</strong><br>
+                      ${esc(o.businessAddress)}<br>
+                      ${esc(o.businessPhone)} · ${esc(o.businessWebsite)}
+                    </td>
+                  </tr>
+                </table>
               </td>
             </tr>
             <tr>
@@ -49,10 +58,8 @@ function withChrome(o: ChromeOpts): string {
               </td>
             </tr>
             <tr>
-              <td style="padding:16px 32px 24px;border-top:1px solid #EAEAEA;color:${GREY};font-size:12px;line-height:1.5;">
-                <strong style="color:${DARK};">${esc(o.businessName)}</strong><br>
-                ${esc(o.businessAddress)}<br>
-                ${esc(o.businessPhone)} · ${esc(o.businessWebsite)}
+              <td style="padding:16px 32px 24px;border-top:1px solid #EAEAEA;color:${GREY};font-size:12px;line-height:1.5;text-align:center;">
+                Questions? Call <a href="tel:${esc(o.businessPhone)}" style="color:${RED};text-decoration:none;">${esc(o.businessPhone)}</a> · ${esc(o.businessWebsite)}
               </td>
             </tr>
           </table>
