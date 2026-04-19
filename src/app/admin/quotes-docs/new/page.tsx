@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -122,6 +122,20 @@ function NewQuoteInner() {
   const [terms, setTerms] = useState("");
 
   const [showPreview, setShowPreview] = useState(false);
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const catalogRef = useRef<HTMLDivElement | null>(null);
+
+  // Close catalog dropdown when clicking outside
+  useEffect(() => {
+    if (!catalogOpen) return;
+    function onDocClick(e: MouseEvent) {
+      if (catalogRef.current && !catalogRef.current.contains(e.target as Node)) {
+        setCatalogOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [catalogOpen]);
 
   // Load session + invariant data
   useEffect(() => {
@@ -255,6 +269,7 @@ function NewQuoteInner() {
         is_taxable: p.is_taxable,
       },
     ]);
+    setCatalogOpen(false);
   }
 
   function addManual() {
@@ -469,33 +484,40 @@ function NewQuoteInner() {
                 >
                   + Manual line
                 </button>
-                <details className="relative">
-                  <summary className="list-none rounded-lg border border-catalyst-border px-3 py-1.5 text-xs text-catalyst-grey-300 hover:text-white transition-colors cursor-pointer">
+                <div ref={catalogRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setCatalogOpen((v) => !v)}
+                    className="rounded-lg border border-catalyst-border px-3 py-1.5 text-xs text-catalyst-grey-300 hover:text-white transition-colors"
+                  >
                     + From catalog ({sizeTier} prices)
-                  </summary>
-                  <div className="absolute z-10 mt-1 w-96 max-h-96 overflow-auto rounded-lg border border-catalyst-border bg-catalyst-card shadow-xl">
-                    {(["wrap", "ppf", "ceramic", "detail"] as const).map((cat) => (
-                      <div key={cat} className="border-b border-catalyst-border/50 last:border-b-0">
-                        <div className="px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-catalyst-grey-500 bg-catalyst-black/40">
-                          {cat === "ppf" ? "PPF" : cat.charAt(0).toUpperCase() + cat.slice(1)}
+                  </button>
+                  {catalogOpen && (
+                    <div className="absolute z-10 mt-1 w-96 max-h-96 overflow-auto rounded-lg border border-catalyst-border bg-catalyst-card shadow-xl">
+                      {(["wrap", "ppf", "ceramic", "detail"] as const).map((cat) => (
+                        <div key={cat} className="border-b border-catalyst-border/50 last:border-b-0">
+                          <div className="px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-catalyst-grey-500 bg-catalyst-black/40">
+                            {cat === "ppf" ? "PPF" : cat.charAt(0).toUpperCase() + cat.slice(1)}
+                          </div>
+                          {productsByCategory[cat].map((p) => {
+                            const price = priceFor(p);
+                            return (
+                              <button
+                                key={p.id}
+                                type="button"
+                                onClick={() => addFromProduct(p)}
+                                className="w-full text-left px-3 py-2 hover:bg-white/5 transition-colors flex items-center justify-between gap-2"
+                              >
+                                <span className="text-sm text-white">{p.name}</span>
+                                <span className="text-xs text-catalyst-grey-400">${price.toLocaleString("en-US")}</span>
+                              </button>
+                            );
+                          })}
                         </div>
-                        {productsByCategory[cat].map((p) => {
-                          const price = priceFor(p);
-                          return (
-                            <button
-                              key={p.id}
-                              onClick={() => addFromProduct(p)}
-                              className="w-full text-left px-3 py-2 hover:bg-white/5 transition-colors flex items-center justify-between gap-2"
-                            >
-                              <span className="text-sm text-white">{p.name}</span>
-                              <span className="text-xs text-catalyst-grey-400">${price.toLocaleString("en-US")}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ))}
-                  </div>
-                </details>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </Section>
