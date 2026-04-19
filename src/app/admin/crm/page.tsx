@@ -52,15 +52,15 @@ interface User {
 }
 
 const PIPELINE_LABELS: Record<string, string> = {
-  new: "New", contacted: "Contacted", quoted: "Quoted", scheduled: "Scheduled",
-  in_progress: "In Progress", completed: "Completed", client: "Client",
+  new: "New", contacted: "Contacted", quoted: "Quoted", accepted: "Accepted",
+  scheduled: "Scheduled", in_progress: "In Progress", completed: "Completed",
   past_client: "Past Client", lost: "Lost",
 };
 
 const PIPELINE_COLORS: Record<string, string> = {
   new: "bg-blue-500", contacted: "bg-cyan-500", quoted: "bg-purple-500",
-  scheduled: "bg-amber-500", in_progress: "bg-orange-500", completed: "bg-green-500",
-  client: "bg-emerald-500", past_client: "bg-catalyst-grey-500", lost: "bg-red-500",
+  accepted: "bg-emerald-500", scheduled: "bg-amber-500", in_progress: "bg-orange-500",
+  completed: "bg-green-500", past_client: "bg-catalyst-grey-500", lost: "bg-red-500",
 };
 
 const TAG_COLORS: Record<string, string> = {

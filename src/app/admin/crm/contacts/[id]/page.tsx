@@ -83,9 +83,9 @@ interface DocInvoice {
   square_public_url: string | null;
 }
 
-const STATUSES = ["new", "contacted", "quoted", "scheduled", "in_progress", "completed", "client", "past_client", "lost"];
-const STATUS_LABELS: Record<string, string> = { new: "New", contacted: "Contacted", quoted: "Quoted", scheduled: "Scheduled", in_progress: "In Progress", completed: "Completed", client: "Client", past_client: "Past Client", lost: "Lost" };
-const STATUS_COLORS: Record<string, string> = { new: "bg-blue-500", contacted: "bg-cyan-500", quoted: "bg-purple-500", scheduled: "bg-amber-500", in_progress: "bg-orange-500", completed: "bg-green-500", client: "bg-emerald-500", past_client: "bg-catalyst-grey-500", lost: "bg-red-500" };
+const STATUSES = ["new", "contacted", "quoted", "accepted", "scheduled", "in_progress", "completed", "past_client", "lost"];
+const STATUS_LABELS: Record<string, string> = { new: "New", contacted: "Contacted", quoted: "Quoted", accepted: "Accepted", scheduled: "Scheduled", in_progress: "In Progress", completed: "Completed", past_client: "Past Client", lost: "Lost" };
+const STATUS_COLORS: Record<string, string> = { new: "bg-blue-500", contacted: "bg-cyan-500", quoted: "bg-purple-500", accepted: "bg-emerald-500", scheduled: "bg-amber-500", in_progress: "bg-orange-500", completed: "bg-green-500", past_client: "bg-catalyst-grey-500", lost: "bg-red-500" };
 const TAG_COLORS: Record<string, string> = { A: "bg-green-500 text-white", B: "bg-amber-500 text-black", C: "bg-red-500 text-white", "!": "bg-violet-500 text-white" };
 const US_STATES = ["CA","AL","AK","AZ","AR","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"];
 const ACTIVITY_TYPES = ["call", "email", "text", "meeting", "note", "quote_sent", "follow_up"];
@@ -138,6 +138,7 @@ export default function CRMContactDetailPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [salesQuotes, setSalesQuotes] = useState<DocSalesQuote[]>([]);
   const [invoices, setInvoices] = useState<DocInvoice[]>([]);
+  const [docSummary, setDocSummary] = useState<{ committed_total: number; paid_total: number; balance_due: number } | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Activity form
@@ -186,6 +187,7 @@ export default function CRMContactDetailPage() {
       setAppointments(apptData.appointments || []);
       setSalesQuotes(docData.quotes || []);
       setInvoices(docData.invoices || []);
+      setDocSummary(docData.summary || null);
       setLoading(false);
     }
     load();
@@ -411,13 +413,34 @@ export default function CRMContactDetailPage() {
       {/* Documents (quotes + invoices) */}
       {(salesQuotes.length > 0 || invoices.length > 0) && (
         <div className="rounded-xl border border-catalyst-border bg-catalyst-card p-5 space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
             <h2 className="font-heading text-lg font-semibold text-white">Documents</h2>
             <span className="text-xs text-catalyst-grey-500">
               {salesQuotes.length} quote{salesQuotes.length === 1 ? "" : "s"}
               {invoices.length > 0 && ` · ${invoices.length} invoice${invoices.length === 1 ? "" : "s"}`}
             </span>
           </div>
+          {docSummary && (docSummary.committed_total > 0 || docSummary.paid_total > 0) && (
+            <div className="grid grid-cols-3 gap-3 text-sm">
+              <SummaryCell
+                label="Committed"
+                value={`$${docSummary.committed_total.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
+                hint="Accepted quote totals"
+              />
+              <SummaryCell
+                label="Paid"
+                value={`$${docSummary.paid_total.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
+                hint="Invoices marked paid"
+                tone="green"
+              />
+              <SummaryCell
+                label="Balance due"
+                value={`$${docSummary.balance_due.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
+                hint="Committed minus paid"
+                tone={docSummary.balance_due > 0 ? "red" : "grey"}
+              />
+            </div>
+          )}
           <div className="space-y-1.5">
             {salesQuotes.map((sq) => (
               <button
@@ -732,6 +755,17 @@ export default function CRMContactDetailPage() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function SummaryCell({ label, value, hint, tone }: { label: string; value: string; hint?: string; tone?: "green" | "red" | "grey" }) {
+  const valueCls = tone === "green" ? "text-green-400" : tone === "red" ? "text-red-400" : "text-white";
+  return (
+    <div className="rounded-lg border border-catalyst-border/50 bg-catalyst-black/40 px-3 py-2">
+      <div className="text-xs font-medium uppercase tracking-wide text-catalyst-grey-500">{label}</div>
+      <div className={`text-lg font-bold ${valueCls}`}>{value}</div>
+      {hint && <div className="text-xs text-catalyst-grey-600 mt-0.5">{hint}</div>}
     </div>
   );
 }

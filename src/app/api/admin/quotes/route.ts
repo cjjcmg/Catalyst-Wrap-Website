@@ -50,8 +50,8 @@ const ALLOWED_FIELDS = new Set([
 
 const VALID_TAGS = new Set(["A", "B", "C", "!"]);
 const VALID_STATUSES = new Set([
-  "new", "contacted", "quoted", "scheduled", "in_progress",
-  "completed", "client", "past_client", "lost",
+  "new", "contacted", "quoted", "accepted", "scheduled", "in_progress",
+  "completed", "past_client", "lost",
 ]);
 
 export async function PUT(request: Request) {

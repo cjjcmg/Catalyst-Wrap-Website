@@ -29,8 +29,23 @@ export async function GET(_request: Request, { params }: Params) {
       .order("created_at", { ascending: false }),
   ]);
 
+  // Balance due = (sum of accepted/converted quote totals) − (sum of paid invoice amounts).
+  // Declined/expired/draft/sent quotes aren't committed spend, so they don't count.
+  const committedTotal = (quotes || [])
+    .filter((q) => q.status === "accepted" || q.status === "converted")
+    .reduce((s, q) => s + Number(q.total || 0), 0);
+  const paidTotal = (invoices || [])
+    .filter((i) => i.status === "paid")
+    .reduce((s, i) => s + Number(i.amount || 0), 0);
+  const balanceDue = +(committedTotal - paidTotal).toFixed(2);
+
   return NextResponse.json({
     quotes: quotes || [],
     invoices: invoices || [],
+    summary: {
+      committed_total: +committedTotal.toFixed(2),
+      paid_total: +paidTotal.toFixed(2),
+      balance_due: balanceDue,
+    },
   });
 }
