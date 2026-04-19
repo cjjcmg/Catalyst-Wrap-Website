@@ -400,7 +400,7 @@ export default function QuoteDetailPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 border-b border-catalyst-border">
+      <div className="flex items-center gap-1 border-b border-catalyst-border overflow-x-auto">
         {(["preview", "activity", "actions"] as Tab[]).map((t) => (
           <button
             key={t}
@@ -523,6 +523,11 @@ export default function QuoteDetailPage() {
           )}
 
           <ActionCard
+            title="Preview email"
+            description="See exactly what the customer will receive when you click Send — subject, body, acceptance URL."
+            button={<Link href={`/admin/quotes-docs/${id}/email-preview`} className="inline-block rounded-lg border border-catalyst-border px-4 py-2 text-sm text-white hover:bg-white/5 transition-colors">Preview email</Link>}
+          />
+          <ActionCard
             title="Duplicate"
             description="Create a new draft with identical line items and adjustments, linked to the same contact."
             button={<button onClick={duplicateQuote} disabled={busy} className="rounded-lg border border-catalyst-border px-4 py-2 text-sm text-white hover:bg-white/5 transition-colors disabled:opacity-40">Duplicate</button>}
@@ -557,8 +562,8 @@ function TimelineRow({ label, timestamp, detail }: { label: string; timestamp: s
 
 function ActionCard({ title, description, button }: { title: string; description: string; button: React.ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-4 py-3 border-b border-catalyst-border/50 last:border-b-0">
-      <div>
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 py-3 border-b border-catalyst-border/50 last:border-b-0">
+      <div className="min-w-0">
         <h4 className="text-sm font-semibold text-white">{title}</h4>
         <p className="text-xs text-catalyst-grey-500 mt-0.5">{description}</p>
       </div>

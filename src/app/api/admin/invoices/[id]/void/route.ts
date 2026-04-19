@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/get-user";
 import { supabase } from "@/lib/supabase";
-import { isSquareConfigured, voidSquareInvoice } from "@/lib/square";
+import { isSquareConfigured, voidSquareInvoice, getSquareInvoiceState } from "@/lib/square";
+import { reconcileInvoice } from "@/lib/invoicing/reconcile";
 import { logAudit } from "@/lib/audit";
 
 type Params = { params: Promise<{ id: string }> };
@@ -17,7 +18,7 @@ export async function POST(_request: Request, { params }: Params) {
 
   const { data: invoice, error } = await supabase
     .from("invoices")
-    .select("id, invoice_number, status, square_invoice_id")
+    .select("id, invoice_number, status, amount, square_invoice_id")
     .eq("id", iid)
     .single();
 
@@ -38,8 +39,31 @@ export async function POST(_request: Request, { params }: Params) {
       await voidSquareInvoice(invoice.square_invoice_id);
     } catch (e) {
       console.error("voidSquareInvoice failed:", e);
-      const msg = e instanceof Error ? e.message : "Square void failed";
-      return NextResponse.json({ error: msg }, { status: 502 });
+      // Most common failure: Square says "Can only cancel an unpaid or
+      // scheduled invoice" because the customer already paid. In that case
+      // the webhook probably missed — reconcile local state from Square's
+      // authoritative record and tell the user to refund instead of void.
+      const msg = e instanceof Error ? e.message : "";
+      const looksLikeAlreadyPaid = /unpaid or scheduled|already paid|already canceled|BAD_REQUEST/i.test(msg);
+      if (looksLikeAlreadyPaid) {
+        try {
+          const state = await getSquareInvoiceState(invoice.square_invoice_id);
+          if (state) {
+            const result = await reconcileInvoice(invoice, state, user);
+            return NextResponse.json(
+              {
+                error: `Square says this invoice is ${state.status?.toLowerCase() || "no longer cancellable"}. Local state synced (${result.previous_status} → ${result.new_status}). Use Refund if you need to return the money.`,
+                reconciled: true,
+                new_status: result.new_status,
+              },
+              { status: 409 }
+            );
+          }
+        } catch (syncErr) {
+          console.error("reconcileInvoice after void failure also failed:", syncErr);
+        }
+      }
+      return NextResponse.json({ error: msg || "Square void failed" }, { status: 502 });
     }
   }
 

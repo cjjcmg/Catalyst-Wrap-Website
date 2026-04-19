@@ -271,22 +271,47 @@ export default function CRMDashboard() {
 
           {/* Pipeline bar */}
           <div className="rounded-xl border border-catalyst-border bg-catalyst-card p-4 sm:p-6 space-y-3">
-            <h2 className="font-heading text-lg font-semibold text-white">Pipeline</h2>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <h2 className="font-heading text-lg font-semibold text-white">Pipeline</h2>
+              <button
+                onClick={() => router.push("/admin/crm/contacts")}
+                className="text-xs text-catalyst-grey-400 hover:text-catalyst-red transition-colors"
+              >
+                All contacts ({pipelineTotal}) →
+              </button>
+            </div>
             {pipelineTotal > 0 ? (
               <>
                 <div className="flex rounded-full overflow-hidden h-6">
                   {Object.entries(stats.pipeline).filter(([, count]) => count > 0).map(([status, count]) => (
-                    <div key={status} onClick={() => router.push(`/admin/crm/contacts?status=${status}`)} className={`${PIPELINE_COLORS[status] || "bg-catalyst-grey-500"} flex items-center justify-center text-xs font-bold text-white cursor-pointer hover:opacity-80 transition-opacity`} style={{ width: `${(count / pipelineTotal) * 100}%` }} title={`${PIPELINE_LABELS[status]}: ${count}`}>
+                    <button
+                      key={status}
+                      onClick={() => router.push(`/admin/crm/contacts?status=${status}`)}
+                      className={`${PIPELINE_COLORS[status] || "bg-catalyst-grey-500"} flex items-center justify-center text-xs font-bold text-white cursor-pointer hover:opacity-80 transition-opacity`}
+                      style={{ width: `${(count / pipelineTotal) * 100}%` }}
+                      title={`${PIPELINE_LABELS[status]}: ${count} — click to view`}
+                      aria-label={`View ${count} ${PIPELINE_LABELS[status]} contact${count === 1 ? "" : "s"}`}
+                    >
                       {count > 0 && (count / pipelineTotal) > 0.06 ? count : ""}
-                    </div>
+                    </button>
                   ))}
                 </div>
-                <div className="flex flex-wrap gap-3">
-                  {Object.entries(stats.pipeline).filter(([, count]) => count > 0).map(([status, count]) => (
-                    <div key={status} className="flex items-center gap-1.5">
-                      <div className={`w-2.5 h-2.5 rounded-full ${PIPELINE_COLORS[status]}`} />
-                      <span className="text-xs text-catalyst-grey-400">{PIPELINE_LABELS[status]} ({count})</span>
-                    </div>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(stats.pipeline).map(([status, count]) => (
+                    <button
+                      key={status}
+                      onClick={() => router.push(`/admin/crm/contacts?status=${status}`)}
+                      className={`flex items-center gap-1.5 rounded-full border px-2 py-0.5 transition-colors ${
+                        count > 0
+                          ? "border-catalyst-border hover:border-catalyst-red hover:bg-white/5"
+                          : "border-catalyst-border/40 opacity-50 hover:opacity-80 hover:border-catalyst-border"
+                      }`}
+                      title={`View ${count} ${PIPELINE_LABELS[status]} contact${count === 1 ? "" : "s"}`}
+                    >
+                      <span className={`w-2.5 h-2.5 rounded-full ${PIPELINE_COLORS[status]}`} />
+                      <span className="text-xs text-catalyst-grey-300">{PIPELINE_LABELS[status]}</span>
+                      <span className="text-xs text-white font-semibold">{count}</span>
+                    </button>
                   ))}
                 </div>
               </>

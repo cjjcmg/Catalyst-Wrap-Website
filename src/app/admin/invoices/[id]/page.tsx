@@ -106,6 +106,37 @@ export default function InvoiceDetailPage() {
     await load();
   }
 
+  async function deleteInvoice() {
+    if (!invoice || user?.role !== "admin") return;
+    const msg = `Permanently delete ${invoice.invoice_number} and its ${payments.length} payment row${payments.length === 1 ? "" : "s"} from the local database?\n\nThis does NOT touch Square — if the invoice exists there, you'll need to void or refund it separately on the Square dashboard.\n\nType DELETE to confirm:`;
+    const confirmation = window.prompt(msg);
+    if (confirmation !== "DELETE") return;
+    setBusy(true);
+    setError("");
+    const r = await fetch(`/api/admin/invoices/${id}`, { method: "DELETE" });
+    const d = await r.json();
+    setBusy(false);
+    if (!r.ok) { setError(d.error || "Delete failed"); return; }
+    router.push("/admin/invoices");
+  }
+
+  async function syncFromSquare() {
+    if (!invoice) return;
+    setBusy(true);
+    setError("");
+    const r = await fetch(`/api/admin/invoices/${id}/sync`, { method: "POST" });
+    const d = await r.json();
+    setBusy(false);
+    if (!r.ok) { setError(d.error || "Sync failed"); return; }
+    if (d.synced) {
+      setMessage(`Synced from Square: ${d.previous_status} → ${d.new_status} (${d.payments_inserted} new payment row${d.payments_inserted === 1 ? "" : "s"}).`);
+    } else {
+      setMessage("Already in sync with Square.");
+    }
+    setTimeout(() => setMessage(""), 4000);
+    await load();
+  }
+
   async function refundInvoice() {
     if (!invoice || user?.role !== "admin") return;
     const amountStr = prompt(`Refund amount (max $${Number(invoice.amount).toFixed(2)}). Leave blank for full refund:`);
@@ -188,8 +219,22 @@ export default function InvoiceDetailPage() {
           {user.role === "admin" && invoice.status !== "paid" && invoice.status !== "void" && (
             <Action
               title="Void"
-              description="Cancels on Square and marks this invoice void locally."
+              description="Cancels on Square and marks this invoice void locally. If Square already marked the invoice paid (webhook missed), this button reconciles local state and suggests a refund instead."
               button={<button onClick={voidInvoice} disabled={busy} className="rounded-lg border border-red-500/30 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40">{busy ? "..." : "Void"}</button>}
+            />
+          )}
+          {invoice.square_invoice_id && invoice.status !== "void" && (
+            <Action
+              title="Sync from Square"
+              description="Pull the authoritative invoice state from Square and update local records. Use this if you know payment happened but the dashboard still shows pending (webhook missed, signature mismatch, etc.)."
+              button={<button onClick={syncFromSquare} disabled={busy} className="rounded-lg border border-catalyst-border px-4 py-2 text-sm text-white hover:bg-white/5 transition-colors disabled:opacity-40">{busy ? "..." : "Sync"}</button>}
+            />
+          )}
+          {user.role === "admin" && (
+            <Action
+              title="Delete locally (admin)"
+              description="Wipe this invoice and its payment rows from the Catalyst database. Does NOT touch Square — use this for test invoices or mistaken records. If this is the quote's only invoice, the quote reverts from Converted to Accepted."
+              button={<button onClick={deleteInvoice} disabled={busy} className="rounded-lg border border-red-500/30 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40">{busy ? "..." : "Delete"}</button>}
             />
           )}
           {user.role === "admin" && invoice.status === "paid" && (
@@ -247,7 +292,7 @@ export default function InvoiceDetailPage() {
 
 function Action({ title, description, button }: { title: string; description: string; button: React.ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-3 rounded-lg border border-catalyst-border/50 bg-catalyst-black/40 p-3">
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 rounded-lg border border-catalyst-border/50 bg-catalyst-black/40 p-3">
       <div className="min-w-0">
         <h4 className="text-sm font-semibold text-white">{title}</h4>
         <p className="text-xs text-catalyst-grey-500 mt-0.5">{description}</p>

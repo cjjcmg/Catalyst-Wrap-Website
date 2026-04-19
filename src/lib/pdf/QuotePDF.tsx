@@ -59,40 +59,46 @@ const BG = "#F8F8F8";
 
 const styles = StyleSheet.create({
   page: {
-    padding: 40,
+    padding: 0,
     fontSize: 10,
     fontFamily: "Helvetica",
     color: DARK,
   },
+  pageBody: {
+    padding: 40,
+    paddingTop: 24,
+  },
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 24,
-    borderBottomWidth: 2,
+    alignItems: "center",
+    backgroundColor: DARK,
+    paddingHorizontal: 40,
+    paddingVertical: 18,
+    borderBottomWidth: 3,
     borderBottomColor: RED,
-    paddingBottom: 12,
+    marginBottom: 24,
   },
   logo: {
-    width: 140,
-    height: 40,
+    width: 180,
+    height: 44,
     objectFit: "contain",
   },
   logoFallback: {
     fontSize: 20,
     fontWeight: "bold",
-    color: RED,
+    color: "#FFFFFF",
     letterSpacing: 1,
   },
   businessBlock: {
     alignItems: "flex-end",
     fontSize: 9,
-    color: GREY,
+    color: "#D4D4D4",
   },
   businessName: {
     fontSize: 11,
     fontWeight: "bold",
-    color: DARK,
+    color: "#FFFFFF",
     marginBottom: 2,
   },
   titleRow: {
@@ -286,6 +292,7 @@ export function QuotePDF({ data }: { data: QuotePDFData }) {
           </View>
         </View>
 
+        <View style={styles.pageBody}>
         {/* Title + meta */}
         <View style={styles.titleRow}>
           <View>
@@ -411,6 +418,7 @@ export function QuotePDF({ data }: { data: QuotePDFData }) {
               </Text>
             </>
           )}
+        </View>
         </View>
 
         <Text

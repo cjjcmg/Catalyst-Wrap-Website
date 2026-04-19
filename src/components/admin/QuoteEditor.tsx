@@ -411,29 +411,29 @@ export function QuoteEditor({ user, contact, products, settings, initialQuote }:
 
   return (
     <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <div className="flex items-center justify-between gap-3 mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
           <h1 className="font-heading text-2xl font-bold text-white">{title}</h1>
           <p className="text-sm text-catalyst-grey-500">{subtitle}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setShowPreview((v) => !v)}
-            className="rounded-lg border border-catalyst-border px-3 py-1.5 text-sm text-catalyst-grey-300 hover:text-white transition-colors"
+            className="hidden lg:inline-block rounded-lg border border-catalyst-border px-3 py-1.5 text-sm text-catalyst-grey-300 hover:text-white transition-colors"
           >
             {showPreview ? "Hide preview" : "Show preview"}
           </button>
           <button
             onClick={() => save(false)}
             disabled={saving}
-            className="rounded-lg border border-catalyst-border px-4 py-2 text-sm text-white hover:bg-white/5 transition-colors disabled:opacity-40"
+            className="rounded-lg border border-catalyst-border px-4 py-2 text-sm text-white hover:bg-white/5 transition-colors disabled:opacity-40 flex-1 sm:flex-none"
           >
             {saving ? "Saving..." : editMode ? "Save changes" : "Save draft"}
           </button>
           <button
             onClick={() => save(true)}
             disabled={saving}
-            className="rounded-lg bg-catalyst-red px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-40"
+            className="rounded-lg bg-catalyst-red px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-40 flex-1 sm:flex-none"
           >
             {editMode ? "Save & send" : "Save & send"}
           </button>
@@ -489,33 +489,42 @@ export function QuoteEditor({ user, contact, products, settings, initialQuote }:
                 <p className="text-xs text-catalyst-grey-500 italic">No items yet. Add one from the catalog or enter manually.</p>
               )}
               {items.map((li) => (
-                <div key={li.key} className="grid grid-cols-12 gap-2 items-start">
+                <div key={li.key} className="rounded-lg border border-catalyst-border/50 bg-catalyst-black/20 p-3 sm:p-0 sm:border-0 sm:bg-transparent sm:grid sm:grid-cols-12 sm:gap-2 sm:items-start space-y-2 sm:space-y-0">
                   <input
                     value={li.description}
                     onChange={(e) => updateItem(li.key, { description: e.target.value })}
                     placeholder="Description"
-                    className={`${inputCls} col-span-5`}
+                    className={`${inputCls} sm:col-span-5`}
                   />
-                  <input
-                    type="number" step="0.5" min="0.5"
-                    value={li.quantity}
-                    onChange={(e) => updateItem(li.key, { quantity: Number(e.target.value) || 1 })}
-                    className={`${inputCls} col-span-1 text-right`}
-                  />
-                  <input
-                    type="number" step="0.01" min="0"
-                    value={li.unit_price}
-                    onChange={(e) => updateItem(li.key, { unit_price: Number(e.target.value) || 0 })}
-                    className={`${inputCls} col-span-2 text-right`}
-                  />
-                  <div className="col-span-2 text-right text-sm text-white py-2 pr-1">
-                    ${(li.quantity * li.unit_price).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  <div className="flex items-center gap-2 sm:contents">
+                    <label className="sm:hidden text-xs text-catalyst-grey-500 uppercase tracking-wide w-12">Qty</label>
+                    <input
+                      type="number" step="0.5" min="0.5"
+                      value={li.quantity}
+                      onChange={(e) => updateItem(li.key, { quantity: Number(e.target.value) || 1 })}
+                      className={`${inputCls} sm:col-span-1 text-right`}
+                      aria-label="Quantity"
+                    />
+                    <label className="sm:hidden text-xs text-catalyst-grey-500 uppercase tracking-wide w-12">Price</label>
+                    <input
+                      type="number" step="0.01" min="0"
+                      value={li.unit_price}
+                      onChange={(e) => updateItem(li.key, { unit_price: Number(e.target.value) || 0 })}
+                      className={`${inputCls} sm:col-span-2 text-right`}
+                      aria-label="Unit price"
+                    />
                   </div>
-                  <label className="col-span-1 flex items-center justify-center gap-1 text-xs text-catalyst-grey-400 py-2">
-                    <input type="checkbox" checked={li.is_taxable} onChange={(e) => updateItem(li.key, { is_taxable: e.target.checked })} />
-                    Tax
-                  </label>
-                  <button onClick={() => removeItem(li.key)} className="col-span-1 text-catalyst-grey-500 hover:text-red-400 transition-colors py-2" title="Remove line">✕</button>
+                  <div className="flex items-center justify-between sm:contents">
+                    <div className="sm:col-span-2 sm:text-right text-sm text-white sm:py-2 sm:pr-1">
+                      <span className="sm:hidden text-xs text-catalyst-grey-500 uppercase tracking-wide mr-2">Line total</span>
+                      ${(li.quantity * li.unit_price).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                    <label className="sm:col-span-1 flex items-center justify-center gap-1 text-xs text-catalyst-grey-400 sm:py-2">
+                      <input type="checkbox" checked={li.is_taxable} onChange={(e) => updateItem(li.key, { is_taxable: e.target.checked })} />
+                      Tax
+                    </label>
+                    <button onClick={() => removeItem(li.key)} className="sm:col-span-1 text-catalyst-grey-500 hover:text-red-400 transition-colors sm:py-2" title="Remove line" aria-label="Remove line">✕</button>
+                  </div>
                 </div>
               ))}
               <div className="flex items-center gap-2 pt-2">
