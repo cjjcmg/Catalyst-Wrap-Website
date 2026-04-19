@@ -312,6 +312,27 @@ export default function QuoteDetailPage() {
     });
   }
 
+  async function cancelAcceptance() {
+    if (!quote || user?.role !== "admin") return;
+    const reason = prompt(
+      `Cancel acceptance on ${quote.quote_number}? This will revert the quote to draft, wipe the signature, and remove the auto-generated "send invoice" reminder.\n\nOptionally enter a reason (shown in the activity feed):`
+    );
+    if (reason === null) return; // user cancelled the prompt itself
+    setBusy(true);
+    setError("");
+    const r = await fetch(`/api/admin/sales-quotes/${id}/cancel-acceptance`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason: reason.trim() || null }),
+    });
+    const d = await r.json();
+    setBusy(false);
+    if (!r.ok) { setError(d.error || "Failed to cancel acceptance"); return; }
+    setError("Acceptance cancelled — quote is now a draft.");
+    setTimeout(() => setError(""), 3000);
+    await load();
+  }
+
   if (loading || !user) return <div className="p-6 text-catalyst-grey-500">Loading...</div>;
   if (!quote) return <div className="p-6 text-catalyst-grey-500">{error || "Not found"}</div>;
 
@@ -463,6 +484,13 @@ export default function QuoteDetailPage() {
                 description="Create a Square invoice for deposit, balance, or full amount. Lands in Phase 4."
                 button={<button disabled className="rounded-lg bg-catalyst-grey-500/20 px-4 py-2 text-sm text-catalyst-grey-500 cursor-not-allowed">Send to Square (Phase 4)</button>}
               />
+              {user.role === "admin" && (
+                <ActionCard
+                  title="Cancel acceptance (admin)"
+                  description="Reverts the quote to draft, wipes the signature, and removes the auto-generated 'send invoice' reminder. Refuses if any invoice already references the quote."
+                  button={<button onClick={cancelAcceptance} disabled={busy} className="rounded-lg border border-amber-500/30 px-4 py-2 text-sm text-amber-400 hover:bg-amber-500/10 transition-colors disabled:opacity-40">Cancel acceptance</button>}
+                />
+              )}
             </>
           )}
 
