@@ -42,6 +42,12 @@ export function getLocationId(): string {
 /**
  * Look up the contact's cached Square customer id, or create a new Square
  * customer record from the contact's name / email / phone and store the id.
+ *
+ * Sandbox and Production customer id spaces are entirely separate — a
+ * sandbox-era id won't resolve against a production API key and vice versa.
+ * To survive environment flips, we verify any cached id with a lightweight
+ * Square lookup first; if it's gone (404 or any lookup error), we null the
+ * cache and create a fresh customer in the current environment.
  */
 export async function ensureSquareCustomer(contactId: number): Promise<string> {
   const { data: contact, error } = await supabase
@@ -50,11 +56,23 @@ export async function ensureSquareCustomer(contactId: number): Promise<string> {
     .eq("id", contactId)
     .single();
   if (error || !contact) throw new Error("Contact not found for Square lookup");
-  if (contact.square_customer_id) return contact.square_customer_id;
+
+  const client = getSquareClient();
+
+  // Verify the cached id still exists in the current Square environment.
+  if (contact.square_customer_id) {
+    try {
+      const check = await client.customers.get({ customerId: contact.square_customer_id });
+      if (check.customer?.id) return contact.square_customer_id;
+    } catch {
+      // fall through — cached id doesn't resolve in this env, recreate
+      console.warn(`Square customer ${contact.square_customer_id} not found in current env; recreating for contact ${contactId}`);
+      await supabase.from("quotes").update({ square_customer_id: null }).eq("id", contactId);
+    }
+  }
 
   const [given, ...rest] = (contact.name || "").trim().split(/\s+/);
   const family = rest.join(" ");
-  const client = getSquareClient();
 
   const res = await client.customers.create({
     idempotencyKey: `contact-${contactId}-${Date.now()}`,
