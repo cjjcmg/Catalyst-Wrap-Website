@@ -53,6 +53,72 @@ const VALID_STATUSES = new Set([
   "new", "contacted", "quoted", "accepted", "scheduled", "in_progress",
   "completed", "past_client", "lost",
 ]);
+const VALID_LABELS = new Set(["lead", "contact", "client", "past client"]);
+
+export async function POST(request: Request) {
+  const user = await getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const rawFields = await request.json();
+
+  if (!rawFields.name || typeof rawFields.name !== "string" || !rawFields.name.trim()) {
+    return NextResponse.json({ error: "Name is required" }, { status: 400 });
+  }
+
+  const fields: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(rawFields)) {
+    if (ALLOWED_FIELDS.has(key)) fields[key] = value;
+  }
+
+  if ("contact_tag" in fields && fields.contact_tag !== null && !VALID_TAGS.has(fields.contact_tag as string)) {
+    return NextResponse.json({ error: "Invalid contact_tag" }, { status: 400 });
+  }
+  if ("contact_status" in fields && fields.contact_status !== null && !VALID_STATUSES.has(fields.contact_status as string)) {
+    return NextResponse.json({ error: "Invalid contact_status" }, { status: 400 });
+  }
+  if ("label" in fields && fields.label !== null && !VALID_LABELS.has(fields.label as string)) {
+    return NextResponse.json({ error: "Invalid label" }, { status: 400 });
+  }
+
+  if (!fields.contact_status) fields.contact_status = "new";
+  if (!fields.source) fields.source = "manual";
+  fields.archived = false;
+  fields.message = fields.message ?? "";
+  fields.email = fields.email ?? "";
+  fields.phone = fields.phone ?? "";
+  fields.service = fields.service ?? "";
+  fields.vehicle = fields.vehicle ?? "";
+
+  const { data, error } = await supabase
+    .from("quotes")
+    .insert(fields)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Create quote error:", error);
+    return NextResponse.json({ error: "Failed to create contact" }, { status: 500 });
+  }
+
+  await logAudit({
+    user_id: user.id,
+    user_email: user.email,
+    action: "create_quote",
+    entity_type: "quote",
+    entity_id: data.id,
+    changes: fields,
+  });
+
+  if (data?.email) {
+    pushContactToMailchimp(data).catch((err: unknown) => {
+      console.error("Mailchimp sync error:", err);
+    });
+  }
+
+  return NextResponse.json({ quote: data }, { status: 201 });
+}
 
 export async function PUT(request: Request) {
   const user = await getUser();

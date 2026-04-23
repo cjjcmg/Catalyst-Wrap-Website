@@ -73,6 +73,7 @@ function CRMContactsInner() {
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "");
   const [agentFilter, setAgentFilter] = useState("");
   const [sort, setSort] = useState("newest");
+  const [showNew, setShowNew] = useState(false);
 
   // Keep URL search params in sync with active filters so state is
   // bookmarkable and the dashboard's pipeline links always reflect the
@@ -171,6 +172,13 @@ function CRMContactsInner() {
             </span>
           )}
         </div>
+        <button
+          onClick={() => setShowNew(true)}
+          className="inline-flex items-center gap-2 rounded-lg bg-catalyst-red px-4 py-2 text-sm font-medium text-white hover:bg-catalyst-red/90 transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+          New Contact
+        </button>
       </div>
 
       {/* Filters */}
@@ -269,6 +277,250 @@ function CRMContactsInner() {
           ))}
         </div>
       )}
+
+      {showNew && (
+        <NewContactModal
+          onClose={() => setShowNew(false)}
+          onCreated={(c) => {
+            setContacts((prev) => [c, ...prev]);
+            setShowNew(false);
+            router.push(`/admin/crm/contacts/${c.id}`);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function NewContactModal({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: (c: Contact) => void;
+}) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [service, setService] = useState("");
+  const [vehicle, setVehicle] = useState("");
+  const [label, setLabel] = useState<string>("lead");
+  const [contactTag, setContactTag] = useState<string>("");
+  const [contactStatus, setContactStatus] = useState<string>("new");
+  const [source, setSource] = useState("manual");
+  const [estimatedValue, setEstimatedValue] = useState("");
+  const [notes, setNotes] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (!name.trim()) {
+      setError("Name is required");
+      return;
+    }
+    setSaving(true);
+    try {
+      const payload: Record<string, unknown> = {
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        service: service.trim(),
+        vehicle: vehicle.trim(),
+        message: notes.trim(),
+        label,
+        contact_status: contactStatus,
+        source: source.trim() || "manual",
+      };
+      if (contactTag) payload.contact_tag = contactTag;
+      if (estimatedValue) {
+        const n = Number(estimatedValue);
+        if (!Number.isNaN(n)) payload.estimated_value = n;
+      }
+      const res = await fetch("/api/admin/quotes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        setError(body.error || "Failed to create contact");
+        setSaving(false);
+        return;
+      }
+      onCreated(body.quote);
+    } catch {
+      setError("Network error");
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
+      <div
+        className="w-full max-w-lg rounded-xl border border-catalyst-border bg-catalyst-card shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <form onSubmit={handleSubmit}>
+          <div className="flex items-center justify-between border-b border-catalyst-border px-5 py-4">
+            <h2 className="font-heading text-lg font-semibold text-white">New Contact</h2>
+            <button type="button" onClick={onClose} className="text-catalyst-grey-500 hover:text-white" aria-label="Close">✕</button>
+          </div>
+
+          <div className="max-h-[70vh] overflow-y-auto px-5 py-4 space-y-3">
+            {error && (
+              <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">{error}</div>
+            )}
+
+            <div>
+              <label className="block text-xs font-medium text-catalyst-grey-400 mb-1">Name *</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                autoFocus
+                className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white focus:border-catalyst-red focus:outline-none"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-catalyst-grey-400 mb-1">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white focus:border-catalyst-red focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-catalyst-grey-400 mb-1">Phone</label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white focus:border-catalyst-red focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-catalyst-grey-400 mb-1">Service</label>
+                <input
+                  type="text"
+                  value={service}
+                  onChange={(e) => setService(e.target.value)}
+                  className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white focus:border-catalyst-red focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-catalyst-grey-400 mb-1">Vehicle</label>
+                <input
+                  type="text"
+                  value={vehicle}
+                  onChange={(e) => setVehicle(e.target.value)}
+                  className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white focus:border-catalyst-red focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-catalyst-grey-400 mb-1">Label</label>
+                <select
+                  value={label}
+                  onChange={(e) => setLabel(e.target.value)}
+                  className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white focus:border-catalyst-red focus:outline-none appearance-none"
+                >
+                  <option value="lead">Lead</option>
+                  <option value="contact">Contact</option>
+                  <option value="client">Client</option>
+                  <option value="past client">Past Client</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-catalyst-grey-400 mb-1">Status</label>
+                <select
+                  value={contactStatus}
+                  onChange={(e) => setContactStatus(e.target.value)}
+                  className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white focus:border-catalyst-red focus:outline-none appearance-none"
+                >
+                  {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-catalyst-grey-400 mb-1">Tag</label>
+                <select
+                  value={contactTag}
+                  onChange={(e) => setContactTag(e.target.value)}
+                  className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white focus:border-catalyst-red focus:outline-none appearance-none"
+                >
+                  <option value="">None</option>
+                  <option value="A">A</option>
+                  <option value="B">B</option>
+                  <option value="C">C</option>
+                  <option value="!">! Needs Attention</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-catalyst-grey-400 mb-1">Source</label>
+                <input
+                  type="text"
+                  value={source}
+                  onChange={(e) => setSource(e.target.value)}
+                  placeholder="manual, referral, website..."
+                  className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white placeholder-catalyst-grey-600 focus:border-catalyst-red focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-catalyst-grey-400 mb-1">Estimated Value ($)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={estimatedValue}
+                  onChange={(e) => setEstimatedValue(e.target.value)}
+                  className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white focus:border-catalyst-red focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-catalyst-grey-400 mb-1">Notes</label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white focus:border-catalyst-red focus:outline-none resize-none"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 border-t border-catalyst-border px-5 py-3">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={saving}
+              className="rounded-lg border border-catalyst-border bg-catalyst-black px-4 py-2 text-sm text-catalyst-grey-300 hover:text-white disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving || !name.trim()}
+              className="rounded-lg bg-catalyst-red px-4 py-2 text-sm font-medium text-white hover:bg-catalyst-red/90 disabled:opacity-50"
+            >
+              {saving ? "Creating..." : "Create Contact"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
