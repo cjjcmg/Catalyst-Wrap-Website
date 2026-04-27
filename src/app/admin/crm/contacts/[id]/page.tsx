@@ -83,6 +83,12 @@ interface DocInvoice {
   square_public_url: string | null;
 }
 
+interface Agent {
+  id: number;
+  name: string;
+  disabled?: boolean;
+}
+
 const STATUSES = ["new", "contacted", "quoted", "accepted", "scheduled", "in_progress", "completed", "past_client", "lost"];
 const STATUS_LABELS: Record<string, string> = { new: "New", contacted: "Contacted", quoted: "Quoted", accepted: "Accepted", scheduled: "Scheduled", in_progress: "In Progress", completed: "Completed", past_client: "Past Client", lost: "Lost" };
 const STATUS_COLORS: Record<string, string> = { new: "bg-blue-500", contacted: "bg-cyan-500", quoted: "bg-purple-500", accepted: "bg-emerald-500", scheduled: "bg-amber-500", in_progress: "bg-orange-500", completed: "bg-green-500", past_client: "bg-catalyst-grey-500", lost: "bg-red-500" };
@@ -139,6 +145,7 @@ export default function CRMContactDetailPage() {
   const [salesQuotes, setSalesQuotes] = useState<DocSalesQuote[]>([]);
   const [invoices, setInvoices] = useState<DocInvoice[]>([]);
   const [docSummary, setDocSummary] = useState<{ committed_total: number; paid_total: number; balance_due: number } | null>(null);
+  const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Activity form
@@ -146,6 +153,7 @@ export default function CRMContactDetailPage() {
   const [actSubject, setActSubject] = useState("");
   const [actBody, setActBody] = useState("");
   const [savingAct, setSavingAct] = useState(false);
+  const [actError, setActError] = useState<string | null>(null);
 
   // Reminder form
   const [showReminderForm, setShowReminderForm] = useState(false);
@@ -155,7 +163,7 @@ export default function CRMContactDetailPage() {
 
   // Edit contact
   const [editing, setEditing] = useState(false);
-  const [editForm, setEditForm] = useState({ name: "", email: "", phone: "", service: "", vehicle: "", message: "", street: "", street2: "", city: "", state: "CA", zip: "" });
+  const [editForm, setEditForm] = useState<{ name: string; email: string; phone: string; service: string; vehicle: string; message: string; street: string; street2: string; city: string; state: string; zip: string; assigned_agent_id: number | null }>({ name: "", email: "", phone: "", service: "", vehicle: "", message: "", street: "", street2: "", city: "", state: "CA", zip: "", assigned_agent_id: null });
   const [saving, setSaving] = useState(false);
 
   // Estimated value
@@ -166,21 +174,22 @@ export default function CRMContactDetailPage() {
     fetch("/api/admin/me").then((r) => r.json()).then((d) => setUser(d.user || null));
 
     async function load() {
-      const [qRes, actRes, noteRes, remRes, apptRes, docRes] = await Promise.all([
+      const [qRes, actRes, noteRes, remRes, apptRes, docRes, usersRes] = await Promise.all([
         fetch(`/api/admin/quotes?id=${quoteId}`),
         fetch(`/api/admin/crm/activities?quote_id=${quoteId}`),
         fetch(`/api/admin/notes?quote_id=${quoteId}`),
         fetch(`/api/admin/crm/reminders?filter=all&quote_id=${quoteId}`),
         fetch(`/api/admin/appointments?quote_id=${quoteId}`),
         fetch(`/api/admin/contacts/${quoteId}/documents`),
+        fetch(`/api/admin/users`),
       ]);
-      const [qData, actData, noteData, remData, apptData, docData] = await Promise.all([
-        qRes.json(), actRes.json(), noteRes.json(), remRes.json(), apptRes.json(), docRes.json(),
+      const [qData, actData, noteData, remData, apptData, docData, usersData] = await Promise.all([
+        qRes.json(), actRes.json(), noteRes.json(), remRes.json(), apptRes.json(), docRes.json(), usersRes.json().catch(() => ({ users: [] })),
       ]);
       const q = qData.quote || null;
       setQuote(q);
       setEstValue(q?.estimated_value?.toString() || "");
-      if (q) setEditForm({ name: q.name, email: q.email, phone: q.phone, service: q.service || "", vehicle: q.vehicle || "", message: q.message || "", street: q.street || "", street2: q.street2 || "", city: q.city || "", state: q.state || "CA", zip: q.zip || "" });
+      if (q) setEditForm({ name: q.name, email: q.email, phone: q.phone, service: q.service || "", vehicle: q.vehicle || "", message: q.message || "", street: q.street || "", street2: q.street2 || "", city: q.city || "", state: q.state || "CA", zip: q.zip || "", assigned_agent_id: q.assigned_agent_id ?? null });
       setActivities(actData.activities || []);
       setNotes(noteData.notes || []);
       setReminders(remData.reminders || []);
@@ -188,6 +197,7 @@ export default function CRMContactDetailPage() {
       setSalesQuotes(docData.quotes || []);
       setInvoices(docData.invoices || []);
       setDocSummary(docData.summary || null);
+      setAgents(((usersData.users || []) as Agent[]).filter((a) => !a.disabled));
       setLoading(false);
     }
     load();
@@ -223,18 +233,27 @@ export default function CRMContactDetailPage() {
   async function logActivity() {
     if (!actSubject.trim()) return;
     setSavingAct(true);
-    const res = await fetch("/api/admin/crm/activities", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ quote_id: quoteId, activity_type: actType, subject: actSubject, body: actBody }),
-    });
-    if (res.ok) {
-      const { activity } = await res.json();
-      setActivities((prev) => [activity, ...prev]);
-      setActSubject("");
-      setActBody("");
+    setActError(null);
+    try {
+      const res = await fetch("/api/admin/crm/activities", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quote_id: quoteId, activity_type: actType, subject: actSubject, body: actBody }),
+      });
+      if (res.ok) {
+        const { activity } = await res.json();
+        setActivities((prev) => [activity, ...prev]);
+        setActSubject("");
+        setActBody("");
+      } else {
+        const { error } = await res.json().catch(() => ({ error: `Request failed (${res.status})` }));
+        setActError(error || `Request failed (${res.status})`);
+      }
+    } catch (err) {
+      setActError(err instanceof Error ? err.message : "Network error");
+    } finally {
+      setSavingAct(false);
     }
-    setSavingAct(false);
   }
 
   async function addReminder() {
@@ -494,9 +513,17 @@ export default function CRMContactDetailPage() {
           <div className="rounded-xl border border-catalyst-border bg-catalyst-card p-5 space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="font-heading text-lg font-semibold text-white">Contact Info</h2>
-              {!editing && (
+              {editing ? (
                 <button
-                  onClick={() => { setEditing(true); setEditForm({ name: quote.name, email: quote.email, phone: quote.phone, service: quote.service || "", vehicle: quote.vehicle || "", message: quote.message || "", street: quote.street || "", street2: quote.street2 || "", city: quote.city || "", state: quote.state || "CA", zip: quote.zip || "" }); }}
+                  onClick={() => setEditing(false)}
+                  className="flex items-center gap-1.5 rounded-lg border border-catalyst-border px-3 py-1.5 text-sm font-semibold text-catalyst-grey-300 hover:text-white hover:border-catalyst-grey-500 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                  Cancel
+                </button>
+              ) : (
+                <button
+                  onClick={() => { setEditing(true); setEditForm({ name: quote.name, email: quote.email, phone: quote.phone, service: quote.service || "", vehicle: quote.vehicle || "", message: quote.message || "", street: quote.street || "", street2: quote.street2 || "", city: quote.city || "", state: quote.state || "CA", zip: quote.zip || "", assigned_agent_id: quote.assigned_agent_id ?? null }); }}
                   className="flex items-center gap-1.5 rounded-lg bg-catalyst-red px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
@@ -549,6 +576,17 @@ export default function CRMContactDetailPage() {
                   </div>
                 </div>
                 <div>
+                  <label className="block text-xs text-catalyst-grey-500 uppercase tracking-wider mb-1">Assigned Agent</label>
+                  <select
+                    value={editForm.assigned_agent_id ?? ""}
+                    onChange={(e) => setEditForm({ ...editForm, assigned_agent_id: e.target.value ? Number(e.target.value) : null })}
+                    className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white focus:border-catalyst-red focus:outline-none appearance-none"
+                  >
+                    <option value="">Unassigned</option>
+                    {agents.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  </select>
+                </div>
+                <div>
                   <label className="block text-xs text-catalyst-grey-500 uppercase tracking-wider mb-1">Message</label>
                   <textarea
                     rows={3}
@@ -595,6 +633,17 @@ export default function CRMContactDetailPage() {
                   )}
                 </div>
                 <div>
+                  <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Assigned Agent</p>
+                  <select
+                    value={quote.assigned_agent_id ?? ""}
+                    onChange={(e) => updateField("assigned_agent_id", e.target.value ? Number(e.target.value) : null)}
+                    className="mt-0.5 w-full rounded border border-catalyst-border bg-catalyst-black px-2 py-1 text-sm text-white focus:border-catalyst-red focus:outline-none appearance-none"
+                  >
+                    <option value="">Unassigned</option>
+                    {agents.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  </select>
+                </div>
+                <div>
                   <p className="text-xs text-catalyst-grey-500 uppercase tracking-wider">Source</p>
                   <p className="text-white">{quote.source || "Website"}</p>
                 </div>
@@ -637,6 +686,9 @@ export default function CRMContactDetailPage() {
                 <input type="text" placeholder="Subject" value={actSubject} onChange={(e) => setActSubject(e.target.value)} className="flex-1 rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white placeholder-catalyst-grey-600 focus:outline-none" />
               </div>
               <textarea rows={2} placeholder="Details (optional)" value={actBody} onChange={(e) => setActBody(e.target.value)} className="w-full rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white placeholder-catalyst-grey-600 focus:outline-none resize-none" />
+              {actError && (
+                <p className="text-xs text-red-400">{actError}</p>
+              )}
               <div className="flex justify-end">
                 <button onClick={logActivity} disabled={savingAct || !actSubject.trim()} className="rounded-lg bg-catalyst-red px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-50">
                   {savingAct ? "Logging..." : "Log Activity"}

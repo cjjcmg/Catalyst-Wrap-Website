@@ -62,6 +62,61 @@ function formatPhone(phone: string) {
   return phone;
 }
 
+function formatShortDate(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" });
+}
+
+type SortKey =
+  | "tag"
+  | "name"
+  | "status"
+  | "email"
+  | "phone"
+  | "service"
+  | "vehicle"
+  | "value"
+  | "agent"
+  | "created";
+
+type SortDir = "asc" | "desc";
+
+function ColumnHeader({
+  label,
+  sortKey,
+  currentKey,
+  dir,
+  onSort,
+  align,
+  className,
+}: {
+  label: string;
+  sortKey: SortKey;
+  currentKey: SortKey;
+  dir: SortDir;
+  onSort: (k: SortKey) => void;
+  align?: "left" | "right";
+  className?: string;
+}) {
+  const active = currentKey === sortKey;
+  const justify = align === "right" ? "justify-end" : "justify-start";
+  return (
+    <th
+      scope="col"
+      className={`px-3 py-2 font-medium select-none cursor-pointer hover:text-white transition-colors ${className || ""}`}
+      onClick={() => onSort(sortKey)}
+      aria-sort={active ? (dir === "asc" ? "ascending" : "descending") : "none"}
+    >
+      <span className={`inline-flex items-center gap-1 ${justify}`}>
+        {label}
+        <span className={`text-[10px] leading-none ${active ? "text-catalyst-red" : "text-catalyst-grey-700"}`}>
+          {active ? (dir === "asc" ? "▲" : "▼") : "↕"}
+        </span>
+      </span>
+    </th>
+  );
+}
+
 function CRMContactsInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -72,8 +127,38 @@ function CRMContactsInner() {
   const [tagFilter, setTagFilter] = useState(searchParams.get("tag") || "");
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "");
   const [agentFilter, setAgentFilter] = useState("");
-  const [sort, setSort] = useState("newest");
+  const [sortKey, setSortKey] = useState<SortKey>("created");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [showNew, setShowNew] = useState(false);
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir(key === "created" || key === "value" ? "desc" : "asc");
+    }
+  }
+
+  function agentName(id: number | null) {
+    if (id == null) return "";
+    return agents.find((a) => a.id === id)?.name || "";
+  }
+
+  function sortValue(c: Contact, key: SortKey): string | number {
+    switch (key) {
+      case "tag": return c.contact_tag || "~";
+      case "name": return (c.name || "").toLowerCase();
+      case "status": return c.contact_status ? (STATUS_LABELS[c.contact_status] || c.contact_status) : "~";
+      case "email": return (c.email || "").toLowerCase();
+      case "phone": return (c.phone || "").replace(/\D/g, "");
+      case "service": return (c.service || "").toLowerCase();
+      case "vehicle": return (c.vehicle || "").toLowerCase();
+      case "value": return c.estimated_value || 0;
+      case "agent": return agentName(c.assigned_agent_id).toLowerCase() || "~";
+      case "created": return new Date(c.created_at).getTime();
+    }
+  }
 
   // Keep URL search params in sync with active filters so state is
   // bookmarkable and the dashboard's pipeline links always reflect the
@@ -141,17 +226,19 @@ function CRMContactsInner() {
       );
     })
     .sort((a, b) => {
-      if (sort === "oldest") return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      if (sort === "needs-attention") {
-        const aDate = a.last_contact_date ? new Date(a.last_contact_date).getTime() : 0;
-        const bDate = b.last_contact_date ? new Date(b.last_contact_date).getTime() : 0;
-        return aDate - bDate;
+      const av = sortValue(a, sortKey);
+      const bv = sortValue(b, sortKey);
+      let cmp: number;
+      if (typeof av === "number" && typeof bv === "number") {
+        cmp = av - bv;
+      } else {
+        cmp = String(av).localeCompare(String(bv));
       }
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      return sortDir === "asc" ? cmp : -cmp;
     });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3 flex-wrap">
           <button onClick={() => router.push("/admin/crm")} className="text-catalyst-grey-500 hover:text-white transition-colors">
@@ -203,79 +290,188 @@ function CRMContactsInner() {
           <option value="">All agents</option>
           {agents.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
         </select>
-        <select value={sort} onChange={(e) => setSort(e.target.value)} className="rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white focus:border-catalyst-red focus:outline-none appearance-none">
-          <option value="newest">Newest</option>
-          <option value="oldest">Oldest</option>
-          <option value="needs-attention">Needs Attention</option>
+        {/* Narrow-width sort control (column headers aren't shown below xl) */}
+        <select
+          value={`${sortKey}:${sortDir}`}
+          onChange={(e) => {
+            const [k, d] = e.target.value.split(":") as [SortKey, SortDir];
+            setSortKey(k);
+            setSortDir(d);
+          }}
+          className="xl:hidden rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-2 text-sm text-white focus:border-catalyst-red focus:outline-none appearance-none"
+        >
+          <option value="created:desc">Newest</option>
+          <option value="created:asc">Oldest</option>
+          <option value="name:asc">Name A–Z</option>
+          <option value="name:desc">Name Z–A</option>
+          <option value="status:asc">Status</option>
+          <option value="tag:asc">Tag</option>
+          <option value="value:desc">Value (high→low)</option>
+          <option value="value:asc">Value (low→high)</option>
+          <option value="agent:asc">Agent</option>
         </select>
       </div>
 
-      {/* Contact list */}
+      {/* Contact table (wide screens) */}
       {loading ? (
         <p className="text-catalyst-grey-500">Loading...</p>
       ) : filtered.length === 0 ? (
         <p className="text-catalyst-grey-500 text-sm">No contacts match your filters.</p>
       ) : (
-        <div className="space-y-2">
+        <>
+        <div className="hidden xl:block overflow-x-auto rounded-lg border border-catalyst-border bg-catalyst-card">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-catalyst-border bg-catalyst-black/40 text-left text-xs uppercase tracking-wider text-catalyst-grey-500">
+                <ColumnHeader label="Tag" sortKey="tag" currentKey={sortKey} dir={sortDir} onSort={toggleSort} className="w-12" />
+                <ColumnHeader label="Name" sortKey="name" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <ColumnHeader label="Status" sortKey="status" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <ColumnHeader label="Email" sortKey="email" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <ColumnHeader label="Phone" sortKey="phone" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <ColumnHeader label="Service" sortKey="service" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <ColumnHeader label="Vehicle" sortKey="vehicle" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <ColumnHeader label="Value" sortKey="value" currentKey={sortKey} dir={sortDir} onSort={toggleSort} align="right" />
+                <ColumnHeader label="Agent" sortKey="agent" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <ColumnHeader label="Created" sortKey="created" currentKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <th className="px-3 py-2 font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((c) => (
+                <tr
+                  key={c.id}
+                  className="border-b border-catalyst-border/50 last:border-b-0 cursor-pointer hover:bg-white/5 transition-colors"
+                  onClick={() => router.push(`/admin/crm/contacts/${c.id}`)}
+                >
+                  <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={() => cycleTag(c.id, c.contact_tag)}
+                      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                        c.contact_tag ? TAG_COLORS[c.contact_tag] : "bg-catalyst-border text-catalyst-grey-500"
+                      }`}
+                      title={`Tag: ${c.contact_tag || "None"} (click to cycle)`}
+                    >
+                      {c.contact_tag || "—"}
+                    </button>
+                  </td>
+                  <td className="px-3 py-2 text-white font-medium whitespace-nowrap">{c.name}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    {c.contact_status ? (
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[c.contact_status] || "bg-catalyst-grey-500/15 text-catalyst-grey-400"}`}>
+                        {STATUS_LABELS[c.contact_status] || c.contact_status}
+                      </span>
+                    ) : (
+                      <span className="text-catalyst-grey-600">—</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2 text-catalyst-grey-300 max-w-[220px] truncate" title={c.email}>{c.email || <span className="text-catalyst-grey-600">—</span>}</td>
+                  <td className="px-3 py-2 text-catalyst-grey-300 whitespace-nowrap">{c.phone ? formatPhone(c.phone) : <span className="text-catalyst-grey-600">—</span>}</td>
+                  <td className="px-3 py-2 text-catalyst-grey-300 max-w-[180px] truncate" title={c.service}>{c.service || <span className="text-catalyst-grey-600">—</span>}</td>
+                  <td className="px-3 py-2 text-catalyst-grey-300 max-w-[160px] truncate" title={c.vehicle}>{c.vehicle || <span className="text-catalyst-grey-600">—</span>}</td>
+                  <td className="px-3 py-2 text-right text-green-400 whitespace-nowrap">{c.estimated_value ? `$${c.estimated_value.toLocaleString()}` : <span className="text-catalyst-grey-600">—</span>}</td>
+                  <td className="px-3 py-2 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                    <select
+                      value={c.assigned_agent_id || ""}
+                      onChange={(e) => assignAgent(c.id, e.target.value ? Number(e.target.value) : null)}
+                      className="rounded border border-catalyst-border bg-catalyst-black px-2 py-1 text-xs text-catalyst-grey-400 focus:outline-none appearance-none max-w-[110px]"
+                    >
+                      <option value="">Unassigned</option>
+                      {agents.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                    </select>
+                  </td>
+                  <td className="px-3 py-2 text-catalyst-grey-400 whitespace-nowrap">{formatShortDate(c.created_at)}</td>
+                  <td className="px-3 py-2 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-2">
+                      <a href={`tel:${c.phone}`} className="text-catalyst-grey-600 hover:text-green-400 transition-colors" aria-label="Call">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
+                      </a>
+                      <a href={`sms:${c.phone}`} className="text-catalyst-grey-600 hover:text-blue-400 transition-colors" aria-label="Text">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Responsive card layout (narrower screens) */}
+        <div className="xl:hidden rounded-lg border border-catalyst-border bg-catalyst-card divide-y divide-catalyst-border/50">
           {filtered.map((c) => (
             <div
               key={c.id}
-              className="flex items-center gap-3 rounded-lg border border-catalyst-border bg-catalyst-card p-3 cursor-pointer hover:border-catalyst-grey-600 transition-colors"
+              className="p-3 cursor-pointer hover:bg-white/5 transition-colors"
               onClick={() => router.push(`/admin/crm/contacts/${c.id}`)}
             >
-              {/* Tag button */}
-              <button
-                onClick={(e) => { e.stopPropagation(); cycleTag(c.id, c.contact_tag); }}
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                  c.contact_tag ? TAG_COLORS[c.contact_tag] : "bg-catalyst-border text-catalyst-grey-500"
-                }`}
-                title={`Tag: ${c.contact_tag || "None"} (click to cycle)`}
-              >
-                {c.contact_tag || "—"}
-              </button>
+              {/* Row 1: tag, name, status, value, actions */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={(e) => { e.stopPropagation(); cycleTag(c.id, c.contact_tag); }}
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                    c.contact_tag ? TAG_COLORS[c.contact_tag] : "bg-catalyst-border text-catalyst-grey-500"
+                  }`}
+                  title={`Tag: ${c.contact_tag || "None"} (click to cycle)`}
+                >
+                  {c.contact_tag || "—"}
+                </button>
 
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-white font-medium">{c.name}</p>
-                  {c.contact_status && (
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[c.contact_status] || "bg-catalyst-grey-500/15 text-catalyst-grey-400"}`}>
-                      {STATUS_LABELS[c.contact_status] || c.contact_status}
-                    </span>
-                  )}
-                  {c.estimated_value && (
-                    <span className="text-xs text-green-400">${c.estimated_value.toLocaleString()}</span>
-                  )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-white font-medium truncate">{c.name}</p>
+                    {c.contact_status && (
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[c.contact_status] || "bg-catalyst-grey-500/15 text-catalyst-grey-400"}`}>
+                        {STATUS_LABELS[c.contact_status] || c.contact_status}
+                      </span>
+                    )}
+                    {c.estimated_value ? (
+                      <span className="text-xs font-medium text-green-400">${c.estimated_value.toLocaleString()}</span>
+                    ) : null}
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 text-sm text-catalyst-grey-400 mt-0.5">
-                  <span className="truncate">{c.email}</span>
-                  <span className="whitespace-nowrap">{formatPhone(c.phone)}</span>
+
+                <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                  <a href={`tel:${c.phone}`} className="text-catalyst-grey-600 hover:text-green-400 transition-colors" aria-label="Call">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
+                  </a>
+                  <a href={`sms:${c.phone}`} className="text-catalyst-grey-600 hover:text-blue-400 transition-colors" aria-label="Text">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                  </a>
                 </div>
-                {c.service && (
-                  <p className="text-xs text-catalyst-grey-500 mt-0.5">{c.service}{c.vehicle ? ` — ${c.vehicle}` : ""}</p>
-                )}
               </div>
 
-              {/* Quick actions + agent */}
-              <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                <a href={`tel:${c.phone}`} className="tooltip text-catalyst-grey-600 hover:text-green-400 transition-colors" data-tip="Call">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
-                </a>
-                <a href={`sms:${c.phone}`} className="tooltip text-catalyst-grey-600 hover:text-blue-400 transition-colors" data-tip="Text">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-                </a>
-                <select
-                  value={c.assigned_agent_id || ""}
-                  onChange={(e) => assignAgent(c.id, e.target.value ? Number(e.target.value) : null)}
-                  className="rounded border border-catalyst-border bg-catalyst-black px-2 py-1 text-xs text-catalyst-grey-400 focus:outline-none appearance-none max-w-[80px]"
-                >
-                  <option value="">Unassigned</option>
-                  {agents.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-                </select>
+              {/* Row 2+: secondary fields, wrap as needed */}
+              <div className="pl-10 mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-catalyst-grey-400">
+                {c.email && (
+                  <span className="inline-flex items-center gap-1 max-w-full truncate" title={c.email}>
+                    <span className="text-catalyst-grey-600">✉</span>{c.email}
+                  </span>
+                )}
+                {c.phone && (
+                  <span className="whitespace-nowrap">{formatPhone(c.phone)}</span>
+                )}
+                {c.service && (
+                  <span className="max-w-full truncate" title={c.service}>{c.service}</span>
+                )}
+                {c.vehicle && (
+                  <span className="max-w-full truncate" title={c.vehicle}>{c.vehicle}</span>
+                )}
+                <span className="text-catalyst-grey-600 whitespace-nowrap">{formatShortDate(c.created_at)}</span>
+                <span className="ml-auto" onClick={(e) => e.stopPropagation()}>
+                  <select
+                    value={c.assigned_agent_id || ""}
+                    onChange={(e) => assignAgent(c.id, e.target.value ? Number(e.target.value) : null)}
+                    className="rounded border border-catalyst-border bg-catalyst-black px-2 py-1 text-xs text-catalyst-grey-400 focus:outline-none appearance-none max-w-[120px]"
+                  >
+                    <option value="">Unassigned</option>
+                    {agents.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  </select>
+                </span>
               </div>
             </div>
           ))}
         </div>
+        </>
       )}
 
       {showNew && (

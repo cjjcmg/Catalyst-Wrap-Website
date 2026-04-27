@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
 import { sendWelcomeEmail } from "@/lib/welcome-email";
 import { pushContactToMailchimp } from "@/lib/mailchimp";
+import { notifyNewContact } from "@/lib/crm-notifications";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -60,6 +61,14 @@ export async function POST(request: Request) {
     // Update first/last name in DB
     if (insertedQuote) {
       await supabase.from("quotes").update({ first_name: firstName, last_name: lastName }).eq("id", insertedQuote.id);
+
+      notifyNewContact({
+        id: insertedQuote.id,
+        name,
+        service,
+        source: "website",
+        label: "lead",
+      }).catch((err: unknown) => console.error("CRM notification error:", err));
     }
 
     // Sync to Mailchimp in background

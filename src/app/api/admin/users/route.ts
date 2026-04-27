@@ -10,8 +10,8 @@ const supabase = createClient(
 
 export async function GET() {
   const user = await getUser();
-  if (!user || user.role !== "admin") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { data, error } = await supabase
@@ -28,14 +28,18 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   const user = await getUser();
-  if (!user || user.role !== "admin") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id, name, email, role } = await request.json();
 
   if (!id) {
     return NextResponse.json({ error: "User ID required" }, { status: 400 });
+  }
+
+  if (role !== undefined && user.role !== "admin") {
+    return NextResponse.json({ error: "Only admins can change user roles" }, { status: 403 });
   }
 
   if (role && !["admin", "user"].includes(role)) {
@@ -74,8 +78,8 @@ export async function PUT(request: Request) {
 
 export async function PATCH(request: Request) {
   const user = await getUser();
-  if (!user || user.role !== "admin") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id, disabled } = await request.json();

@@ -6,17 +6,16 @@ import { logAudit } from "@/lib/audit";
 type Params = { params: Promise<{ id: string }> };
 
 /**
- * Admin-only: reverse an accepted quote back to 'draft', wiping acceptance
- * metadata so the quote can be re-edited, re-sent, or re-signed. Intended
- * for scope changes or mis-clicks — not for staff-driven "never mind"
- * flows after real work has already been invoiced. Refuses if any invoice
- * already references the quote; in that case the correct path is voiding
- * the invoice on Square first (Phase 4).
+ * Reverse an accepted quote back to 'draft', wiping acceptance metadata so
+ * the quote can be re-edited, re-sent, or re-signed. Intended for scope
+ * changes or mis-clicks — not for staff-driven "never mind" flows after
+ * real work has already been invoiced. Refuses if any invoice already
+ * references the quote; in that case the correct path is voiding the
+ * invoice on Square first (Phase 4).
  */
 export async function POST(request: Request, { params }: Params) {
   const user = await getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (user.role !== "admin") return NextResponse.json({ error: "Admin only" }, { status: 403 });
 
   const { id } = await params;
   const qid = Number(id);

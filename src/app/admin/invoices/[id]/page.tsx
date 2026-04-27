@@ -95,7 +95,7 @@ export default function InvoiceDetailPage() {
   }
 
   async function voidInvoice() {
-    if (!invoice || user?.role !== "admin") return;
+    if (!invoice) return;
     if (!confirm(`Void ${invoice.invoice_number}? This cancels the invoice on Square and marks it void locally.`)) return;
     setBusy(true);
     setError("");
@@ -138,7 +138,7 @@ export default function InvoiceDetailPage() {
   }
 
   async function refundInvoice() {
-    if (!invoice || user?.role !== "admin") return;
+    if (!invoice) return;
     const amountStr = prompt(`Refund amount (max $${Number(invoice.amount).toFixed(2)}). Leave blank for full refund:`);
     if (amountStr === null) return;
     const reason = prompt("Reason (optional):") || undefined;
@@ -216,7 +216,7 @@ export default function InvoiceDetailPage() {
               />
             </>
           )}
-          {user.role === "admin" && invoice.status !== "paid" && invoice.status !== "void" && (
+          {invoice.status !== "paid" && invoice.status !== "void" && (
             <Action
               title="Void"
               description="Cancels on Square and marks this invoice void locally. If Square already marked the invoice paid (webhook missed), this button reconciles local state and suggests a refund instead."
@@ -237,7 +237,7 @@ export default function InvoiceDetailPage() {
               button={<button onClick={deleteInvoice} disabled={busy} className="rounded-lg border border-red-500/30 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40">{busy ? "..." : "Delete"}</button>}
             />
           )}
-          {user.role === "admin" && invoice.status === "paid" && (
+          {invoice.status === "paid" && (
             <Action
               title="Refund"
               description="Issues a full or partial refund against the original Square payment."

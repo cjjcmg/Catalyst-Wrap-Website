@@ -56,7 +56,11 @@ export async function POST(request: Request) {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: "Failed to create activity" }, { status: 500 });
+    console.error("Create CRM activity error:", error);
+    return NextResponse.json(
+      { error: `Failed to create activity: ${error.message}`, code: error.code, details: error.details },
+      { status: 500 }
+    );
   }
 
   // Update last_contact_date on the quote

@@ -51,7 +51,7 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
-    if (user?.role === "admin") {
+    if (user) {
       fetchTeamUsers();
     }
   }, [user]);
@@ -94,10 +94,16 @@ export default function SettingsPage() {
   }
 
   async function saveEdit(id: number) {
+    const body: { id: number; name: string; email: string; role?: "admin" | "user" } = {
+      id,
+      name: editName,
+      email: editEmail,
+    };
+    if (user?.role === "admin") body.role = editRole;
     const res = await fetch("/api/admin/users", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, name: editName, email: editEmail, role: editRole }),
+      body: JSON.stringify(body),
     });
     if (res.ok) {
       setEditingId(null);
@@ -258,7 +264,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Team */}
-      {user?.role === "admin" && (
+      {user && (
         <div className="rounded-xl border border-catalyst-border bg-catalyst-card p-5 sm:p-6 space-y-4">
           <h2 className="font-heading text-lg font-semibold text-white">Team</h2>
           {teamLoading ? (
@@ -287,14 +293,20 @@ export default function SettingsPage() {
                           placeholder="Email"
                           className="flex-1 rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-1.5 text-white text-sm placeholder-catalyst-grey-600 focus:border-catalyst-red focus:outline-none"
                         />
-                        <select
-                          value={editRole}
-                          onChange={(e) => setEditRole(e.target.value as "admin" | "user")}
-                          className="rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-1.5 text-white text-sm focus:border-catalyst-red focus:outline-none"
-                        >
-                          <option value="admin">Admin</option>
-                          <option value="user">User</option>
-                        </select>
+                        {user?.role === "admin" ? (
+                          <select
+                            value={editRole}
+                            onChange={(e) => setEditRole(e.target.value as "admin" | "user")}
+                            className="rounded-lg border border-catalyst-border bg-catalyst-black px-3 py-1.5 text-white text-sm focus:border-catalyst-red focus:outline-none"
+                          >
+                            <option value="admin">Admin</option>
+                            <option value="user">User</option>
+                          </select>
+                        ) : (
+                          <span className="text-xs text-catalyst-grey-500 self-center px-2" title="Only admins can change roles">
+                            {editRole === "admin" ? "Admin" : "User"}
+                          </span>
+                        )}
                       </div>
                       <div className="flex gap-2">
                         <button
@@ -340,7 +352,7 @@ export default function SettingsPage() {
                         >
                           {tu.disabled ? "Enable" : "Disable"}
                         </button>
-                        {tu.id !== user.id && (
+                        {user?.role === "admin" && tu.id !== user.id && (
                           <>
                             {deletingId === tu.id ? (
                               <div className="flex items-center gap-1">

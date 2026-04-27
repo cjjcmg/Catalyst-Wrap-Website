@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { getUser } from "@/lib/get-user";
 import { logAudit } from "@/lib/audit";
 import { pushContactToMailchimp } from "@/lib/mailchimp";
+import { notifyNewContact } from "@/lib/crm-notifications";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -109,6 +110,17 @@ export async function POST(request: Request) {
     entity_type: "quote",
     entity_id: data.id,
     changes: fields,
+  });
+
+  notifyNewContact({
+    id: data.id,
+    name: data.name,
+    service: data.service,
+    source: data.source,
+    assigned_agent_id: data.assigned_agent_id,
+    label: data.label,
+  }).catch((err: unknown) => {
+    console.error("CRM notification error:", err);
   });
 
   if (data?.email) {

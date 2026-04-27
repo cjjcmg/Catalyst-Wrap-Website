@@ -341,7 +341,7 @@ export default function QuoteDetailPage() {
   }
 
   async function cancelAcceptance() {
-    if (!quote || user?.role !== "admin") return;
+    if (!quote) return;
     const reason = prompt(
       `Cancel acceptance on ${quote.quote_number}? This will revert the quote to draft, wipe the signature, and remove the auto-generated "send invoice" reminder.\n\nOptionally enter a reason (shown in the activity feed):`
     );
@@ -512,9 +512,9 @@ export default function QuoteDetailPage() {
                 description="Create a Square invoice for deposit, balance, or full amount. Customer gets a Square email with a pay link. Status flips to 'converted' on first invoice."
                 button={<button onClick={sendToSquare} disabled={busy} className="rounded-lg bg-catalyst-red px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-40">{busy ? "Working…" : "Send to Square"}</button>}
               />
-              {user.role === "admin" && quote.status === "accepted" && (
+              {quote.status === "accepted" && (
                 <ActionCard
-                  title="Cancel acceptance (admin)"
+                  title="Cancel acceptance"
                   description="Reverts the quote to draft, wipes the signature, and removes the auto-generated 'send invoice' reminder. Refuses if any invoice already references the quote."
                   button={<button onClick={cancelAcceptance} disabled={busy} className="rounded-lg border border-amber-500/30 px-4 py-2 text-sm text-amber-400 hover:bg-amber-500/10 transition-colors disabled:opacity-40">Cancel acceptance</button>}
                 />

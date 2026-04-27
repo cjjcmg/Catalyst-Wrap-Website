@@ -9,7 +9,6 @@ type Params = { params: Promise<{ id: string }> };
 export async function POST(request: Request, { params }: Params) {
   const user = await getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (user.role !== "admin") return NextResponse.json({ error: "Admin only" }, { status: 403 });
 
   if (!isSquareConfigured()) {
     return NextResponse.json({ error: "Square is not configured" }, { status: 503 });
