@@ -90,7 +90,7 @@ interface Agent {
 }
 
 const STATUSES = ["new", "contacted", "quoted", "accepted", "scheduled", "in_progress", "completed", "past_client", "lost"];
-const STATUS_LABELS: Record<string, string> = { new: "New", contacted: "Contacted", quoted: "Quoted", accepted: "Accepted", scheduled: "Scheduled", in_progress: "In Progress", completed: "Completed", past_client: "Past Client", lost: "Lost" };
+const STATUS_LABELS: Record<string, string> = { new: "Lead", contacted: "Contacted", quoted: "Quoted", accepted: "Accepted", scheduled: "Scheduled", in_progress: "In Progress", completed: "Completed", past_client: "Past Client", lost: "Lost" };
 const STATUS_COLORS: Record<string, string> = { new: "bg-blue-500", contacted: "bg-cyan-500", quoted: "bg-purple-500", accepted: "bg-emerald-500", scheduled: "bg-amber-500", in_progress: "bg-orange-500", completed: "bg-green-500", past_client: "bg-catalyst-grey-500", lost: "bg-red-500" };
 const TAG_COLORS: Record<string, string> = { A: "bg-green-500 text-white", B: "bg-amber-500 text-black", C: "bg-red-500 text-white", "!": "bg-violet-500 text-white" };
 const TAG_PURPOSE: Record<string, string> = { A: "Hot lead", B: "Warm lead", C: "Cold lead", "!": "Urgent — needs follow-up" };

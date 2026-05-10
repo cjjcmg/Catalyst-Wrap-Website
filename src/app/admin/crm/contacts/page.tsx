@@ -39,7 +39,7 @@ const TAG_PURPOSE: Record<string, string> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  new: "New",
+  new: "Lead",
   contacted: "Contacted",
   quoted: "Quoted",
   accepted: "Accepted",

@@ -56,6 +56,17 @@ const VALID_STATUSES = new Set([
 ]);
 const VALID_LABELS = new Set(["lead", "contact", "client", "past client"]);
 
+const STATUS_TO_LABEL: Record<string, string> = {
+  new: "lead",
+  contacted: "contact",
+  quoted: "contact",
+  accepted: "client",
+  scheduled: "client",
+  in_progress: "client",
+  completed: "client",
+  past_client: "past client",
+};
+
 export async function POST(request: Request) {
   const user = await getUser();
   if (!user) {
@@ -84,6 +95,9 @@ export async function POST(request: Request) {
   }
 
   if (!fields.contact_status) fields.contact_status = "new";
+  if (!fields.label && STATUS_TO_LABEL[fields.contact_status as string]) {
+    fields.label = STATUS_TO_LABEL[fields.contact_status as string];
+  }
   if (!fields.source) fields.source = "manual";
   fields.archived = false;
   fields.message = fields.message ?? "";
@@ -152,6 +166,12 @@ export async function PUT(request: Request) {
   }
   if ("contact_status" in fields && fields.contact_status !== null && !VALID_STATUSES.has(fields.contact_status as string)) {
     return NextResponse.json({ error: "Invalid contact_status" }, { status: 400 });
+  }
+
+  const newStatus = fields.contact_status as string | null | undefined;
+  if (newStatus && newStatus !== "lost" && !("label" in fields) && STATUS_TO_LABEL[newStatus]) {
+    const { data: existing } = await supabase.from("quotes").select("archived").eq("id", id).single();
+    if (!existing?.archived) fields.label = STATUS_TO_LABEL[newStatus];
   }
 
   const { data, error } = await supabase

@@ -52,7 +52,7 @@ interface User {
 }
 
 const PIPELINE_LABELS: Record<string, string> = {
-  new: "New", contacted: "Contacted", quoted: "Quoted", accepted: "Accepted",
+  new: "Lead", contacted: "Contacted", quoted: "Quoted", accepted: "Accepted",
   scheduled: "Scheduled", in_progress: "In Progress", completed: "Completed",
   past_client: "Past Client", lost: "Lost",
 };
