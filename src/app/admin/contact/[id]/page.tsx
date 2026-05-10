@@ -59,6 +59,12 @@ const TAG_COLORS: Record<string, string> = {
   C: "bg-red-500 text-white",
   "!": "bg-violet-500 text-white",
 };
+const TAG_PURPOSE: Record<string, string> = {
+  A: "Hot lead",
+  B: "Warm lead",
+  C: "Cold lead",
+  "!": "Urgent — needs follow-up",
+};
 const US_STATES = ["CA","AL","AK","AZ","AR","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"];
 const LABEL_COLORS: Record<string, string> = {
   lead: "bg-blue-500/15 text-blue-400 border-blue-500/30",
@@ -488,7 +494,7 @@ export default function ContactDetailPage() {
                     ? TAG_COLORS[t]
                     : "bg-catalyst-border text-catalyst-grey-600 hover:text-white"
                 }`}
-                title={`Tag: ${t}${quote.contact_tag === t ? " (click to clear)" : ""}`}
+                title={`${TAG_PURPOSE[t]}${quote.contact_tag === t ? " (click to clear)" : ""}`}
               >
                 {t}
               </button>

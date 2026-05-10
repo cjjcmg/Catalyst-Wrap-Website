@@ -66,6 +66,9 @@ const PIPELINE_COLORS: Record<string, string> = {
 const TAG_COLORS: Record<string, string> = {
   A: "bg-green-500 text-white", B: "bg-amber-500 text-black", C: "bg-red-500 text-white", "!": "bg-violet-500 text-white",
 };
+const TAG_PURPOSE: Record<string, string> = {
+  A: "Hot lead", B: "Warm lead", C: "Cold lead", "!": "Urgent — needs follow-up",
+};
 
 const ACTIVITY_ICONS: Record<string, string> = {
   call: "📞", email: "📧", text: "💬", meeting: "🤝", note: "📝", quote_sent: "📋", follow_up: "🔄",
@@ -260,6 +263,7 @@ export default function CRMDashboard() {
                   <button
                     key={t}
                     onClick={() => router.push(`/admin/crm/contacts?tag=${t}`)}
+                    title={`${TAG_PURPOSE[t]} — click to filter`}
                     className={`rounded-full px-2 py-0.5 text-xs font-bold cursor-pointer hover:opacity-80 transition-opacity ${TAG_COLORS[t]}`}
                   >
                     {t}: {stats.tags[t]}

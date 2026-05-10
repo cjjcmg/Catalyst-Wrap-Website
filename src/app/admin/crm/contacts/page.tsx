@@ -31,6 +31,12 @@ const TAG_COLORS: Record<string, string> = {
   C: "bg-red-500 text-white",
   "!": "bg-violet-500 text-white",
 };
+const TAG_PURPOSE: Record<string, string> = {
+  A: "Hot lead",
+  B: "Warm lead",
+  C: "Cold lead",
+  "!": "Urgent — needs follow-up",
+};
 
 const STATUS_LABELS: Record<string, string> = {
   new: "New",
@@ -349,7 +355,7 @@ function CRMContactsInner() {
                       className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
                         c.contact_tag ? TAG_COLORS[c.contact_tag] : "bg-catalyst-border text-catalyst-grey-500"
                       }`}
-                      title={`Tag: ${c.contact_tag || "None"} (click to cycle)`}
+                      title={`${c.contact_tag ? TAG_PURPOSE[c.contact_tag] : "No tag"} (click to cycle: Hot → Warm → Cold → Urgent)`}
                     >
                       {c.contact_tag || "—"}
                     </button>
